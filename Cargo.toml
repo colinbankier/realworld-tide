@@ -1,0 +1,12 @@
+[package]
+name = "realworld-tide"
+version = "0.1.0"
+authors = ["colinbankier <colinbankier@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tide = { git = "https://github.com/rust-net-web/tide.git" }
+
+[dependencies.futures-preview]
+features = ["compat"]
+version = "0.3.0-alpha.9"
