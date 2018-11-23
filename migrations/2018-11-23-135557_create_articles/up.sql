@@ -1,0 +1,13 @@
+CREATE TABLE articles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+SELECT diesel_manage_updated_at('articles');
