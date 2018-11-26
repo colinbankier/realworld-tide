@@ -8,6 +8,6 @@ CREATE TABLE users (
     token VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 SELECT diesel_manage_updated_at('users');

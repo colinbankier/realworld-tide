@@ -1,8 +1,8 @@
 use chrono::NaiveDateTime;
 
-#[derive(Queryable, Identifiable, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
-    pub id: u32,
+    pub id: i32,
     pub username: String,
     pub email: String,
     pub password: String,

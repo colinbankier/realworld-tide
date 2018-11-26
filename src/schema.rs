@@ -20,8 +20,8 @@ table! {
         bio -> Nullable<Varchar>,
         image -> Nullable<Varchar>,
         token -> Nullable<Varchar>,
-        created_at -> Timestamptz,
-        updated_at -> Timestamptz,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
