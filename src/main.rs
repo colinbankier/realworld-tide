@@ -15,22 +15,25 @@ pub mod schema;
 use self::models::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel::r2d2::ConnectionManager;
 use dotenv::dotenv;
 use http::status::StatusCode;
 use std::env;
-use tide::{self, body, head, App, AppData};
+use tide::{self, body, App, AppData};
 
-pub fn establish_connection() -> PgConnection {
+type ConnectionPool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+pub fn connection_pool() -> ConnectionPool {
     dotenv().ok();
-
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
+    let manager = ConnectionManager::new(database_url);
+    r2d2::Pool::new(manager).unwrap()
 }
 
-async fn list_users() -> Result<body::Json<Vec<User>>, StatusCode> {
+async fn list_users(pool: AppData<ConnectionPool>) -> Result<body::Json<Vec<User>>, StatusCode> {
     use self::schema::users::dsl::*;
 
-    let connection = establish_connection();
+    let connection = pool.get().unwrap();
     let results = users.limit(5).load::<User>(&connection);
 
     results
@@ -39,7 +42,7 @@ async fn list_users() -> Result<body::Json<Vec<User>>, StatusCode> {
 }
 
 fn main() {
-    let mut app = tide::App::new(());
+    let mut app = App::new(connection_pool());
     app.at("/").get(list_users);
     app.serve("127.0.0.1:7878")
 }
