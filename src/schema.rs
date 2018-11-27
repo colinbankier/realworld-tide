@@ -1,11 +1,11 @@
 table! {
     articles (id) {
         id -> Int4,
-        user_id -> Int4,
-        slug -> Varchar,
         title -> Varchar,
+        slug -> Varchar,
         description -> Varchar,
         body -> Text,
+        user_id -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

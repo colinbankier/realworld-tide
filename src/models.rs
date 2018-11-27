@@ -12,3 +12,15 @@ pub struct User {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+pub struct Article {
+    pub id: i32,
+    pub title: String,
+    pub slug: String,
+    pub description: String,
+    pub body: String,
+    pub user_id: i32,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
