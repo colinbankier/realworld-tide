@@ -42,6 +42,24 @@ impl Repo {
         ))
         .map_err(|_| panic!("the threadpool shut down"))))
     }
+
+    // pub async fn run2<F, T>(&self, f: F) -> T
+    // where
+    //     F: FnOnce(Connection) -> T + Send + std::marker::Unpin + 'static,
+    //     T: Send + 'static,
+    // {
+    //     let pool = self.connection_pool.clone();
+    //     // `tokio_threadpool::blocking` returns a `Poll` compatible with "old style" futures.
+    //     // `poll_fn` converts this into a future, then
+    //     // `tokio::await` is used to convert the old style future to a `std::futures::Future`.
+    //     // `f.take()` allows the borrow checker to be sure `f` is not moved into the inner closure
+    //     // multiple times if `poll_fn` is called multple times.
+    //     let mut f = Some(f);
+    //     tokio::await!(poll_fn(|| blocking(|| (f.take().unwrap())(
+    //         pool.get().unwrap()
+    //     ))
+    //     .map_err(|_| panic!("the threadpool shut down"))))
+    // }
 }
 
 pub fn connection_pool() -> ConnectionPool {

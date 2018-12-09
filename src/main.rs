@@ -11,7 +11,10 @@ extern crate http;
 extern crate tokio_threadpool;
 #[macro_use]
 extern crate tokio;
+extern crate env_logger;
 extern crate futures;
+#[macro_use]
+extern crate log;
 
 mod conduit;
 mod db;
@@ -23,7 +26,9 @@ use crate::db::Repo;
 use tide::App;
 
 fn main() {
+    env_logger::init();
     let mut app = App::new(Repo::new());
+    app.at("/api/users").post(register);
     app.at("/api/user").get(get_user);
     app.at("/api/articles").get(list_articles);
     app.serve("127.0.0.1:7878")
