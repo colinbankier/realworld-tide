@@ -14,6 +14,17 @@ pub struct UserResponse {
     user: User,
 }
 
+#[derive(Deserialize)]
+pub struct AuthRequest {
+    user: AuthUser,
+}
+
+#[derive(Deserialize)]
+pub struct AuthUser {
+    email: String,
+    password: String,
+}
+
 pub async fn register(
     repo: AppData<Repo>,
     registration: Json<Registration>,
@@ -22,37 +33,45 @@ pub async fn register(
 
     let result = await! { repo.run(|conn| {
         let user = registration.0.user;
+        // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(&conn)
     })
     };
 
-    match result {
-        Ok(diesel_result) => diesel_result
-            .map(|user| Json(UserResponse { user }))
-            .map_err(|e| {
-                error!("{}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
-            }),
-        Err(e) => {
-            error!("{}", e);
-            Err(StatusCode::INTERNAL_SERVER_ERROR)
-        }
-    }
+    result
+        .map(|user| Json(UserResponse { user }))
+        .map_err(|e| diesel_error(&e))
 }
 
-pub async fn get_user(repo: AppData<Repo>) -> Result<Json<User>, StatusCode> {
+pub async fn login(
+    repo: AppData<Repo>,
+    auth: Json<AuthRequest>,
+) -> Result<Json<UserResponse>, StatusCode> {
+    use crate::schema::users::dsl::*;
+
+    let user = auth.0.user;
+    let results = await! { repo.run(|conn| {
+    users
+        .filter(email.eq(user.email))
+        .filter(password.eq(user.password))
+        .first::<User>(&conn)
+    }) };
+
+    results
+        .map(|user| Json(UserResponse { user }))
+        .map_err(|e| diesel_error(&e))
+}
+
+pub async fn get_user(repo: AppData<Repo>) -> Result<Json<UserResponse>, StatusCode> {
     use crate::schema::users::dsl::*;
 
     let results = await! { repo.run(|conn| users.first::<User>(&conn)) };
 
-    match results {
-        Ok(diesel_result) => diesel_result
-            .map(|user| Json(user))
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-    }
+    results
+        .map(|user| Json(UserResponse { user }))
+        .map_err(|e| diesel_error(&e))
 }
 
 pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, StatusCode> {
@@ -60,10 +79,12 @@ pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, St
 
     let results = await! { repo.run(|conn| articles.limit(10).load::<Article>(&conn)) };
 
-    match results {
-        Ok(diesel_result) => diesel_result
-            .map(|article_list| Json(article_list))
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-    }
+    results
+        .map(|article_list| Json(article_list))
+        .map_err(|e| diesel_error(&e))
+}
+
+fn diesel_error(e: &diesel::result::Error) -> StatusCode {
+    error!("{}", e);
+    StatusCode::INTERNAL_SERVER_ERROR
 }

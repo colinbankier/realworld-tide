@@ -25,7 +25,7 @@ impl Repo {
 
     /// Runs the given closure in a way that is safe for blocking IO to the database.
     /// The closure will be passed a `Connection` from the pool to use.
-    pub async fn run<F, T>(&self, f: F) -> Result<T, tokio::io::Error>
+    pub async fn run<F, T>(&self, f: F) -> T
     where
         F: FnOnce(Connection) -> T + Send + std::marker::Unpin + 'static,
         T: Send + 'static,
@@ -41,6 +41,7 @@ impl Repo {
             pool.get().unwrap()
         ))
         .map_err(|_| panic!("the threadpool shut down"))))
+        .expect("Error running async database task.")
     }
 
     // pub async fn run2<F, T>(&self, f: F) -> T

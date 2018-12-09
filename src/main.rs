@@ -29,6 +29,7 @@ fn main() {
     env_logger::init();
     let mut app = App::new(Repo::new());
     app.at("/api/users").post(register);
+    app.at("/api/users/login").post(login);
     app.at("/api/user").get(get_user);
     app.at("/api/articles").get(list_articles);
     app.serve("127.0.0.1:7878")
