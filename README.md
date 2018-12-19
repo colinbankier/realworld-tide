@@ -5,6 +5,9 @@
 
 ### [Demo](https://github.com/gothinkster/realworld)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
+### WIP - this repo is as yet incomplete and still being implemented
+
+The app will evolve as I experiment with nice ways to structure things. It's very minimal so far, but I intend to grow it to be a good reference for implementing an app in Tide.
 
 This codebase was created to demonstrate a fully fledged fullstack application built with **Rust/Tide** including CRUD operations, authentication, routing, pagination, and more.
 
