@@ -9,6 +9,15 @@ pub struct Registration {
     user: NewUser,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct UpdateUser {
+    email: Option<String>,
+    username: Option<String>,
+    password: Option<String>,
+    image: Option<String>,
+    bio: Option<String>,
+}
+
 #[derive(Serialize)]
 pub struct UserResponse {
     user: User,
@@ -73,6 +82,12 @@ pub async fn get_user(repo: AppData<Repo>) -> Result<Json<UserResponse>, StatusC
         .map(|user| Json(UserResponse { user }))
         .map_err(|e| diesel_error(&e))
 }
+
+// pub async fn update_user(
+//     repo: AppData<Repo>,
+//     update_user: Json<UpdateUser>,
+// ) -> Result<Json<UserResponse>, StatusCode> {
+// }
 
 pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, StatusCode> {
     use crate::schema::articles::dsl::*;

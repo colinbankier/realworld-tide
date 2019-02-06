@@ -24,5 +24,24 @@ For more information on how to this works with other frontends/backends, head ov
 
 # Getting started
 
-> cargo run etc.
-
+Ensure postgres is installed and running.
+Ensure user 'realworld-tide' exists and can create databases.
+```
+sudo -u postgres psql -c "CREATE USER \"realworld-tide\" WITH ENCRYPTED PASSWORD 'password';"
+sudo -u postgres psql -c "ALTER USER \"realworld-tide\" CREATEDB;"
+```
+Ensure diesel cli is installed, see [http://diesel.rs/guides/getting-started/]
+Setup database using diesel cli
+```
+diesel database setup
+```
+Run the app
+```
+cargo run
+```
+Run the "realworld" Postman tests
+```
+git clone https://github.com/gothinkster/realworld
+cd realworld/api
+APIURL=http://localhost:8181/api ./run-api-tests.sh
+```
