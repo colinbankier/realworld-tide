@@ -3,6 +3,9 @@ use crate::models::*;
 use diesel::prelude::*;
 use http::status::StatusCode;
 use tide::{self, body::Json, AppData};
+use jsonwebtoken::{encode, Algorithm, Header};
+use crate::auth;
+use crate::models::User;
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -61,16 +64,21 @@ pub async fn login(
     use crate::schema::users::dsl::*;
 
     let user = auth.0.user;
-    let results = await! { repo.run(|conn| {
+    let result = await! { repo.run(|conn| {
     users
         .filter(email.eq(user.email))
         .filter(password.eq(user.password))
         .first::<User>(&conn)
     }) };
 
-    results
-        .map(|user| Json(UserResponse { user }))
-        .map_err(|e| diesel_error(&e))
+    match result {
+        Ok(user) => {
+            let user = User{token: Some(auth::encode_token(user.id)), ..user};
+            Ok(Json(UserResponse { user }))
+        },
+        Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED),
+        Err(e) => Err(diesel_error(&e))
+    }
 }
 
 pub async fn get_user(repo: AppData<Repo>) -> Result<Json<UserResponse>, StatusCode> {

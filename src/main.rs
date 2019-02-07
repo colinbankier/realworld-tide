@@ -17,6 +17,7 @@ extern crate futures as futures01;
 #[macro_use]
 extern crate log;
 
+mod auth;
 mod conduit;
 mod db;
 mod middleware;
@@ -26,13 +27,8 @@ mod schema;
 use crate::conduit::*;
 use crate::db::Repo;
 use tide::App;
-use middleware::JWTMiddleware;
-
- #[derive(Deserialize, Debug)]
- struct Claims {
-     sub: String,
-     exp: usize,
- }
+use crate::auth::Claims;
+use crate::middleware::JWTMiddleware;
 
 fn main() {
     env_logger::init();

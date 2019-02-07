@@ -4,6 +4,8 @@ use std::sync::{Arc, Mutex, PoisonError, Weak};
 use std::time::{Duration, Instant};
 use http::status::StatusCode;
 use jsonwebtoken::{decode, Validation, TokenData};
+use std::{marker::PhantomData};
+use serde::de::Deserialize;
 
 use tide::{middleware::RequestContext, Middleware, Response, IntoResponse};
 
@@ -36,18 +38,23 @@ where
     }
 }
 
-impl<Data: Clone + Send> Middleware<Data> for JWTMiddleware {
+impl<T, Data: Clone + Send> Middleware<Data> for JWTMiddleware<T>
+where
+    T: for<'de> Deserialize<'de> + Send + Sync {
     fn handle<'a>(&'a self, ctx: RequestContext<'a, Data>) -> FutureObj<'a, Response> {
         FutureObj::new(Box::new(
             async move {
             let token = match ctx.req.headers().get("Authorization") {
                 Some(h) => match h.to_str() {
-                    Ok(hx) => hx.get(8..),
+                    Ok(hx) => {
+                        debug!("Auth header: {}", hx);
+                        hx.split(" ").nth(1)
+                    },
                     _ => None,
                 },
                 _ => None,
             };
-                info!("JWT token: {}", token);
+            info!("JWT token: {:?}", token);
         if token.is_none() {
             return StatusCode::BAD_REQUEST.into_response();
         }
@@ -57,6 +64,7 @@ impl<Data: Clone + Send> Middleware<Data> for JWTMiddleware {
                 await!(ctx.next())
             }
             Err(e) => {
+                info!("Invalid token: {:?}", e);
                 StatusCode::UNAUTHORIZED.into_response()
             }
         }}
