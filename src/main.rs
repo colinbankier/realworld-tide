@@ -23,6 +23,7 @@ mod db;
 mod middleware;
 mod models;
 mod schema;
+mod extractors;
 
 use crate::conduit::*;
 use crate::db::Repo;

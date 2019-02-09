@@ -9,6 +9,8 @@ use serde::de::Deserialize;
 
 use tide::{middleware::RequestContext, Middleware, Response, IntoResponse};
 
+use crate::auth::extract_claims;
+
 pub struct JWTMiddleware<T> {
     secret: &'static str,
     validation: Validation,
@@ -44,30 +46,14 @@ where
     fn handle<'a>(&'a self, ctx: RequestContext<'a, Data>) -> FutureObj<'a, Response> {
         FutureObj::new(Box::new(
             async move {
-            let token = match ctx.req.headers().get("Authorization") {
-                Some(h) => match h.to_str() {
-                    Ok(hx) => {
-                        debug!("Auth header: {}", hx);
-                        hx.split(" ").nth(1)
-                    },
-                    _ => None,
-                },
-                _ => None,
-            };
-            info!("JWT token: {:?}", token);
-        if token.is_none() {
-            return StatusCode::BAD_REQUEST.into_response();
-        }
-
-        match decode::<T>(&token.unwrap(), self.secret.as_ref(), &self.validation) {
-            Ok(token) => {
                 await!(ctx.next())
-            }
-            Err(e) => {
-                info!("Invalid token: {:?}", e);
-                StatusCode::UNAUTHORIZED.into_response()
-            }
-        }}
+                // Not sure yet why is won't compile:
+                // if let Some(_valid) = extract_claims(ctx.req.headers()) {
+                //     await!(ctx.next())
+                // } else {
+                //     StatusCode::UNAUTHORIZED.into_response()
+                // }
+        }
         ))
     }
 }
