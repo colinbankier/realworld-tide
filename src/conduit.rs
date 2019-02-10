@@ -1,12 +1,12 @@
+use crate::auth::{encode_token, Claims};
 use crate::db::Repo;
+use crate::models::User;
 use crate::models::*;
+use crate::schema::users;
 use diesel::prelude::*;
 use http::status::StatusCode;
-use tide::{self, body::Json, AppData};
 use jsonwebtoken::{encode, Algorithm, Header};
-use crate::auth::{encode_token, Claims};
-use crate::models::User;
-use crate::schema::users;
+use tide::{self, body::Json, AppData};
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -15,7 +15,7 @@ pub struct Registration {
 
 #[derive(Deserialize, Debug)]
 pub struct UpdateUserRequest {
-    user: UpdateUser
+    user: UpdateUser,
 }
 
 #[derive(Deserialize, Debug, AsChangeset)]
@@ -80,11 +80,14 @@ pub async fn login(
 
     match result {
         Ok(user) => {
-            let user = User{token: Some(encode_token(user.id)), ..user};
+            let user = User {
+                token: Some(encode_token(user.id)),
+                ..user
+            };
             Ok(Json(UserResponse { user }))
-        },
+        }
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED),
-        Err(e) => Err(diesel_error(&e))
+        Err(e) => Err(diesel_error(&e)),
     }
 }
 
@@ -103,7 +106,7 @@ pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResp
 pub async fn update_user(
     repo: AppData<Repo>,
     update_params: Json<UpdateUserRequest>,
-    auth: Claims
+    auth: Claims,
 ) -> Result<Json<UserResponse>, StatusCode> {
     use crate::schema::users::dsl::*;
     let user_id = auth.user_id();

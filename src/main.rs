@@ -20,16 +20,13 @@ extern crate log;
 mod auth;
 mod conduit;
 mod db;
-mod middleware;
+mod extractors;
 mod models;
 mod schema;
-mod extractors;
 
 use crate::conduit::*;
 use crate::db::Repo;
 use tide::App;
-use crate::auth::Claims;
-use crate::middleware::JWTMiddleware;
 
 fn main() {
     env_logger::init();

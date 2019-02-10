@@ -1,5 +1,5 @@
-use chrono::NaiveDateTime;
 use crate::schema::users;
+use chrono::NaiveDateTime;
 
 #[derive(Insertable, Deserialize, Debug)]
 #[table_name = "users"]
