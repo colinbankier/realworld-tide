@@ -12,6 +12,12 @@ const secret: &str = "secret";
      exp: u64,
  }
 
+ impl Claims {
+     pub fn user_id(&self) -> i32 {
+         self.sub
+     }
+ }
+
 fn validation() -> Validation {
     Validation::default()
 }

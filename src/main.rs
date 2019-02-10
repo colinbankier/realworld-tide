@@ -35,14 +35,11 @@ fn main() {
     env_logger::init();
     let mut app = App::new(Repo::new());
     app.at("/api").nest(|api| {
-        api.at("/user").nest(|r| {
-            r.middleware(JWTMiddleware::<Claims>::new("secret".as_ref()));
-            r.at("/").get(get_user);
-        });
+        api.at("/user").get(get_user);
+        api.at("/user").put(update_user);
         api.at("/users").post(register);
         api.at("/users/login").post(login);
+        api.at("/articles").get(list_articles);
     });
-    // app.at("/api/user").post(update_user);
-    app.at("/api/articles").get(list_articles);
     app.serve()
 }

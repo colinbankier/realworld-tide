@@ -4,8 +4,9 @@ use diesel::prelude::*;
 use http::status::StatusCode;
 use tide::{self, body::Json, AppData};
 use jsonwebtoken::{encode, Algorithm, Header};
-use crate::auth;
+use crate::auth::{encode_token, Claims};
 use crate::models::User;
+use crate::schema::users;
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -13,6 +14,12 @@ pub struct Registration {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct UpdateUserRequest {
+    user: UpdateUser
+}
+
+#[derive(Deserialize, Debug, AsChangeset)]
+#[table_name = "users"]
 pub struct UpdateUser {
     email: Option<String>,
     username: Option<String>,
@@ -73,7 +80,7 @@ pub async fn login(
 
     match result {
         Ok(user) => {
-            let user = User{token: Some(auth::encode_token(user.id)), ..user};
+            let user = User{token: Some(encode_token(user.id)), ..user};
             Ok(Json(UserResponse { user }))
         },
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED),
@@ -81,21 +88,37 @@ pub async fn login(
     }
 }
 
-pub async fn get_user(repo: AppData<Repo>) -> Result<Json<UserResponse>, StatusCode> {
+pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResponse>, StatusCode> {
     use crate::schema::users::dsl::*;
+    let user_id = auth.user_id();
+    info!("Get user {}", user_id);
 
-    let results = await! { repo.run(|conn| users.first::<User>(&conn)) };
+    let results = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
 
     results
         .map(|user| Json(UserResponse { user }))
         .map_err(|e| diesel_error(&e))
 }
 
-// pub async fn update_user(
-//     repo: AppData<Repo>,
-//     update_user: Json<UpdateUser>,
-// ) -> Result<Json<UserResponse>, StatusCode> {
-// }
+pub async fn update_user(
+    repo: AppData<Repo>,
+    update_params: Json<UpdateUserRequest>,
+    auth: Claims
+) -> Result<Json<UserResponse>, StatusCode> {
+    use crate::schema::users::dsl::*;
+    let user_id = auth.user_id();
+    info!("Update user {} {:?}", user_id, update_params.0);
+
+    let results = await! { repo.run(move |conn| {
+        diesel::update(users.find(user_id))
+            .set(&update_params.0.user)
+            .get_result(&conn)
+    })};
+
+    results
+        .map(|user| Json(UserResponse { user }))
+        .map_err(|e| diesel_error(&e))
+}
 
 pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, StatusCode> {
     use crate::schema::articles::dsl::*;
