@@ -24,11 +24,17 @@ mod extractors;
 mod models;
 mod schema;
 
+#[cfg(test)]
+mod test_helpers;
+
 use crate::conduit::*;
 use crate::db::Repo;
 use tide::App;
+use dotenv::dotenv;
+
 
 fn main() {
+    dotenv().ok();
     env_logger::init();
     let mut app = App::new(Repo::new());
     app.at("/api").nest(|api| {

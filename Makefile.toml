@@ -1,0 +1,11 @@
+[env]
+DATABASE_URL = { script = ["sed s/DATABASE_URL=// .env.test"] }
+
+[tasks.resetdb]
+command = "diesel"
+args = ["database", "reset"]
+
+[tasks.test]
+dependencies = ["resetdb"]
+command = "cargo"
+args = ["test"]
