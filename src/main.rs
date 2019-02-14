@@ -13,9 +13,11 @@ extern crate tokio_threadpool;
 extern crate tokio;
 extern crate env_logger;
 extern crate futures as futures01;
-
 #[macro_use]
 extern crate log;
+
+#[cfg(test)]
+extern crate fake;
 
 mod auth;
 mod conduit;

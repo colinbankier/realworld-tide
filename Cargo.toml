@@ -24,3 +24,7 @@ tokio-async-await-test = "0.1"
 [dependencies.futures-preview]
 features = ["compat", "tokio-compat"]
 version = "0.3.0-alpha.12"
+
+
+[dev-dependencies]
+fake = "1.2.2"

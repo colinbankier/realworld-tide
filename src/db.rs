@@ -1,12 +1,13 @@
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
+use r2d2::{Pool, PooledConnection};
 use dotenv::dotenv;
 use futures01::future::poll_fn;
 use std::env;
 use tokio_threadpool::blocking;
 
-pub type ConnectionPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-pub type Connection = r2d2::PooledConnection<diesel::r2d2::ConnectionManager<diesel::PgConnection>>;
+pub type ConnectionPool = Pool<ConnectionManager<PgConnection>>;
+pub type Connection = PooledConnection<ConnectionManager<PgConnection>>;
 
 /// A database "repository", for running database workloads.
 /// Manages a connection pool and running blocking tasks in a
@@ -48,5 +49,22 @@ impl Repo {
 pub fn connection_pool() -> ConnectionPool {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let manager = ConnectionManager::new(database_url);
-    r2d2::Pool::new(manager).unwrap()
+    configure_pool(manager)
+}
+
+#[cfg(test)]
+fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
+    use crate::test_helpers::TestConnectionCustomizer;
+    let customizer = TestConnectionCustomizer {};
+
+    Pool::builder()
+        .connection_customizer(Box::new(customizer))
+        .build(manager)
+        .expect("could not initiate test db pool")
+}
+
+#[cfg(not(test))]
+fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
+    Pool::new(manager)
+        .expect("could not initiate db pool")
 }

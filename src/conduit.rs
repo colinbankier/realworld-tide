@@ -143,7 +143,7 @@ mod tests {
     use tokio_async_await_test::async_test;
     use crate::test_helpers::init_env;
     use super::*;
-    use crate::mode;
+    use fake::fake;
 
     #[async_test]
     async fn register_user() {
@@ -151,13 +151,12 @@ mod tests {
         let app_data = AppData(Repo::new());
         let params = Json(Registration {
             user: NewUser {
-                username: "u1".to_string(),
-                email: "u@mail.com".to_string(),
-                password: "secret".to_string(),
+                username: fake!(Internet.user_name).to_string(),
+                email: fake!(Internet.free_email).to_string(),
+                password: fake!(Lorem.word).to_string(),
             },
         });
         let registration = await!{ register(app_data, params) };
         assert!(registration.is_ok());
-        assert!(true);
     }
 }
