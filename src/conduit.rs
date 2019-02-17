@@ -140,15 +140,18 @@ fn diesel_error(e: &diesel::result::Error) -> StatusCode {
 
 #[cfg(test)]
 mod tests {
+    // These tests are more like "integration" tests that hit the database, and exercise the app via the tide handlers.
     use tokio_async_await_test::async_test;
     use crate::test_helpers::init_env;
     use super::*;
+    use crate::schema::users;
+    use diesel::prelude::*;
     use fake::fake;
 
     #[async_test]
     async fn register_user() {
         init_env();
-        let app_data = AppData(Repo::new());
+        let repo = Repo::new();
         let params = Json(Registration {
             user: NewUser {
                 username: fake!(Internet.user_name).to_string(),
@@ -156,7 +159,13 @@ mod tests {
                 password: fake!(Lorem.word).to_string(),
             },
         });
-        let registration = await!{ register(app_data, params) };
+        let registration = await!{ register(AppData(repo.clone()), params) };
         assert!(registration.is_ok());
+
+
+        use crate::schema::users::dsl::*;
+        let user_id = registration.unwrap().0.user.id;
+        let results: Result<User, diesel::result::Error> = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
+        assert!(results.is_ok());
     }
 }
