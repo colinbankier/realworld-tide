@@ -20,6 +20,7 @@ extern crate log;
 extern crate fake;
 
 mod auth;
+mod endpoints;
 mod conduit;
 mod db;
 mod extractors;
@@ -29,7 +30,7 @@ mod schema;
 #[cfg(test)]
 mod test_helpers;
 
-use crate::conduit::*;
+use crate::endpoints::*;
 use crate::db::Repo;
 use tide::App;
 use dotenv::dotenv;

@@ -1,171 +1,52 @@
-use crate::auth::{encode_token, Claims};
 use crate::db::Repo;
 use crate::models::User;
 use crate::models::*;
 use crate::schema::users;
 use diesel::prelude::*;
-use http::status::StatusCode;
-use jsonwebtoken::{encode, Algorithm, Header};
-use tide::{self, body::Json, AppData};
+use diesel::result::Error;
 
-#[derive(Deserialize, Debug)]
-pub struct Registration {
-    user: NewUser,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct UpdateUserRequest {
-    user: UpdateUser,
-}
-
-#[derive(Deserialize, Debug, AsChangeset)]
-#[table_name = "users"]
-pub struct UpdateUser {
-    email: Option<String>,
-    username: Option<String>,
-    password: Option<String>,
-    image: Option<String>,
-    bio: Option<String>,
-}
-
-#[derive(Serialize)]
-pub struct UserResponse {
-    user: User,
-}
-
-#[derive(Deserialize)]
-pub struct AuthRequest {
-    user: AuthUser,
-}
-
-#[derive(Deserialize)]
-pub struct AuthUser {
-    email: String,
-    password: String,
-}
-
-pub async fn register(
-    repo: AppData<Repo>,
-    registration: Json<Registration>,
-) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users;
-
-    let result = await! { repo.run(|conn| {
-        let user = registration.0.user;
+pub async fn create_user(repo: Repo, user: NewUser) -> Result<User, Error> {
+    await! { repo.run(move |conn| {
         // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(&conn)
-    })
-    };
-
-    result
-        .map(|user| Json(UserResponse { user }))
-        .map_err(|e| diesel_error(&e))
+    })}
 }
 
-pub async fn login(
-    repo: AppData<Repo>,
-    auth: Json<AuthRequest>,
-) -> Result<Json<UserResponse>, StatusCode> {
+pub async fn find_user(repo: Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-
-    let user = auth.0.user;
-    let result = await! { repo.run(|conn| {
-    users
-        .filter(email.eq(user.email))
-        .filter(password.eq(user.password))
-        .first::<User>(&conn)
-    }) };
-
-    match result {
-        Ok(user) => {
-            let user = User {
-                token: Some(encode_token(user.id)),
-                ..user
-            };
-            Ok(Json(UserResponse { user }))
-        }
-        Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED),
-        Err(e) => Err(diesel_error(&e)),
-    }
-}
-
-pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users::dsl::*;
-    let user_id = auth.user_id();
-    info!("Get user {}", user_id);
-
-    let results = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
-
-    results
-        .map(|user| Json(UserResponse { user }))
-        .map_err(|e| diesel_error(&e))
-}
-
-pub async fn update_user(
-    repo: AppData<Repo>,
-    update_params: Json<UpdateUserRequest>,
-    auth: Claims,
-) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users::dsl::*;
-    let user_id = auth.user_id();
-    info!("Update user {} {:?}", user_id, update_params.0);
-
-    let results = await! { repo.run(move |conn| {
-        diesel::update(users.find(user_id))
-            .set(&update_params.0.user)
-            .get_result(&conn)
-    })};
-
-    results
-        .map(|user| Json(UserResponse { user }))
-        .map_err(|e| diesel_error(&e))
-}
-
-pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, StatusCode> {
-    use crate::schema::articles::dsl::*;
-
-    let results = await! { repo.run(|conn| articles.limit(10).load::<Article>(&conn)) };
-
-    results
-        .map(|article_list| Json(article_list))
-        .map_err(|e| diesel_error(&e))
-}
-
-fn diesel_error(e: &diesel::result::Error) -> StatusCode {
-    error!("{}", e);
-    StatusCode::INTERNAL_SERVER_ERROR
+        await! { repo.run(move |conn| users.find(user_id).first(&conn)) }
 }
 
 #[cfg(test)]
 mod tests {
-    // These tests are more like "integration" tests that hit the database, and exercise the app via the tide handlers.
     use tokio_async_await_test::async_test;
     use crate::test_helpers::init_env;
     use super::*;
     use crate::schema::users;
+    use crate::schema::users::dsl::*;
     use diesel::prelude::*;
     use fake::fake;
 
     #[async_test]
-    async fn register_user() {
+    async fn test_create_user() {
         init_env();
         let repo = Repo::new();
-        let params = Json(Registration {
-            user: NewUser {
+        // Create a new user
+        let new_user = NewUser {
                 username: fake!(Internet.user_name).to_string(),
                 email: fake!(Internet.free_email).to_string(),
                 password: fake!(Lorem.word).to_string(),
-            },
-        });
-        let registration = await!{ register(AppData(repo.clone()), params) };
-        assert!(registration.is_ok());
+            };
+        let user = await!{ create_user(repo.clone(), new_user) };
 
-
-        use crate::schema::users::dsl::*;
-        let user_id = registration.unwrap().0.user.id;
-        let results: Result<User, diesel::result::Error> = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
+        // Check the user is in the database.
+        let user_id = user.expect("Create user failed.").id;
+        let results = await! {
+            find_user(repo.clone(), user_id)
+         };
         assert!(results.is_ok());
     }
 }
+

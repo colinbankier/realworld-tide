@@ -1,5 +1,6 @@
 use crate::schema::users;
 use chrono::NaiveDateTime;
+use diesel::result::Error;
 
 #[derive(Insertable, Deserialize, Debug)]
 #[table_name = "users"]
@@ -21,6 +22,17 @@ pub struct User {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Deserialize, Debug, AsChangeset)]
+#[table_name = "users"]
+pub struct UpdateUser {
+    email: Option<String>,
+    username: Option<String>,
+    password: Option<String>,
+    image: Option<String>,
+    bio: Option<String>,
+}
+
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Article {
