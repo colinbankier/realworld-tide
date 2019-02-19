@@ -134,52 +134,41 @@ fn diesel_error(e: &diesel::result::Error) -> StatusCode {
 
 #[cfg(test)]
 mod tests {
-    // These tests are more like "integration" tests that hit the database, and exercise the app via the tide handlers.
+    // These tests are more like "integration" tests that exercise a workflow via the tide handlers.
     use tokio_async_await_test::async_test;
-    use crate::test_helpers::init_env;
+    use crate::test_helpers::{ generate, init_env };
     use super::*;
     use crate::schema::users;
     use crate::schema::users::dsl::*;
     use diesel::prelude::*;
     use fake::fake;
+    use crate::auth;
 
     #[async_test]
-    async fn register_user() {
+    async fn register_and_login() {
         init_env();
         let repo = Repo::new();
-        let params = Json(Registration {
-            user: NewUser {
-                username: fake!(Internet.user_name).to_string(),
-                email: fake!(Internet.free_email).to_string(),
-                password: fake!(Lorem.word).to_string(),
-            },
-        });
-        let registration = await!{ register(AppData(repo.clone()), params) };
-        assert!(registration.is_ok());
+        let user = generate::new_user();
 
+        let reg_request = Json(Registration { user: user.clone() });
+        let reg_response = await!{ register(AppData(repo.clone()), reg_request) };
+        assert!(reg_response.is_ok());
+        let user_id = reg_response.unwrap().0.user.id;
 
-        let user_id = registration.unwrap().0.user.id;
-        let results: Result<User, diesel::result::Error> = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
-        assert!(results.is_ok());
+        let login_request = Json(AuthRequest{ user: AuthUser{
+            email: user.email,
+            password: user.password,
+        }});
+
+        let login_response = await!{ login(AppData(repo.clone()), login_request)};
+        assert!(login_response.is_ok());
+        assert!(login_response.unwrap().0.user.token.is_some());
+
+        let auth = auth::claims_for(user_id, 10);
+
+        let user_response = await!{ get_user(AppData(repo.clone()), auth)};
+        assert!(user_response.is_ok());
+        let user_details = user_response.unwrap().0.user;
+        assert_eq!(user_details.username, user.username);
     }
-
-    #[async_test]
-    async fn successful_login() {
-        // init_env();
-        // let repo = Repo::new();
-
-        // let user = NewUser {
-        //         username: fake!(Internet.user_name).to_string(),
-        //         email: fake!(Internet.free_email).to_string(),
-        //         password: fake!(Lorem.word).to_string(),
-        // };
-        // let result = await! { repo.run(|conn| {
-        //     diesel::insert_into(users::table)
-        //         .values(&user)
-        //         .get_result(&conn)
-        // })
-        // };
-        // assert!(result.is_ok());
-    }
-
 }

@@ -23,11 +23,20 @@ fn validation() -> Validation {
 }
 
 pub fn encode_token(sub: i32) -> String {
+    encode(&Header::default(), &claims_for(sub, 3600), secret.as_ref()).unwrap()
+}
+
+pub fn claims_for(user_id: i32, expire_in: u64) -> Claims {
+    Claims{
+        sub: user_id,
+        exp: seconds_from_now(expire_in),
+    }
+}
+
+fn seconds_from_now(secs: u64) -> u64 {
     let expiry_time =
         SystemTime::now().duration_since(UNIX_EPOCH).unwrap() + Duration::from_secs(3600);
-    let exp = expiry_time.as_secs();
-    let claims = Claims { sub, exp };
-    encode(&Header::default(), &claims, secret.as_ref()).unwrap()
+    expiry_time.as_secs()
 }
 
 pub fn extract_token(headers: &HeaderMap) -> Option<&str> {

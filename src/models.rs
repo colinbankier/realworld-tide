@@ -2,7 +2,7 @@ use crate::schema::users;
 use chrono::NaiveDateTime;
 use diesel::result::Error;
 
-#[derive(Insertable, Deserialize, Debug)]
+#[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "users"]
 pub struct NewUser {
     pub username: String,

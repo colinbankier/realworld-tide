@@ -22,3 +22,18 @@ where
         }
     }
 }
+
+/// Functions for generating test data
+pub mod generate {
+    use crate::models::NewUser;
+    use fake::fake;
+
+    pub fn new_user() -> NewUser {
+        NewUser {
+            username: fake!(Internet.user_name).to_string(),
+            email: fake!(Internet.free_email).to_string(),
+            password: fake!(Lorem.word).to_string(),
+        }
+    }
+
+}
