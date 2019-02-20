@@ -20,9 +20,9 @@ extern crate log;
 extern crate fake;
 
 mod auth;
-mod endpoints;
 mod conduit;
 mod db;
+mod endpoints;
 mod extractors;
 mod models;
 mod schema;
@@ -30,11 +30,10 @@ mod schema;
 #[cfg(test)]
 mod test_helpers;
 
-use crate::endpoints::*;
 use crate::db::Repo;
-use tide::App;
+use crate::endpoints::*;
 use dotenv::dotenv;
-
+use tide::App;
 
 fn main() {
     dotenv().ok();

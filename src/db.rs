@@ -1,8 +1,8 @@
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
-use r2d2::{Pool, PooledConnection};
 use dotenv::dotenv;
 use futures01::future::poll_fn;
+use r2d2::{Pool, PooledConnection};
 use std::env;
 use tokio_threadpool::blocking;
 
@@ -65,6 +65,5 @@ fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
 
 #[cfg(not(test))]
 fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
-    Pool::new(manager)
-        .expect("could not initiate db pool")
+    Pool::new(manager).expect("could not initiate db pool")
 }

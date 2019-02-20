@@ -1,9 +1,9 @@
 use crate::auth::{encode_token, Claims};
+use crate::conduit;
 use crate::db::Repo;
 use crate::models::User;
 use crate::models::*;
 use crate::schema::users;
-use crate::conduit;
 use diesel::prelude::*;
 use http::status::StatusCode;
 use jsonwebtoken::{encode, Algorithm, Header};
@@ -135,14 +135,14 @@ fn diesel_error(e: &diesel::result::Error) -> StatusCode {
 #[cfg(test)]
 mod tests {
     // These tests are more like "integration" tests that exercise a workflow via the tide handlers.
-    use tokio_async_await_test::async_test;
-    use crate::test_helpers::{ generate, init_env };
     use super::*;
+    use crate::auth;
     use crate::schema::users;
     use crate::schema::users::dsl::*;
+    use crate::test_helpers::{generate, init_env};
     use diesel::prelude::*;
     use fake::fake;
-    use crate::auth;
+    use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn register_and_login() {
@@ -151,22 +151,24 @@ mod tests {
         let user = generate::new_user();
 
         let reg_request = Json(Registration { user: user.clone() });
-        let reg_response = await!{ register(AppData(repo.clone()), reg_request) };
+        let reg_response = await! { register(AppData(repo.clone()), reg_request) };
         assert!(reg_response.is_ok());
         let user_id = reg_response.unwrap().0.user.id;
 
-        let login_request = Json(AuthRequest{ user: AuthUser{
-            email: user.email,
-            password: user.password,
-        }});
+        let login_request = Json(AuthRequest {
+            user: AuthUser {
+                email: user.email,
+                password: user.password,
+            },
+        });
 
-        let login_response = await!{ login(AppData(repo.clone()), login_request)};
+        let login_response = await! { login(AppData(repo.clone()), login_request)};
         assert!(login_response.is_ok());
         assert!(login_response.unwrap().0.user.token.is_some());
 
         let auth = auth::claims_for(user_id, 10);
 
-        let user_response = await!{ get_user(AppData(repo.clone()), auth)};
+        let user_response = await! { get_user(AppData(repo.clone()), auth)};
         assert!(user_response.is_ok());
         let user_details = user_response.unwrap().0.user;
         assert_eq!(user_details.username, user.username);

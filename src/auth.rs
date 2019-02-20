@@ -27,7 +27,7 @@ pub fn encode_token(sub: i32) -> String {
 }
 
 pub fn claims_for(user_id: i32, expire_in: u64) -> Claims {
-    Claims{
+    Claims {
         sub: user_id,
         exp: seconds_from_now(expire_in),
     }

@@ -33,7 +33,6 @@ pub struct UpdateUser {
     bio: Option<String>,
 }
 
-
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Article {
     pub id: i32,

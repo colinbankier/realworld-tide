@@ -16,37 +16,32 @@ pub async fn create_user(repo: Repo, user: NewUser) -> Result<User, Error> {
 
 pub async fn find_user(repo: Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-        await! { repo.run(move |conn| users.find(user_id).first(&conn)) }
+    await! { repo.run(move |conn| users.find(user_id).first(&conn)) }
 }
 
 #[cfg(test)]
 mod tests {
-    use tokio_async_await_test::async_test;
-    use crate::test_helpers::init_env;
     use super::*;
     use crate::schema::users;
     use crate::schema::users::dsl::*;
+    use crate::test_helpers::generate;
+    use crate::test_helpers::init_env;
     use diesel::prelude::*;
     use fake::fake;
+    use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn test_create_user() {
         init_env();
         let repo = Repo::new();
         // Create a new user
-        let new_user = NewUser {
-                username: fake!(Internet.user_name).to_string(),
-                email: fake!(Internet.free_email).to_string(),
-                password: fake!(Lorem.word).to_string(),
-            };
-        let user = await!{ create_user(repo.clone(), new_user) };
+        let new_user = generate::new_user();
+        let user = await! { create_user(repo.clone(), new_user) }.expect("Create user failed.");
 
         // Check the user is in the database.
-        let user_id = user.expect("Create user failed.").id;
         let results = await! {
-            find_user(repo.clone(), user_id)
-         };
+           find_user(repo.clone(), user.id)
+        };
         assert!(results.is_ok());
     }
 }
-
