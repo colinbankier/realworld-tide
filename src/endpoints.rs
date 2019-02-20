@@ -150,11 +150,24 @@ mod tests {
         let repo = Repo::new();
         let user = generate::new_user();
 
-        let reg_request = Json(Registration { user: user.clone() });
-        let reg_response = await! { register(AppData(repo.clone()), reg_request) };
-        assert!(reg_response.is_ok());
-        let user_id = reg_response.unwrap().0.user.id;
+        let stored_user = await! { register_user(repo.clone(), user.clone()) };
+        let auth = await! { login_user(repo.clone(), user.clone()) };
 
+        let user_details = await! { get_user(AppData(repo.clone()), auth)}
+            .expect("Get user failed")
+            .0
+            .user;
+        assert_eq!(user_details.username, user.username);
+        assert_eq!(user_details.email, user.email);
+    }
+
+    async fn register_user(repo: Repo, user: NewUser) -> User {
+        let reg_request = Json(Registration { user: user });
+        let reg_response = await! { register(AppData(repo), reg_request) };
+        reg_response.expect("Registration failed").0.user
+    }
+
+    async fn login_user(repo: Repo, user: NewUser) -> Claims {
         let login_request = Json(AuthRequest {
             user: AuthUser {
                 email: user.email,
@@ -162,15 +175,10 @@ mod tests {
             },
         });
 
-        let login_response = await! { login(AppData(repo.clone()), login_request)};
-        assert!(login_response.is_ok());
-        assert!(login_response.unwrap().0.user.token.is_some());
+        let login_response = await! { login(AppData(repo), login_request)};
+        let stored_user = login_response.expect("User login failed").0.user;
+        assert!(stored_user.token.is_some());
 
-        let auth = auth::claims_for(user_id, 10);
-
-        let user_response = await! { get_user(AppData(repo.clone()), auth)};
-        assert!(user_response.is_ok());
-        let user_details = user_response.unwrap().0.user;
-        assert_eq!(user_details.username, user.username);
+        auth::claims_for(stored_user.id, 60)
     }
 }
