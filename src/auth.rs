@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 // TODO: get the secret from config
 const secret: &str = "secret";
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
     sub: i32,
     exp: u64,

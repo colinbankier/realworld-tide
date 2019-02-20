@@ -19,7 +19,7 @@ pub struct UpdateUserRequest {
     user: UpdateUser,
 }
 
-#[derive(Deserialize, Debug, AsChangeset)]
+#[derive(Deserialize, Debug, AsChangeset, Default, Clone)]
 #[table_name = "users"]
 pub struct UpdateUser {
     email: Option<String>,
@@ -142,6 +142,7 @@ mod tests {
     use crate::test_helpers::{generate, init_env};
     use diesel::prelude::*;
     use fake::fake;
+    use std::default::Default;
     use tokio_async_await_test::async_test;
 
     #[async_test]
@@ -159,6 +160,36 @@ mod tests {
             .user;
         assert_eq!(user_details.username, user.username);
         assert_eq!(user_details.email, user.email);
+    }
+
+    #[async_test]
+    async fn update_and_retrieve_user_details() {
+        init_env();
+        let repo = Repo::new();
+        let user = generate::new_user();
+
+        let stored_user = await! { register_user(repo.clone(), user.clone()) };
+        let auth = await! { login_user(repo.clone(), user.clone()) };
+
+        assert_eq!(stored_user.bio, None);
+        assert_eq!(stored_user.image, None);
+
+        let new_details = UpdateUser {
+            bio: Some("I like to code.".to_string()),
+            image: Some("https://www.rust-lang.org/static/images/rust-logo-blk.svg".to_string()),
+            ..Default::default()
+        };
+        let updated_user =
+            await! { update_user_details(repo.clone(), new_details.clone(), auth.clone())};
+        assert_eq!(updated_user.bio, new_details.bio);
+        assert_eq!(updated_user.image, new_details.image);
+
+        let user_details = await! { get_user(AppData(repo.clone()), auth.clone())}
+            .expect("Get user failed")
+            .0
+            .user;
+        assert_eq!(user_details.bio, new_details.bio);
+        assert_eq!(user_details.image, new_details.image);
     }
 
     async fn register_user(repo: Repo, user: NewUser) -> User {
@@ -180,5 +211,14 @@ mod tests {
         assert!(stored_user.token.is_some());
 
         auth::claims_for(stored_user.id, 60)
+    }
+
+    async fn update_user_details(repo: Repo, new_details: UpdateUser, auth: Claims) -> User {
+        let user_json = Json(UpdateUserRequest { user: new_details });
+        let update_response = await! {
+            update_user(AppData(repo), user_json, auth)
+        }
+        .expect("Update user failed");
+        update_response.0.user
     }
 }
