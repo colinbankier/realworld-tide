@@ -23,14 +23,14 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Debug, AsChangeset)]
+#[derive(Deserialize, Debug, AsChangeset, Default, Clone)]
 #[table_name = "users"]
 pub struct UpdateUser {
-    email: Option<String>,
-    username: Option<String>,
-    password: Option<String>,
-    image: Option<String>,
-    bio: Option<String>,
+    pub email: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub image: Option<String>,
+    pub bio: Option<String>,
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]

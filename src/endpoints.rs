@@ -1,9 +1,7 @@
 use crate::auth::{encode_token, Claims};
 use crate::conduit;
 use crate::db::Repo;
-use crate::models::User;
 use crate::models::*;
-use crate::schema::users;
 use diesel::prelude::*;
 use http::status::StatusCode;
 use jsonwebtoken::{encode, Algorithm, Header};
@@ -17,16 +15,6 @@ pub struct Registration {
 #[derive(Deserialize, Debug)]
 pub struct UpdateUserRequest {
     user: UpdateUser,
-}
-
-#[derive(Deserialize, Debug, AsChangeset, Default, Clone)]
-#[table_name = "users"]
-pub struct UpdateUser {
-    email: Option<String>,
-    username: Option<String>,
-    password: Option<String>,
-    image: Option<String>,
-    bio: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -65,12 +53,9 @@ pub async fn login(
     use crate::schema::users::dsl::*;
 
     let user = auth.0.user;
-    let result = await! { repo.run(|conn| {
-    users
-        .filter(email.eq(user.email))
-        .filter(password.eq(user.password))
-        .first::<User>(&conn)
-    }) };
+    let result = await! {
+        conduit::authenticate_user(repo.clone(), user.email, user.password)
+    };
 
     match result {
         Ok(user) => {
@@ -87,10 +72,9 @@ pub async fn login(
 
 pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResponse>, StatusCode> {
     use crate::schema::users::dsl::*;
-    let user_id = auth.user_id();
-    info!("Get user {}", user_id);
+    info!("Get user {}", auth.user_id());
 
-    let results = await! { repo.run(move |conn| users.find(user_id).first(&conn)) };
+    let results = await! { conduit::find_user(repo.clone(), auth.user_id()) };
 
     results
         .map(|user| Json(UserResponse { user }))
@@ -102,15 +86,10 @@ pub async fn update_user(
     update_params: Json<UpdateUserRequest>,
     auth: Claims,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users::dsl::*;
-    let user_id = auth.user_id();
-    info!("Update user {} {:?}", user_id, update_params.0);
-
-    let results = await! { repo.run(move |conn| {
-        diesel::update(users.find(user_id))
-            .set(&update_params.0.user)
-            .get_result(&conn)
-    })};
+    info!("Update user {} {:?}", auth.user_id(), update_params.0);
+    let results = await! {
+        conduit::update_user(repo.clone(), auth.user_id(), update_params.0.user)
+    };
 
     results
         .map(|user| Json(UserResponse { user }))
