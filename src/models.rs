@@ -1,4 +1,5 @@
 use crate::schema::users;
+use crate::schema::articles;
 use chrono::NaiveDateTime;
 use diesel::result::Error;
 
@@ -43,4 +44,14 @@ pub struct Article {
     pub user_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Deserialize, Debug, Clone)]
+#[table_name = "articles"]
+pub struct NewArticle {
+    pub title: String,
+    pub slug: String,
+    pub description: String,
+    pub body: String,
+    pub user_id: i32,
 }

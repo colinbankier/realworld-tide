@@ -12,7 +12,8 @@ extern crate tokio_threadpool;
 #[macro_use]
 extern crate tokio;
 extern crate env_logger;
-extern crate futures as futures01;
+extern crate futures;
+extern crate futures_01;
 #[macro_use]
 extern crate log;
 

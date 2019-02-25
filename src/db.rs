@@ -1,7 +1,7 @@
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use dotenv::dotenv;
-use futures01::future::poll_fn;
+use futures_01::future::poll_fn;
 use r2d2::{Pool, PooledConnection};
 use std::env;
 use tokio_threadpool::blocking;

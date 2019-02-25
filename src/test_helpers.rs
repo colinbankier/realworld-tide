@@ -24,7 +24,7 @@ where
 
 /// Functions for generating test data
 pub mod generate {
-    use crate::models::NewUser;
+    use crate::models::{NewUser, NewArticle};
     use fake::fake;
 
     pub fn new_user() -> NewUser {
@@ -35,4 +35,13 @@ pub mod generate {
         }
     }
 
+    pub fn new_article(user_id: i32) -> NewArticle {
+        NewArticle {
+            title: fake!(Lorem.sentence(4, 10)).to_string(),
+            slug: fake!(Lorem.word).to_string(),
+            description: fake!(Lorem.paragraph(3, 10)),
+            body: fake!(Lorem.paragraph(10, 5)),
+            user_id: user_id,
+        }
+    }
 }

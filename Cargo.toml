@@ -13,7 +13,7 @@ serde_derive = "1.0"
 dotenv = "0.9.0"
 chrono = { version = "0.4.6", features = ["serde"] }
 http = "0.1"
-futures = "0.1"
+futures_01 = { version = "0.1.25", package = "futures" }
 tokio = { version = "0.1.13", features = ["async-await-preview"] }
 tokio-threadpool = "0.1.9"
 log = "0.4.0"
