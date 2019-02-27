@@ -1002,7 +1002,7 @@ dependencies = [
  "tide 0.0.5 (git+https://github.com/rust-net-web/tide.git)",
  "tokio 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-async-await 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "tokio-async-await-test 0.1.0 (git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-preview-0.3.0-alpha.13)",
+ "tokio-async-await-test 0.1.0 (git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-0.3.0-alpha.13)",
  "tokio-threadpool 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1348,13 +1348,12 @@ dependencies = [
 [[package]]
 name = "tokio-async-await-test"
 version = "0.1.0"
-source = "git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-preview-0.3.0-alpha.13#1d82fac05444321edfaaff1e4060c93ba13788b5"
+source = "git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-0.3.0-alpha.13#2589407a0d1e3726f0c313fde52733d7cc1d9f51"
 dependencies = [
  "futures-preview 0.3.0-alpha.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.15.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "tokio-async-await 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1797,7 +1796,7 @@ dependencies = [
 "checksum time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)" = "db8dcfca086c1143c9270ac42a2bbd8a7ee477b78ac8e45b19abfb0cbede4b6f"
 "checksum tokio 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "e0500b88064f08bebddd0c0bed39e19f5c567a5f30975bee52b0c0d3e2eeb38c"
 "checksum tokio-async-await 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "8221e9db7675e145fd4ecf5d8e017be9f198fb57ce1d11c7c1b6d7d9d73181bc"
-"checksum tokio-async-await-test 0.1.0 (git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-preview-0.3.0-alpha.13)" = "<none>"
+"checksum tokio-async-await-test 0.1.0 (git+https://github.com/colinbankier/tokio-async-await-test.git?branch=futures-0.3.0-alpha.13)" = "<none>"
 "checksum tokio-codec 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5c501eceaf96f0e1793cf26beb63da3d11c738c4a943fdf3746d81d64684c39f"
 "checksum tokio-current-thread 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "331c8acc267855ec06eb0c94618dcbbfea45bed2d20b77252940095273fb58f6"
 "checksum tokio-executor 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "30c6dbf2d1ad1de300b393910e8a3aa272b724a400b6531da03eed99e329fbf0"
