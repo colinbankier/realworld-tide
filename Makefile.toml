@@ -1,5 +1,6 @@
 [env]
 DATABASE_URL = { script = ["sed s/DATABASE_URL=// .env.test"] }
+RUST_BACKTRACE = "0"
 
 [tasks.resetdb]
 command = "diesel"

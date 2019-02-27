@@ -122,6 +122,7 @@ mod tests {
     use diesel::prelude::*;
     use fake::fake;
     use std::default::Default;
+    use tokio_async_await;
     use tokio_async_await_test::async_test;
 
     #[async_test]

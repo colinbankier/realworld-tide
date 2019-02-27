@@ -1,11 +1,10 @@
 use crate::db::Repo;
 use crate::models::User;
 use crate::models::*;
-use crate::schema::users;
 use crate::schema::articles;
+use crate::schema::users;
 use diesel::prelude::*;
 use diesel::result::Error;
-
 
 pub async fn create_user(repo: Repo, user: NewUser) -> Result<User, Error> {
     await! { repo.run(move |conn| {
@@ -41,7 +40,6 @@ pub async fn update_user(repo: Repo, user_id: i32, details: UpdateUser) -> Resul
 }
 
 pub async fn create_article(repo: Repo, article: NewArticle) -> Result<Article, Error> {
-
     await! { repo.run(move |conn| {
         diesel::insert_into(articles::table)
             .values(&article)
@@ -63,9 +61,10 @@ mod tests {
     use crate::test_helpers::init_env;
     use diesel::prelude::*;
     use fake::fake;
-    use tokio_async_await_test::async_test;
-    use futures::stream::{FuturesOrdered, StreamExt};
     use futures::future;
+    use futures::stream::{FuturesOrdered, StreamExt};
+    use tokio_async_await;
+    use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn test_create_user() {
@@ -114,6 +113,7 @@ mod tests {
 
         // Update the user
         let result = await! { update_user(repo.clone(), user.id, new_details.clone() )};
+        result.expect("Failed to update user");
 
         // Check the user is updated in the database.
         let updated_user = await! {
@@ -141,7 +141,10 @@ mod tests {
                 .collect::<FuturesOrdered<_>>().collect::<Vec<_>>()
         };
         println!("test articles {:?}", articles);
-        let results = articles.into_iter().filter(|a| a.is_ok()).collect::<Vec<_>>();
+        let results = articles
+            .into_iter()
+            .filter(|a| a.is_ok())
+            .collect::<Vec<_>>();
         assert_eq!(results.len(), 5);
     }
 }
