@@ -22,9 +22,32 @@ where
     }
 }
 
+use crate::conduit::articles;
+use crate::conduit::users;
+use crate::db::Repo;
+use crate::models::{Article, User};
+use futures::stream::{FuturesOrdered, StreamExt};
+
+pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
+    let results = await! {
+        (0..num_users).map(|_| users::insert(repo.clone(), generate::new_user()) )
+            .collect::<FuturesOrdered<_>>()
+            .collect::<Vec<_>>()
+    };
+    results.into_iter().filter_map(|r| r.ok()).collect()
+}
+
+pub async fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
+    let results = await! {
+           users.iter().map(|user| articles::insert(repo.clone(), generate::new_article(user.id)) )
+           .collect::<FuturesOrdered<_>>().collect::<Vec<_>>()
+    };
+    results.into_iter().filter_map(|r| r.ok()).collect()
+}
+
 /// Functions for generating test data
 pub mod generate {
-    use crate::models::{NewUser, NewArticle};
+    use crate::models::{NewArticle, NewUser};
     use fake::fake;
 
     pub fn new_user() -> NewUser {

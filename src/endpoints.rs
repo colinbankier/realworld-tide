@@ -1,5 +1,5 @@
 use crate::auth::{encode_token, Claims};
-use crate::conduit;
+use crate::conduit::{articles, users};
 use crate::db::Repo;
 use crate::models::*;
 use diesel::prelude::*;
@@ -37,9 +37,7 @@ pub async fn register(
     repo: AppData<Repo>,
     registration: Json<Registration>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users;
-
-    let result = await! { conduit::create_user(repo.clone(), registration.0.user) };
+    let result = await! { users::insert(repo.clone(), registration.0.user) };
 
     result
         .map(|user| Json(UserResponse { user }))
@@ -50,11 +48,9 @@ pub async fn login(
     repo: AppData<Repo>,
     auth: Json<AuthRequest>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users::dsl::*;
-
     let user = auth.0.user;
     let result = await! {
-        conduit::authenticate_user(repo.clone(), user.email, user.password)
+        users::find_by_email_password(repo.clone(), user.email, user.password)
     };
 
     match result {
@@ -71,10 +67,9 @@ pub async fn login(
 }
 
 pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResponse>, StatusCode> {
-    use crate::schema::users::dsl::*;
     info!("Get user {}", auth.user_id());
 
-    let results = await! { conduit::find_user(repo.clone(), auth.user_id()) };
+    let results = await! { users::find(repo.clone(), auth.user_id()) };
 
     results
         .map(|user| Json(UserResponse { user }))
@@ -88,7 +83,7 @@ pub async fn update_user(
 ) -> Result<Json<UserResponse>, StatusCode> {
     info!("Update user {} {:?}", auth.user_id(), update_params.0);
     let results = await! {
-        conduit::update_user(repo.clone(), auth.user_id(), update_params.0.user)
+        users::update(repo.clone(), auth.user_id(), update_params.0.user)
     };
 
     results
