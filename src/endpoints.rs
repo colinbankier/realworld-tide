@@ -1,11 +1,13 @@
-use crate::auth::{encode_token, Claims};
-use crate::conduit::{articles, users};
-use crate::db::Repo;
-use crate::models::*;
 use diesel::prelude::*;
 use http::status::StatusCode;
 use jsonwebtoken::{encode, Algorithm, Header};
 use tide::{self, body::Json, AppData};
+
+use crate::auth::{encode_token, Claims};
+use crate::conduit::{articles, articles::ArticleQuery, users};
+use crate::db::Repo;
+use crate::models::*;
+use crate::query_string::UrlQuery;
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -91,12 +93,13 @@ pub async fn update_user(
         .map_err(|e| diesel_error(&e))
 }
 
-pub async fn list_articles(repo: AppData<Repo>) -> Result<Json<Vec<Article>>, StatusCode> {
-    use crate::schema::articles::dsl::*;
+pub async fn list_articles(
+    repo: AppData<Repo>,
+    query: UrlQuery<ArticleQuery>,
+) -> Result<Json<Vec<Article>>, StatusCode> {
+    let articles = await! { articles::find(repo.0, query.0) };
 
-    let results = await! { repo.run(|conn| articles.limit(10).load::<Article>(&conn)) };
-
-    results
+    articles
         .map(|article_list| Json(article_list))
         .map_err(|e| diesel_error(&e))
 }
@@ -111,13 +114,8 @@ mod tests {
     // These tests are more like "integration" tests that exercise a workflow via the tide handlers.
     use super::*;
     use crate::auth;
-    use crate::schema::users;
-    use crate::schema::users::dsl::*;
-    use crate::test_helpers::{generate, init_env};
-    use diesel::prelude::*;
-    use fake::fake;
+    use crate::test_helpers::{create_articles, create_users, generate, init_env};
     use std::default::Default;
-    use tokio_async_await;
     use tokio_async_await_test::async_test;
 
     #[async_test]
@@ -167,6 +165,33 @@ mod tests {
         assert_eq!(user_details.image, new_details.image);
     }
 
+    #[async_test]
+    async fn should_list_articles() {
+        let repo = Repo::new();
+
+        let users = await! { create_users(&repo, 5) };
+        let _articles = await! { create_articles(&repo, users)};
+
+        let articles_list =
+            await! { list_articles(AppData(repo.clone()), UrlQuery(ArticleQuery::default()))}
+                .expect("Failed to list articles");
+
+        assert_eq!(articles_list.len(), 5);
+    }
+
+    #[async_test]
+    async fn should_get_articles_by_author() {
+        let repo = Repo::new();
+
+        let users = await! { create_users(&repo, 5) };
+        let _articles = await! { create_articles(&repo, users)};
+
+        let articles_list =
+            await! { list_articles(AppData(repo.clone()), UrlQuery(ArticleQuery::default()))}
+                .expect("Failed to list articles");
+
+        assert_eq!(articles_list.len(), 5);
+    }
     async fn register_user(repo: Repo, user: NewUser) -> User {
         let reg_request = Json(Registration { user: user });
         let reg_response = await! { register(AppData(repo), reg_request) };

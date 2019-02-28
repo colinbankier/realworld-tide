@@ -26,6 +26,7 @@ mod db;
 mod endpoints;
 mod extractors;
 mod models;
+mod query_string;
 mod schema;
 
 #[cfg(test)]

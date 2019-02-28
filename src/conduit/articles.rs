@@ -1,9 +1,24 @@
 use diesel::prelude::*;
 use diesel::result::Error;
+use std::str::FromStr;
 
 use crate::db::Repo;
 use crate::models::{Article, NewArticle};
 use crate::schema::articles;
+
+#[derive(Default, Deserialize, Debug)]
+pub struct ArticleQuery {
+    pub author: Option<String>,
+    pub favorited: Option<String>,
+    pub tag: Option<String>,
+}
+
+impl FromStr for ArticleQuery {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_urlencoded::from_str::<ArticleQuery>(s).map_err(|e| e.to_string())
+    }
+}
 
 pub async fn insert(repo: Repo, article: NewArticle) -> Result<Article, Error> {
     await! { repo.run(move |conn| {
@@ -13,7 +28,7 @@ pub async fn insert(repo: Repo, article: NewArticle) -> Result<Article, Error> {
     })}
 }
 
-pub async fn all(repo: Repo) -> Result<Vec<Article>, Error> {
+pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
     use crate::schema::articles::dsl::*;
     await! { repo.run(move |conn| articles.load(&conn)) }
 }
@@ -32,17 +47,7 @@ mod tests {
         let users = await! { create_users(&repo, 5) };
         let _articles = await! { create_articles(&repo, users)};
         let results = await! { all(repo.clone())}.expect("Failed to get articles");
-        // let articles = await! {
-        //     test_users.into_iter()
-        //         .filter_map(|user_result| user_result.ok())
-        //         .map(|user| insert(repo.clone(), generate::new_article(user.id)) )
-        //         .collect::<FuturesOrdered<_>>().collect::<Vec<_>>()
-        // };
-        // println!("test articles {:?}", articles);
-        // let results = articles
-        //     .into_iter()
-        //     .filter(|a| a.is_ok())
-        //     .collect::<Vec<_>>();
+
         assert_eq!(results.len(), 5);
     }
 }
