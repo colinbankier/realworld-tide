@@ -32,7 +32,7 @@ mod schema;
 mod test_helpers;
 mod web;
 
-pub use crate::db::Repo;
+use crate::db::Repo;
 
 use crate::web::*;
 use dotenv::dotenv;
@@ -47,10 +47,10 @@ pub fn application() -> App<Repo> {
 
 pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
     app.at("/api").nest(|api| {
-        api.at("/user").get(get_user);
-        api.at("/user").put(update_user);
-        api.at("/users").post(register);
-        api.at("/users/login").post(login);
+        api.at("/user").get(web::users::get_user);
+        api.at("/user").put(web::users::update_user);
+        api.at("/users").post(web::users::register);
+        api.at("/users/login").post(web::users::login);
         api.at("/articles").get(list_articles);
     });
     app

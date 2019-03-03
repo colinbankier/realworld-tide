@@ -1,6 +1,7 @@
+use crate::db::Repo;
+use crate::set_routes;
 use futures::{executor::block_on, prelude::*};
 use http_service::{Body, HttpService, Request, Response};
-use realworld_tide::Repo;
 use tide::{
     head::{Named, NamedSegment},
     Server,
@@ -30,6 +31,7 @@ impl<T: HttpService> TestBackend<T> {
 }
 
 pub fn new(repo: Repo) -> TestBackend<Server<Repo>> {
-    let app = realworld_tide::set_routes(tide::App::new(repo));
+    let app = crate::set_routes(tide::App::new(repo));
+    let app = set_routes(app);
     TestBackend::wrap(app.into_http_service()).unwrap()
 }

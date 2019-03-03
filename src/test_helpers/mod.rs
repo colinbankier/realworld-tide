@@ -1,3 +1,5 @@
+pub mod test_server;
+
 use dotenv;
 use r2d2::CustomizeConnection;
 
