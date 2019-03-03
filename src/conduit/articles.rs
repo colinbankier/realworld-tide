@@ -46,7 +46,8 @@ mod tests {
 
         let users = await! { create_users(&repo, 5) };
         let _articles = await! { create_articles(&repo, users)};
-        let results = await! { all(repo.clone())}.expect("Failed to get articles");
+        let results =
+            await! { find(repo.clone(), Default::default())}.expect("Failed to get articles");
 
         assert_eq!(results.len(), 5);
     }

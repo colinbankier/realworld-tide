@@ -1,4 +1,3 @@
-#[cfg(test)]
 use dotenv;
 use r2d2::CustomizeConnection;
 
