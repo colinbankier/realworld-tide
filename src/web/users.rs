@@ -95,17 +95,29 @@ pub async fn update_user(
 
 #[cfg(test)]
 mod tests {
+    use crate::models::NewUser;
     use crate::test_helpers::generate;
-    use crate::test_helpers::test_server;
+    use crate::test_helpers::test_server::{self, TestServer};
     use crate::Repo;
-    use serde_json::json;
+    use http_service::Body;
+    use serde_json::{json, Value};
+    use std::str::from_utf8;
     use tokio_async_await_test::async_test;
 
     #[async_test]
-    async fn register_and_login_integration() {
-        let mut server = test_server::new(Repo::new());
-
+    async fn register_and_login() {
+        let server = test_server::new(Repo::new());
         let user = generate::new_user();
+
+        await! {register_user(&server, &user)};
+        let token = await! {login_user(&server, &user)};
+        let user_details = await! { get_user_details(&server, token)};
+
+        assert_eq!(user_details["user"]["username"], user.username);
+        assert_eq!(user_details["user"]["email"], user.email);
+    }
+
+    async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) {
         let req = http::Request::post("/api/users")
             .body(
                 json!({
@@ -119,7 +131,46 @@ mod tests {
                 .into(),
             )
             .unwrap();
-        let res = server.simulate(req).unwrap();
+        let res = await! { server.simulate(req) };
         assert_eq!(res.status(), 200);
+    }
+
+    async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
+        let req = http::Request::post("/api/users/login")
+            .body(
+                json!({
+                    "user": {
+                        "email": user.email,
+                        "password": user.password,
+                    }
+                })
+                .to_string()
+                .into(),
+            )
+            .unwrap();
+        let res = await! { server.simulate(req) };
+        assert_eq!(res.status(), 200);
+        let body = await! { res.into_body().into_vec() }.unwrap();
+
+        let response_json: Value =
+            serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.");
+        assert!(response_json["user"]["token"].is_string());
+
+        response_json["user"]["token"]
+            .as_str()
+            .expect("Token not found")
+            .to_string()
+    }
+
+    async fn get_user_details<'a>(server: &'a TestServer, token: String) -> Value {
+        let req = http::Request::get("/api/user")
+            .header("Authorization", format!("token: {}", token))
+            .body(Body::empty())
+            .unwrap();
+        let res = await! { server.simulate(req) };
+        assert_eq!(res.status(), 200);
+        let body = await! { res.into_body().into_vec() }.unwrap();
+
+        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
     }
 }
