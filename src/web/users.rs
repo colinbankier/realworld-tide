@@ -111,13 +111,39 @@ mod tests {
 
         await! {register_user(&server, &user)};
         let token = await! {login_user(&server, &user)};
-        let user_details = await! { get_user_details(&server, token)};
+        let user_details = await! { get_user_details(&server, &token)};
 
         assert_eq!(user_details["user"]["username"], user.username);
         assert_eq!(user_details["user"]["email"], user.email);
     }
 
-    async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) {
+    #[async_test]
+    async fn update_and_retrieve_user_details() {
+        let server = test_server::new(Repo::new());
+        let user = generate::new_user();
+
+        let stored_user = await! {register_user(&server, &user)};
+        let token = await! {login_user(&server, &user)};
+
+        assert_eq!(stored_user["user"]["bio"], Value::Null);
+        assert_eq!(stored_user["user"]["image"], Value::Null);
+
+        let new_details = json!({
+            "user": {
+                "bio": "I like to code.",
+                "image": "https://www.rust-lang.org/static/images/rust-logo-blk.svg",
+            }
+        });
+        let updated_user = await! { update_user_details(&server, &new_details, &token)};
+        assert_eq!(updated_user["user"]["bio"], new_details["user"]["bio"]);
+        assert_eq!(updated_user["user"]["image"], new_details["user"]["image"]);
+
+        let user_details = await! { get_user_details(&server, &token)};
+        assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
+        assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
+    }
+
+    async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) -> Value {
         let req = http::Request::post("/api/users")
             .body(
                 json!({
@@ -133,6 +159,9 @@ mod tests {
             .unwrap();
         let res = await! { server.simulate(req) };
         assert_eq!(res.status(), 200);
+
+        let body = await! { res.into_body().into_vec() }.unwrap();
+        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
     }
 
     async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
@@ -162,11 +191,28 @@ mod tests {
             .to_string()
     }
 
-    async fn get_user_details<'a>(server: &'a TestServer, token: String) -> Value {
+    async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
         let req = http::Request::get("/api/user")
             .header("Authorization", format!("token: {}", token))
             .body(Body::empty())
             .unwrap();
+        let res = await! { server.simulate(req) };
+        assert_eq!(res.status(), 200);
+        let body = await! { res.into_body().into_vec() }.unwrap();
+
+        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
+    }
+
+    async fn update_user_details<'a>(
+        server: &'a TestServer,
+        details: &'a Value,
+        token: &'a String,
+    ) -> Value {
+        let req = http::Request::put("/api/user")
+            .header("Authorization", format!("token: {}", token))
+            .body(details.to_string().into())
+            .unwrap();
+
         let res = await! { server.simulate(req) };
         assert_eq!(res.status(), 200);
         let body = await! { res.into_body().into_vec() }.unwrap();

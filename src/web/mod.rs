@@ -34,52 +34,6 @@ mod tests {
     use tokio_async_await_test::async_test;
 
     // #[async_test]
-    // async fn register_and_login() {
-    //     init_env();
-    //     let repo = Repo::new();
-    //     let user = generate::new_user();
-
-    //     let stored_user = await! { register_user(repo.clone(), user.clone()) };
-    //     let auth = await! { login_user(repo.clone(), user.clone()) };
-
-    //     let user_details = await! { get_user(AppData(repo.clone()), auth)}
-    //         .expect("Get user failed")
-    //         .0
-    //         .user;
-    //     assert_eq!(user_details.username, user.username);
-    //     assert_eq!(user_details.email, user.email);
-    // }
-    // #[async_test]
-    // async fn update_and_retrieve_user_details() {
-    //     init_env();
-    //     let repo = Repo::new();
-    //     let user = generate::new_user();
-
-    //     let stored_user = await! { register_user(repo.clone(), user.clone()) };
-    //     let auth = await! { login_user(repo.clone(), user.clone()) };
-
-    //     assert_eq!(stored_user.bio, None);
-    //     assert_eq!(stored_user.image, None);
-
-    //     let new_details = UpdateUser {
-    //         bio: Some("I like to code.".to_string()),
-    //         image: Some("https://www.rust-lang.org/static/images/rust-logo-blk.svg".to_string()),
-    //         ..Default::default()
-    //     };
-    //     let updated_user =
-    //         await! { update_user_details(repo.clone(), new_details.clone(), auth.clone())};
-    //     assert_eq!(updated_user.bio, new_details.bio);
-    //     assert_eq!(updated_user.image, new_details.image);
-
-    //     let user_details = await! { get_user(AppData(repo.clone()), auth.clone())}
-    //         .expect("Get user failed")
-    //         .0
-    //         .user;
-    //     assert_eq!(user_details.bio, new_details.bio);
-    //     assert_eq!(user_details.image, new_details.image);
-    // }
-
-    // #[async_test]
     // async fn should_list_articles() {
     //     let repo = Repo::new();
 
