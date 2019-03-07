@@ -1,5 +1,3 @@
-use jsonwebtoken::{encode, Algorithm, Header};
-
 use crate::auth::{encode_token, Claims};
 use crate::conduit::users;
 use crate::db::Repo;
@@ -97,8 +95,9 @@ pub async fn update_user(
 mod tests {
     use crate::models::NewUser;
     use crate::test_helpers::generate;
-    use crate::test_helpers::test_server::{self, TestServer};
+    use crate::test_helpers::test_server::{response_json, TestServer};
     use crate::Repo;
+    use http::Request;
     use http_service::Body;
     use serde_json::{json, Value};
     use std::str::from_utf8;
@@ -106,7 +105,7 @@ mod tests {
 
     #[async_test]
     async fn register_and_login() {
-        let server = test_server::new(Repo::new());
+        let server = TestServer::new(Repo::new());
         let user = generate::new_user();
 
         await! {register_user(&server, &user)};
@@ -119,7 +118,7 @@ mod tests {
 
     #[async_test]
     async fn update_and_retrieve_user_details() {
-        let server = test_server::new(Repo::new());
+        let server = TestServer::new(Repo::new());
         let user = generate::new_user();
 
         let stored_user = await! {register_user(&server, &user)};
@@ -144,47 +143,44 @@ mod tests {
     }
 
     async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) -> Value {
-        let req = http::Request::post("/api/users")
-            .body(
-                json!({
-                    "user": {
-                        "email": user.email,
-                        "password": user.password,
-                        "username": user.username,
-                    }
-                })
-                .to_string()
-                .into(),
-            )
-            .unwrap();
-        let res = await! { server.simulate(req) };
-        assert_eq!(res.status(), 200);
-
-        let body = await! { res.into_body().into_vec() }.unwrap();
-        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
+        let res = await!(server.call(
+            Request::post("/api/users")
+                .body(
+                    json!({
+                        "user": {
+                            "email": user.email,
+                            "password": user.password,
+                            "username": user.username,
+                        }
+                    })
+                    .to_string()
+                    .into()
+                )
+                .unwrap()
+        ));
+        await!(response_json(res))
     }
 
     async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
-        let req = http::Request::post("/api/users/login")
-            .body(
-                json!({
-                    "user": {
-                        "email": user.email,
-                        "password": user.password,
-                    }
-                })
-                .to_string()
-                .into(),
-            )
-            .unwrap();
-        let res = await! { server.simulate(req) };
+        let res = await!(server.call(
+            Request::post("/api/users/login")
+                .body(
+                    json!({
+                        "user": {
+                            "email": user.email,
+                            "password": user.password,
+                        }
+                    })
+                    .to_string()
+                    .into(),
+                )
+                .unwrap()
+        ));
         assert_eq!(res.status(), 200);
-        let body = await! { res.into_body().into_vec() }.unwrap();
 
-        let response_json: Value =
-            serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.");
+        let response_json = await!(response_json(res));
+
         assert!(response_json["user"]["token"].is_string());
-
         response_json["user"]["token"]
             .as_str()
             .expect("Token not found")
@@ -192,15 +188,14 @@ mod tests {
     }
 
     async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
-        let req = http::Request::get("/api/user")
-            .header("Authorization", format!("token: {}", token))
-            .body(Body::empty())
-            .unwrap();
-        let res = await! { server.simulate(req) };
+        let res = await!(server.call(
+            Request::get("/api/user")
+                .header("Authorization", format!("token: {}", token))
+                .body(Body::empty())
+                .unwrap()
+        ));
         assert_eq!(res.status(), 200);
-        let body = await! { res.into_body().into_vec() }.unwrap();
-
-        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
+        await!(response_json(res))
     }
 
     async fn update_user_details<'a>(
@@ -208,15 +203,13 @@ mod tests {
         details: &'a Value,
         token: &'a String,
     ) -> Value {
-        let req = http::Request::put("/api/user")
-            .header("Authorization", format!("token: {}", token))
-            .body(details.to_string().into())
-            .unwrap();
-
-        let res = await! { server.simulate(req) };
+        let res = await!(server.call(
+            Request::put("/api/user")
+                .header("Authorization", format!("token: {}", token))
+                .body(details.to_string().into())
+                .unwrap()
+        ));
         assert_eq!(res.status(), 200);
-        let body = await! { res.into_body().into_vec() }.unwrap();
-
-        serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
+        await!(response_json(res))
     }
 }

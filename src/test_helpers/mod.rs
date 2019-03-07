@@ -35,7 +35,10 @@ pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
             .collect::<FuturesOrdered<_>>()
             .collect::<Vec<_>>()
     };
-    results.into_iter().filter_map(|r| r.ok()).collect()
+    results
+        .into_iter()
+        .map(|r| r.expect("Failed to create user"))
+        .collect()
 }
 
 pub async fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
@@ -43,7 +46,10 @@ pub async fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
            users.iter().map(|user| articles::insert(repo.clone(), generate::new_article(user.id)) )
            .collect::<FuturesOrdered<_>>().collect::<Vec<_>>()
     };
-    results.into_iter().filter_map(|r| r.ok()).collect()
+    results
+        .into_iter()
+        .map(|r| r.expect("Failed to create article"))
+        .collect()
 }
 
 /// Functions for generating test data
@@ -62,7 +68,7 @@ pub mod generate {
     pub fn new_article(user_id: i32) -> NewArticle {
         NewArticle {
             title: fake!(Lorem.sentence(4, 10)).to_string(),
-            slug: fake!(Lorem.word).to_string(),
+            slug: format!("{}{}", fake!(Lorem.word).to_string(), user_id),
             description: fake!(Lorem.paragraph(3, 10)),
             body: fake!(Lorem.paragraph(10, 5)),
             user_id: user_id,

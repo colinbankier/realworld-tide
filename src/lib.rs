@@ -51,7 +51,7 @@ pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
         api.at("/user").put(web::users::update_user);
         api.at("/users").post(web::users::register);
         api.at("/users/login").post(web::users::login);
-        api.at("/articles").get(list_articles);
+        api.at("/articles").get(web::articles::list_articles);
     });
     app
 }
