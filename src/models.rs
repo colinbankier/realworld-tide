@@ -1,5 +1,5 @@
-use crate::schema::users;
 use crate::schema::articles;
+use crate::schema::users;
 use chrono::NaiveDateTime;
 use diesel::result::Error;
 
@@ -11,7 +11,7 @@ pub struct NewUser {
     pub password: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,

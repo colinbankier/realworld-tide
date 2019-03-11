@@ -19,7 +19,7 @@ pub async fn list_articles(
     let result = await! { articles::find(repo.0, query.0) };
 
     result
-        .map(|articles| Json(ArticleResponse{articles))
+        .map(|articles| Json(ArticleResponse{articles}))
         .map_err(|e| diesel_error(&e))
 }
 
@@ -43,33 +43,44 @@ mod tests {
         let server = TestServer::new(repo.clone());
 
         let users = await! { create_users(&repo, 5) };
-        let articles = await! { create_articles(&repo, users)};
+        let _articles = await! { create_articles(&repo, users)};
 
-        let articles_list = await! { get_articles(&server) };
+        let articles_list = await! { get_articles(&server, None) };
 
         match &articles_list["articles"] {
-            Value::Array(ref list) => assert_eq!(list.len(), 5, "json articles"),
+            Value::Array(ref list) => assert_eq!(list.len(), 5),
             _ => panic!(format!("Unexpected article response. {}", &articles_list)),
         }
     }
 
-    // #[async_test]
-    // async fn should_get_articles_by_author() {
-    //     init_env();
-    //     let repo = Repo::new();
+    #[async_test]
+    async fn should_get_articles_by_author() {
+        init_env();
+        let repo = Repo::new();
+        let server = TestServer::new(repo.clone());
 
-    //     let users = await! { create_users(&repo, 5) };
-    //     let _articles = await! { create_articles(&repo, users)};
+        let users = await! { create_users(&repo, 5) };
+        let _articles = await! { create_articles(&repo, users.clone())};
 
-    //     let articles_list =
-    //         await! { list_articles(AppData(repo.clone()), UrlQuery(ArticleQuery::default()))}
-    //             .expect("Failed to list articles");
+        let articles_list =
+            await! { get_articles(&server, Some(format!("author={}", users[0].username))) };
 
-    //     assert_eq!(articles_list.len(), 5);
-    // }
+        match &articles_list["articles"] {
+            Value::Array(ref list) => {
+                assert_eq!(list[0]["username"], users[0].username);
+                assert_eq!(list.len(), 1);
+            }
+            ,
+            _ => panic!(format!("Unexpected article response. {}", &articles_list)),
+        }
+    }
 
-    async fn get_articles<'a>(server: &'a TestServer) -> Value {
-        let res = await!(server.call(Request::get("/api/articles")
+    async fn get_articles<'a>(server: &'a TestServer, query: Option<String>) -> Value {
+        let url = match query {
+            None => "/api/articles".to_string(),
+            Some(qs) => format!("/api/articles?{}", qs)
+        };
+        let res = await!(server.call(Request::get(url)
             .body(Body::empty())
             .unwrap()));
         assert_eq!(res.status(), 200);

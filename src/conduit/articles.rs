@@ -1,10 +1,13 @@
+use crate::db::Repo;
+use crate::models::{Article, NewArticle};
 use diesel::prelude::*;
 use diesel::result::Error;
 use std::str::FromStr;
 
-use crate::db::Repo;
-use crate::models::{Article, NewArticle};
 use crate::schema::articles;
+use crate::schema::users;
+
+// joinable!(articles -> users (user_id));
 
 #[derive(Default, Deserialize, Debug)]
 pub struct ArticleQuery {
@@ -30,7 +33,20 @@ pub async fn insert(repo: Repo, article: NewArticle) -> Result<Article, Error> {
 
 pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
     use crate::schema::articles::dsl::*;
-    await! { repo.run(move |conn| articles.load(&conn)) }
+    use crate::schema::users::dsl::{username, users};
+
+    await! { repo.run(move |conn| {
+        let q = users.inner_join(articles)
+        .select(articles::all_columns()).into_boxed();
+
+        let q = if let Some(a) = query.author {
+            q.filter(username.eq(a))
+        } else {
+            q
+        };
+
+        q.load::<Article>(&conn)
+    } )}
 }
 
 #[cfg(test)]
