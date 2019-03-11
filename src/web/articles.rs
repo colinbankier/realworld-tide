@@ -19,7 +19,7 @@ pub async fn list_articles(
     let result = await! { articles::find(repo.0, query.0) };
 
     result
-        .map(|articles| Json(ArticleResponse{articles}))
+        .map(|articles| Json(ArticleResponse { articles }))
         .map_err(|e| diesel_error(&e))
 }
 
@@ -27,6 +27,7 @@ pub async fn list_articles(
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
     use crate::db::Repo;
+    use crate::test_helpers::test_server::response_json;
     use crate::test_helpers::test_server::TestServer;
     use crate::test_helpers::{create_articles, create_users, init_env};
     use http::Request;
@@ -34,7 +35,6 @@ mod tests {
     use serde_json::{json, Value};
     use std::str::from_utf8;
     use tokio_async_await_test::async_test;
-    use crate::test_helpers::test_server::response_json;
 
     #[async_test]
     async fn should_list_articles() {
@@ -60,17 +60,16 @@ mod tests {
         let server = TestServer::new(repo.clone());
 
         let users = await! { create_users(&repo, 5) };
-        let _articles = await! { create_articles(&repo, users.clone())};
+        let articles = await! { create_articles(&repo, users.clone())};
 
         let articles_list =
             await! { get_articles(&server, Some(format!("author={}", users[0].username))) };
 
         match &articles_list["articles"] {
             Value::Array(ref list) => {
-                assert_eq!(list[0]["username"], users[0].username);
+                assert_eq!(list[0]["title"], articles[0].title);
                 assert_eq!(list.len(), 1);
             }
-            ,
             _ => panic!(format!("Unexpected article response. {}", &articles_list)),
         }
     }
@@ -78,11 +77,9 @@ mod tests {
     async fn get_articles<'a>(server: &'a TestServer, query: Option<String>) -> Value {
         let url = match query {
             None => "/api/articles".to_string(),
-            Some(qs) => format!("/api/articles?{}", qs)
+            Some(qs) => format!("/api/articles?{}", qs),
         };
-        let res = await!(server.call(Request::get(url)
-            .body(Body::empty())
-            .unwrap()));
+        let res = await!(server.call(Request::get(url).body(Body::empty()).unwrap()));
         assert_eq!(res.status(), 200);
         await!(response_json(res))
     }
