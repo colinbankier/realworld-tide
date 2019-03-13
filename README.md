@@ -31,6 +31,14 @@ sudo -u postgres psql -c "CREATE USER \"realworld-tide\" WITH ENCRYPTED PASSWORD
 sudo -u postgres psql -c "ALTER USER \"realworld-tide\" CREATEDB;"
 ```
 Ensure diesel cli is installed, see [http://diesel.rs/guides/getting-started/]
+
+## Run tests
+Run tests, including DB integration tests
+```
+cargo make test
+```
+
+## Run app and realworld test suite
 Setup database using diesel cli
 ```
 diesel database setup
