@@ -1,7 +1,8 @@
 use crate::schema::articles;
 use crate::schema::users;
 use chrono::NaiveDateTime;
-use diesel::result::Error;
+use diesel::{Insertable, Queryable};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "users"]

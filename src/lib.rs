@@ -3,22 +3,6 @@
 
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate serde_derive;
-extern crate chrono;
-extern crate dotenv;
-extern crate http;
-extern crate tokio_threadpool;
-#[macro_use]
-extern crate tokio;
-extern crate env_logger;
-extern crate futures;
-extern crate futures_01;
-#[macro_use]
-extern crate log;
-
-#[cfg(test)]
-extern crate fake;
 
 mod auth;
 mod conduit;
@@ -34,7 +18,6 @@ mod web;
 
 use crate::db::Repo;
 
-use crate::web::*;
 use dotenv::dotenv;
 use tide::App;
 

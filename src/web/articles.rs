@@ -6,6 +6,7 @@ use crate::db::Repo;
 use crate::models::*;
 use crate::query_string::UrlQuery;
 use crate::web::diesel_error;
+use serde_derive::Serialize;
 
 #[derive(Serialize)]
 pub struct ArticleResponse {
@@ -32,8 +33,7 @@ mod tests {
     use crate::test_helpers::{create_articles, create_users, init_env};
     use http::Request;
     use http_service::Body;
-    use serde_json::{json, Value};
-    use std::str::from_utf8;
+    use serde_json::Value;
     use tokio_async_await_test::async_test;
 
     #[async_test]

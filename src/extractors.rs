@@ -8,10 +8,10 @@ impl<S: 'static> Extract<S> for Claims {
     type Fut = future::Ready<Result<Self, Response>>;
 
     fn extract(
-        data: &mut S,
+        _data: &mut S,
         req: &mut Request,
-        params: &Option<RouteMatch<'_>>,
-        store: &Store,
+        _params: &Option<RouteMatch<'_>>,
+        _store: &Store,
     ) -> Self::Fut {
         let claims = extract_claims(req.headers()).ok_or(StatusCode::UNAUTHORIZED.into_response());
         future::ready(claims)

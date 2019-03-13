@@ -3,6 +3,8 @@ use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::*;
 use crate::web::diesel_error;
+use serde_derive::{Deserialize, Serialize};
+use log::info;
 
 use http::status::StatusCode;
 use tide::{self, body::Json, AppData};
@@ -100,7 +102,6 @@ mod tests {
     use http::Request;
     use http_service::Body;
     use serde_json::{json, Value};
-    use std::str::from_utf8;
     use tokio_async_await_test::async_test;
 
     #[async_test]

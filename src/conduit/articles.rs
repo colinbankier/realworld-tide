@@ -2,10 +2,10 @@ use crate::db::Repo;
 use crate::models::{Article, NewArticle};
 use diesel::prelude::*;
 use diesel::result::Error;
+use serde_derive::Deserialize;
 use std::str::FromStr;
 
 use crate::schema::articles;
-use crate::schema::users;
 
 // joinable!(articles -> users (user_id));
 

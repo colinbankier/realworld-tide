@@ -21,14 +21,14 @@ pub async fn find(repo: Repo, user_id: i32) -> Result<User, Error> {
 
 pub async fn find_by_email_password(
     repo: Repo,
-    email: String,
-    password: String,
+    user_email: String,
+    user_password: String,
 ) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
     await! { repo.run(|conn| {
     users
-        .filter(email.eq(email))
-        .filter(password.eq(password))
+        .filter(email.eq(user_email))
+        .filter(password.eq(user_password))
         .first::<User>(&conn)
     }) }
 }
@@ -45,26 +45,19 @@ pub async fn update(repo: Repo, user_id: i32, details: UpdateUser) -> Result<Use
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::users;
-    use crate::schema::users::dsl::*;
     use crate::test_helpers::generate;
     use crate::test_helpers::init_env;
-    use diesel::prelude::*;
     use fake::fake;
-    use futures::future;
-    use futures::stream::{FuturesOrdered, StreamExt};
-    use tokio_async_await;
     use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn test_create_user() {
         init_env();
         let repo = Repo::new();
-        // Create a new user
+
         let new_user = generate::new_user();
         let user = await! { insert(repo.clone(), new_user) }.expect("Create user failed.");
 
-        // Check the user is in the database.
         let results = await! {
            find(repo.clone(), user.id)
         };
