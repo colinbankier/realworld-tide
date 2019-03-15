@@ -52,12 +52,11 @@ pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_helpers::{create_articles, create_users, init_env};
+    use crate::test_helpers::{create_articles, create_users};
     use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn test_list_articles() {
-        init_env();
         let repo = Repo::new();
 
         let users = await! { create_users(&repo, 5) };

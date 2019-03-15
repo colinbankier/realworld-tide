@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["colinbankier <colinbankier@gmail.com>"]
 edition = "2018"
 
-[lib]
-name = "realworld_tide"
-path = "src/lib.rs"
-
 [[bin]]
 name = "realworld-tide"
 path = "src/main.rs"

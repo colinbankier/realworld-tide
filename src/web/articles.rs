@@ -30,7 +30,7 @@ mod tests {
     use crate::db::Repo;
     use crate::test_helpers::test_server::response_json;
     use crate::test_helpers::test_server::TestServer;
-    use crate::test_helpers::{create_articles, create_users, init_env};
+    use crate::test_helpers::{create_articles, create_users};
     use http::Request;
     use http_service::Body;
     use serde_json::Value;
@@ -38,7 +38,6 @@ mod tests {
 
     #[async_test]
     async fn should_list_articles() {
-        init_env();
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 
@@ -55,7 +54,6 @@ mod tests {
 
     #[async_test]
     async fn should_get_articles_by_author() {
-        init_env();
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 

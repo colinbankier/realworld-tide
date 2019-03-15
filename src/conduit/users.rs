@@ -46,13 +46,11 @@ pub async fn update(repo: Repo, user_id: i32, details: UpdateUser) -> Result<Use
 mod tests {
     use super::*;
     use crate::test_helpers::generate;
-    use crate::test_helpers::init_env;
     use fake::fake;
     use tokio_async_await_test::async_test;
 
     #[async_test]
     async fn test_create_user() {
-        init_env();
         let repo = Repo::new();
 
         let new_user = generate::new_user();
@@ -66,7 +64,6 @@ mod tests {
 
     #[async_test]
     async fn test_authenticate_user() {
-        init_env();
         let repo = Repo::new();
         // Create a new user
         let new_user = generate::new_user();
@@ -81,7 +78,6 @@ mod tests {
 
     #[async_test]
     async fn test_update_user() {
-        init_env();
         let repo = Repo::new();
         // Create a new user
         let new_user = generate::new_user();

@@ -1,11 +1,6 @@
 pub mod test_server;
 
-use dotenv;
 use r2d2::CustomizeConnection;
-
-pub fn init_env() {
-    dotenv::from_filename(".env.test").ok();
-}
 
 #[derive(Debug)]
 pub struct TestConnectionCustomizer;
