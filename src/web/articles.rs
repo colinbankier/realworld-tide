@@ -17,7 +17,7 @@ pub async fn list_articles(
     repo: AppData<Repo>,
     query: UrlQuery<ArticleQuery>,
 ) -> Result<Json<ArticleResponse>, StatusCode> {
-    let result = await! { articles::find(repo.0, query.0) };
+    let result = articles::find(repo.0, query.0).await;
 
     result
         .map(|articles| Json(ArticleResponse { articles }))

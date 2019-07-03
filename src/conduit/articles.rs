@@ -24,11 +24,11 @@ impl FromStr for ArticleQuery {
 }
 
 pub async fn insert(repo: Repo, article: NewArticle) -> Result<Article, Error> {
-    await! { repo.run(move |conn| {
+    repo.run(move |conn| {
         diesel::insert_into(articles::table)
             .values(&article)
             .get_result(&conn)
-    })}
+    }).await
 }
 
 pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {

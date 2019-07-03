@@ -23,6 +23,33 @@ impl Repo {
         }
     }
 
+    /// Creates a repo with a pool builder, allowing you to customize
+    /// any connection pool configuration.
+    ///
+    /// ```rust
+    /// # use diesel::sqlite::SqliteConnection;
+    /// use r2d2::Pool;
+    /// use core::time::Duration;
+    ///
+    /// type Repo = db::Repo<SqliteConnection>;
+    /// let database_url = ":memory:";
+    /// let repo = Repo::from_pool_builder(database_url,
+    ///     Pool::builder()
+    ///         .connection_timeout(Duration::from_secs(120))
+    ///         .max_size(100)
+    /// );
+    /// ```
+    pub fn from_pool_builder(
+        database_url: &str,
+        builder: r2d2::Builder<ConnectionManager<T>>,
+    ) -> Self {
+        let manager = ConnectionManager::new(database_url);
+        let connection_pool = builder
+            .build(manager)
+            .expect("could not initiate test db pool");
+        Repo { connection_pool }
+    }
+
     /// Runs the given closure in a way that is safe for blocking IO to the database.
     /// The closure will be passed a `Connection` from the pool to use.
     pub async fn run<F, T>(&self, f: F) -> T
