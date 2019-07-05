@@ -6,17 +6,17 @@ use diesel::prelude::*;
 use diesel::result::Error;
 
 pub async fn insert(repo: Repo, user: NewUser) -> Result<User, Error> {
-    await! { repo.run(move |conn| {
+     repo.run(move |conn| {
         // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(&conn)
-    })}
+    }).await
 }
 
 pub async fn find(repo: Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    await! { repo.run(move |conn| users.find(user_id).first(&conn)) }
+     repo.run(move |conn| users.find(user_id).first(&conn)).await
 }
 
 pub async fn find_by_email_password(
@@ -25,21 +25,21 @@ pub async fn find_by_email_password(
     user_password: String,
 ) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    await! { repo.run(|conn| {
+     repo.run(|conn| {
     users
         .filter(email.eq(user_email))
         .filter(password.eq(user_password))
         .first::<User>(&conn)
-    }) }
+    }).await
 }
 
 pub async fn update(repo: Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    await! { repo.run(move |conn| {
+     repo.run(move |conn| {
         diesel::update(users.find(user_id))
             .set(&details)
             .get_result(&conn)
-    })}
+    }).await
 }
 
 #[cfg(test)]
@@ -54,11 +54,11 @@ mod tests {
         let repo = Repo::new();
 
         let new_user = generate::new_user();
-        let user = await! { insert(repo.clone(), new_user) }.expect("Create user failed.");
+        let user =  insert(repo.clone(), new_user).await.expect("Create user failed.");
 
-        let results = await! {
-           find(repo.clone(), user.id)
-        };
+        let results =
+           find(repo.clone(), user.id).await
+        ;
         assert!(results.is_ok());
     }
 
@@ -67,12 +67,12 @@ mod tests {
         let repo = Repo::new();
         // Create a new user
         let new_user = generate::new_user();
-        let user = await! { insert(repo.clone(), new_user) }.expect("Create user failed.");
+        let user =  insert(repo.clone(), new_user).await.expect("Create user failed.");
 
         // Check the user is in the database.
-        let results = await! {
-           find_by_email_password(repo.clone(), user.email, user.password)
-        };
+        let results =
+           find_by_email_password(repo.clone(), user.email, user.password).await
+        ;
         assert!(results.is_ok());
     }
 
@@ -81,7 +81,7 @@ mod tests {
         let repo = Repo::new();
         // Create a new user
         let new_user = generate::new_user();
-        let user = await! { insert(repo.clone(), new_user) }.expect("Create user failed.");
+        let user =  insert(repo.clone(), new_user).await.expect("Create user failed.");
 
         let new_details = UpdateUser {
             bio: Some(fake!(Lorem.paragraph(3, 5)).to_string()),
@@ -91,13 +91,13 @@ mod tests {
         };
 
         // Update the user
-        let result = await! { update(repo.clone(), user.id, new_details.clone() )};
+        let result =  update(repo.clone(), user.id, new_details.clone() ).await;
         result.expect("Failed to update user");
 
         // Check the user is updated in the database.
-        let updated_user = await! {
-           find(repo.clone(), user.id)
-        }
+        let updated_user =
+           find(repo.clone(), user.id).await
+
         .expect("Failed to fetch user");
         assert_eq!(updated_user.bio, new_details.bio);
     }

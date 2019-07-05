@@ -4,6 +4,7 @@ use futures_01::future::poll_fn;
 use r2d2::{Pool, PooledConnection};
 use std::env;
 use tokio_threadpool::blocking;
+use futures::compat::Compat01As03;
 
 pub type ConnectionPool = Pool<ConnectionManager<PgConnection>>;
 pub type Connection = PooledConnection<ConnectionManager<PgConnection>>;
@@ -64,10 +65,10 @@ impl Repo {
         // `f.take()` allows the borrow checker to be sure `f` is not moved into the inner closure
         // multiple times if `poll_fn` is called multple times.
         let mut f = Some(f);
-        tokio::await!(poll_fn(|| blocking(|| (f.take().unwrap())(
+        Compat01As03::new( poll_fn(|| blocking(|| (f.take().unwrap())(
             pool.get().unwrap()
         ))
-        .map_err(|_| panic!("the threadpool shut down"))))
+        .map_err(|_| panic!("the threadpool shut down")))).await
         .expect("Error running async database task.")
     }
 }

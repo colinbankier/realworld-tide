@@ -35,7 +35,7 @@ pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error
     use crate::schema::articles::dsl::*;
     use crate::schema::users::dsl::{username, users};
 
-    await! { repo.run(move |conn| {
+    repo.run(move |conn| {
         let q = users.inner_join(articles)
         .select(articles::all_columns()).into_boxed();
 
@@ -46,7 +46,7 @@ pub async fn find(repo: Repo, query: ArticleQuery) -> Result<Vec<Article>, Error
         };
 
         q.load::<Article>(&conn)
-    } )}
+    } ).await
 }
 
 #[cfg(test)]
@@ -59,10 +59,10 @@ mod tests {
     async fn test_list_articles() {
         let repo = Repo::new();
 
-        let users = await! { create_users(&repo, 5) };
-        let _articles = await! { create_articles(&repo, users)};
+        let users =  create_users(&repo, 5).await ;
+        let _articles =  create_articles(&repo, users);
         let results =
-            await! { find(repo.clone(), Default::default())}.expect("Failed to get articles");
+            find(repo.clone(), Default::default()).await.expect("Failed to get articles");
 
         assert_eq!(results.len(), 5);
     }

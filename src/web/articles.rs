@@ -41,10 +41,10 @@ mod tests {
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 
-        let users = await! { create_users(&repo, 5) };
-        let _articles = await! { create_articles(&repo, users)};
+        let users =  create_users(&repo, 5).await ;
+        let _articles =  create_articles(&repo, users).await;
 
-        let articles_list = await! { get_articles(&server, None) };
+        let articles_list =  get_articles(&server, None).await ;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => assert_eq!(list.len(), 5),
@@ -57,11 +57,11 @@ mod tests {
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 
-        let users = await! { create_users(&repo, 5) };
-        let articles = await! { create_articles(&repo, users.clone())};
+        let users =  create_users(&repo, 5).await ;
+        let articles =  create_articles(&repo, users.clone()).await;
 
         let articles_list =
-            await! { get_articles(&server, Some(format!("author={}", users[0].username))) };
+             get_articles(&server, Some(format!("author={}", users[0].username))).await ;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => {
@@ -77,9 +77,9 @@ mod tests {
             None => "/api/articles".to_string(),
             Some(qs) => format!("/api/articles?{}", qs),
         };
-        let res = await!(server.call(Request::get(url).body(Body::empty()).unwrap()));
+        let res = server.call(Request::get(url).body(Body::empty()).unwrap()).await;
         assert_eq!(res.status(), 200);
-        await!(response_json(res))
+        response_json(res).await
     }
 
     // async fn login_user(repo: Repo, user: NewUser) -> Claims {
@@ -90,7 +90,7 @@ mod tests {
     //         },
     //     });
 
-    //     let login_response = await! { login(AppData(repo), login_request)};
+    //     let login_response =  login(AppData(repo), login_request).await;
     //     let stored_user = login_response.expect("User login failed").0.user;
     //     assert!(stored_user.token.is_some());
 
@@ -99,9 +99,8 @@ mod tests {
 
     // async fn update_user_details(repo: Repo, new_details: UpdateUser, auth: Claims) -> User {
     //     let user_json = Json(UpdateUserRequest { user: new_details });
-    //     let update_response = await! {
-    //         update_user(AppData(repo), user_json, auth)
-    //     }
+    //     let update_response =
+    //         update_user(AppData(repo), user_json, auth).await
     //     .expect("Update user failed");
     //     update_response.0.user
     // }

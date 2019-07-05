@@ -39,21 +39,22 @@ pub async fn register(
     repo: AppData<Repo>,
     registration: Json<Registration>,
 ) -> Result<Json<UserResponse>, StatusCode> {
-    let result = await! { users::insert(repo.clone(), registration.0.user) };
+    let result =  users::insert(repo.clone(), registration.0.user).await;
 
     result
         .map(|user| Json(UserResponse { user }))
         .map_err(|e| diesel_error(&e))
 }
 
+
 pub async fn login(
     repo: AppData<Repo>,
     auth: Json<AuthRequest>,
 ) -> Result<Json<UserResponse>, StatusCode> {
     let user = auth.0.user;
-    let result = await! {
-        users::find_by_email_password(repo.clone(), user.email, user.password)
-    };
+    let result =
+        users::find_by_email_password(repo.clone(), user.email, user.password).await
+    ;
 
     match result {
         Ok(user) => {
@@ -71,7 +72,7 @@ pub async fn login(
 pub async fn get_user(repo: AppData<Repo>, auth: Claims) -> Result<Json<UserResponse>, StatusCode> {
     info!("Get user {}", auth.user_id());
 
-    let results = await! { users::find(repo.clone(), auth.user_id()) };
+    let results =  users::find(repo.clone(), auth.user_id()).await;
 
     results
         .map(|user| Json(UserResponse { user }))
@@ -84,9 +85,9 @@ pub async fn update_user(
     auth: Claims,
 ) -> Result<Json<UserResponse>, StatusCode> {
     info!("Update user {} {:?}", auth.user_id(), update_params.0);
-    let results = await! {
-        users::update(repo.clone(), auth.user_id(), update_params.0.user)
-    };
+    let results =
+        users::update(repo.clone(), auth.user_id(), update_params.0.user).await
+    ;
 
     results
         .map(|user| Json(UserResponse { user }))
@@ -109,9 +110,9 @@ mod tests {
         let server = TestServer::new(Repo::new());
         let user = generate::new_user();
 
-        await! {register_user(&server, &user)};
-        let token = await! {login_user(&server, &user)};
-        let user_details = await! { get_user_details(&server, &token)};
+        register_user(&server, &user).await;
+        let token = login_user(&server, &user).await;
+        let user_details =  get_user_details(&server, &token).await;
 
         assert_eq!(user_details["user"]["username"], user.username);
         assert_eq!(user_details["user"]["email"], user.email);
@@ -122,8 +123,8 @@ mod tests {
         let server = TestServer::new(Repo::new());
         let user = generate::new_user();
 
-        let stored_user = await! {register_user(&server, &user)};
-        let token = await! {login_user(&server, &user)};
+        let stored_user = register_user(&server, &user).await;
+        let token = login_user(&server, &user).await;
 
         assert_eq!(stored_user["user"]["bio"], Value::Null);
         assert_eq!(stored_user["user"]["image"], Value::Null);
@@ -134,17 +135,17 @@ mod tests {
                 "image": "https://www.rust-lang.org/static/images/rust-logo-blk.svg",
             }
         });
-        let updated_user = await! { update_user_details(&server, &new_details, &token)};
+        let updated_user =  update_user_details(&server, &new_details, &token).await;
         assert_eq!(updated_user["user"]["bio"], new_details["user"]["bio"]);
         assert_eq!(updated_user["user"]["image"], new_details["user"]["image"]);
 
-        let user_details = await! { get_user_details(&server, &token)};
+        let user_details =  get_user_details(&server, &token).await;
         assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
         assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
     }
 
     async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) -> Value {
-        let res = await!(server.call(
+        let res = server.call(
             Request::post("/api/users")
                 .body(
                     json!({
@@ -158,12 +159,12 @@ mod tests {
                     .into()
                 )
                 .unwrap()
-        ));
-        await!(response_json(res))
+        ).await;
+        response_json(res).await
     }
 
     async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
-        let res = await!(server.call(
+        let res = server.call(
             Request::post("/api/users/login")
                 .body(
                     json!({
@@ -176,10 +177,10 @@ mod tests {
                     .into(),
                 )
                 .unwrap()
-        ));
+        ).await;
         assert_eq!(res.status(), 200);
 
-        let response_json = await!(response_json(res));
+        let response_json = response_json(res).await;
 
         assert!(response_json["user"]["token"].is_string());
         response_json["user"]["token"]
@@ -189,14 +190,14 @@ mod tests {
     }
 
     async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
-        let res = await!(server.call(
+        let res = server.call(
             Request::get("/api/user")
                 .header("Authorization", format!("token: {}", token))
                 .body(Body::empty())
                 .unwrap()
-        ));
+        ).await;
         assert_eq!(res.status(), 200);
-        await!(response_json(res))
+        response_json(res).await
     }
 
     async fn update_user_details<'a>(
@@ -204,13 +205,13 @@ mod tests {
         details: &'a Value,
         token: &'a String,
     ) -> Value {
-        let res = await!(server.call(
+        let res = server.call(
             Request::put("/api/user")
                 .header("Authorization", format!("token: {}", token))
                 .body(details.to_string().into())
                 .unwrap()
-        ));
+        ).await;
         assert_eq!(res.status(), 200);
-        await!(response_json(res))
+        response_json(res).await
     }
 }
