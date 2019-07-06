@@ -1,4 +1,4 @@
-#![feature(async_await, futures_api, await_macro, arbitrary_self_types)]
+#![feature(async_await, futures_api, await_macro, arbitrary_self_types,async_closure)]
 #![allow(proc_macro_derive_resolution_fallback)]
 
 #[macro_use]
@@ -7,19 +7,20 @@ extern crate diesel;
 mod auth;
 mod conduit;
 mod db;
-mod extractors;
+mod middleware;
 mod models;
-mod query_string;
 mod schema;
 mod web;
 
 #[cfg(test)]
 mod test_helpers;
 
-use crate::db::Repo;
-
 use dotenv::dotenv;
+use std::env;
 use tide::App;
+use diesel::PgConnection;
+
+type Repo = db::Repo<PgConnection>;
 
 pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
     app.at("/api").nest(|api| {
@@ -35,7 +36,9 @@ pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
 fn main() {
     dotenv().ok();
     env_logger::init();
-    let mut app = App::new(Repo::new());
+
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let mut app = App::with_state(Repo::new(&database_url));
     app = set_routes(app);
-    app.serve();
+    app.run("127.0.0.1:8000").unwrap();
 }

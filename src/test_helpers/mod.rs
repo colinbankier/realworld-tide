@@ -11,10 +11,10 @@ where
     E: std::error::Error + Sync + Send,
 {
     fn on_acquire(&self, conn: &mut C) -> Result<(), E> {
-        match conn.begin_test_transaction() {
-            Ok(_) => Ok(()),
-            Err(_) => Ok(()), // TODO: Fix this with real error
+        if let Err(e) = conn.begin_test_transaction() {
+            error!("Error beginning test transaction: {}", e);
         }
+        Ok(())
     }
 }
 

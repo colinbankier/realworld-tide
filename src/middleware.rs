@@ -1,9 +1,11 @@
-use futures::future;
 use futures::future::BoxFuture;
 use http::StatusCode;
 use tide::{
+
+    error::{ StringError  },
     middleware::{Middleware, Next},
     Context, Response,
+    response::IntoResponse
 };
 
 use crate::auth::{extract_claims, Claims};
@@ -15,6 +17,18 @@ pub struct JwtMiddleware {}
 impl JwtMiddleware {
     pub fn new() -> Self {
         Self {}
+    }
+}
+pub trait ContextExt {
+    fn get_claims(&mut self) -> Result<Claims, StringError>;
+}
+
+impl<State> ContextExt for Context<State> {
+    fn get_claims(&mut self) -> Result<Claims, StringError> {
+    let claims = self.extensions()
+            .get::<Claims>()
+            .ok_or_else(|| StringError("Auth middleware missing".to_owned()))?;
+    Ok(claims.clone())
     }
 }
 

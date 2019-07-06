@@ -1,12 +1,15 @@
 use http::status::StatusCode;
-use tide::{self, body::Json, AppData};
 
 use crate::conduit::{articles, articles::ArticleQuery};
-use crate::db::Repo;
+use crate::Repo;
 use crate::models::*;
-use crate::query_string::UrlQuery;
 use crate::web::diesel_error;
 use serde_derive::Serialize;
+use tide::{
+    error::{ StringError, ResultExt },
+    response, App, Context, EndpointResult,
+    querystring::ContextExt
+};
 
 #[derive(Serialize)]
 pub struct ArticleResponse {
@@ -14,13 +17,14 @@ pub struct ArticleResponse {
 }
 
 pub async fn list_articles(
-    repo: AppData<Repo>,
-    query: UrlQuery<ArticleQuery>,
-) -> Result<Json<ArticleResponse>, StatusCode> {
-    let result = articles::find(repo.0, query.0).await;
+    cx: Context<Repo>
+) -> EndpointResult {
+    let query = cx.url_query::<ArticleQuery>()?;
+    let repo = cx.state();
+    let result = articles::find(repo, query).await;
 
     result
-        .map(|articles| Json(ArticleResponse { articles }))
+        .map(|articles| response::json ( articles ))
         .map_err(|e| diesel_error(&e))
 }
 

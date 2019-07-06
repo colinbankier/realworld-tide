@@ -1,27 +1,28 @@
-use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use futures_01::future::poll_fn;
-use r2d2::{Pool, PooledConnection};
+use r2d2::{Pool,CustomizeConnection, PooledConnection};
 use std::env;
+use log::error;
 use tokio_threadpool::blocking;
 use futures::compat::Compat01As03;
-
-pub type ConnectionPool = Pool<ConnectionManager<PgConnection>>;
-pub type Connection = PooledConnection<ConnectionManager<PgConnection>>;
+use diesel::Connection;
 
 /// A database "repository", for running database workloads.
 /// Manages a connection pool and running blocking tasks in a
 /// way that does not block the tokio event loop.
 #[derive(Clone)]
-pub struct Repo {
-    connection_pool: ConnectionPool,
+pub struct Repo<T>
+where
+    T: Connection + 'static, {
+    connection_pool: Pool<ConnectionManager<T>>,
 }
 
-impl Repo {
-    pub fn new() -> Self {
-        Repo {
-            connection_pool: connection_pool(),
-        }
+impl<T> Repo<T>
+where
+    T: Connection + 'static,
+{
+    pub fn new(database_url: &str) -> Self {
+        Self::from_pool_builder(database_url, r2d2::Builder::default())
     }
 
     /// Creates a repo with a pool builder, allowing you to customize
@@ -51,11 +52,20 @@ impl Repo {
         Repo { connection_pool }
     }
 
+
+    pub fn with_test_transactions(database_url: &str) -> Self {
+        let customizer = TestConnectionCustomizer {};
+        let builder = Pool::builder().connection_customizer(Box::new(customizer));
+        Self::from_pool_builder(database_url, builder)
+    }
+
     /// Runs the given closure in a way that is safe for blocking IO to the database.
     /// The closure will be passed a `Connection` from the pool to use.
-    pub async fn run<F, T>(&self, f: F) -> T
+    pub async fn run<F, R>(&self, f: F) -> R
     where
-        F: FnOnce(Connection) -> T + Send + std::marker::Unpin + 'static,
+        F: FnOnce(
+PooledConnection<ConnectionManager<T>>
+) -> R + Send + std::marker::Unpin + 'static,
         T: Send + 'static,
     {
         let pool = self.connection_pool.clone();
@@ -73,24 +83,18 @@ impl Repo {
     }
 }
 
-pub fn connection_pool() -> ConnectionPool {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::new(database_url);
-    configure_pool(manager)
-}
+#[derive(Debug)]
+pub struct TestConnectionCustomizer;
 
-#[cfg(test)]
-fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
-    use crate::test_helpers::TestConnectionCustomizer;
-    let customizer = TestConnectionCustomizer {};
-
-    Pool::builder()
-        .connection_customizer(Box::new(customizer))
-        .build(manager)
-        .expect("could not initiate test db pool")
-}
-
-#[cfg(not(test))]
-fn configure_pool(manager: ConnectionManager<PgConnection>) -> ConnectionPool {
-    Pool::new(manager).expect("could not initiate db pool")
+impl<C, E> CustomizeConnection<C, E> for TestConnectionCustomizer
+where
+    C: diesel::connection::Connection,
+    E: std::error::Error + Sync + Send,
+{
+    fn on_acquire(&self, conn: &mut C) -> Result<(), E> {
+        if let Err(e) = conn.begin_test_transaction() {
+            error!("Error beginning test transaction: {}", e);
+        }
+        Ok(())
+    }
 }
