@@ -1,0 +1,6 @@
+language: rust
+rust:
+  - nightly
+cache: cargo
+script:
+  - cargo build
