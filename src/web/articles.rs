@@ -1,14 +1,14 @@
 use http::status::StatusCode;
 
 use crate::conduit::{articles, articles::ArticleQuery};
-use crate::Repo;
 use crate::models::*;
 use crate::web::diesel_error;
+use crate::Repo;
 use serde_derive::Serialize;
 use tide::{
-    error::{ StringError, ResultExt },
+    error::{ResultExt, StringError},
+    querystring::ContextExt,
     response, App, Context, EndpointResult,
-    querystring::ContextExt
 };
 
 #[derive(Serialize)]
@@ -16,15 +16,13 @@ pub struct ArticleResponse {
     articles: Vec<Article>,
 }
 
-pub async fn list_articles(
-    cx: Context<Repo>
-) -> EndpointResult {
+pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
     let query = cx.url_query::<ArticleQuery>()?;
     let repo = cx.state();
     let result = articles::find(repo, query).await;
 
     result
-        .map(|articles| response::json ( articles ))
+        .map(|articles| response::json(articles))
         .map_err(|e| diesel_error(&e))
 }
 
@@ -45,10 +43,10 @@ mod tests {
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 
-        let users =  create_users(&repo, 5).await ;
-        let _articles =  create_articles(&repo, users).await;
+        let users = create_users(&repo, 5).await;
+        let _articles = create_articles(&repo, users).await;
 
-        let articles_list =  get_articles(&server, None).await ;
+        let articles_list = get_articles(&server, None).await;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => assert_eq!(list.len(), 5),
@@ -61,11 +59,11 @@ mod tests {
         let repo = Repo::new();
         let server = TestServer::new(repo.clone());
 
-        let users =  create_users(&repo, 5).await ;
-        let articles =  create_articles(&repo, users.clone()).await;
+        let users = create_users(&repo, 5).await;
+        let articles = create_articles(&repo, users.clone()).await;
 
         let articles_list =
-             get_articles(&server, Some(format!("author={}", users[0].username))).await ;
+            get_articles(&server, Some(format!("author={}", users[0].username))).await;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => {
@@ -81,7 +79,9 @@ mod tests {
             None => "/api/articles".to_string(),
             Some(qs) => format!("/api/articles?{}", qs),
         };
-        let res = server.call(Request::get(url).body(Body::empty()).unwrap()).await;
+        let res = server
+            .call(Request::get(url).body(Body::empty()).unwrap())
+            .await;
         assert_eq!(res.status(), 200);
         response_json(res).await
     }

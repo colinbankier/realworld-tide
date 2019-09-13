@@ -25,10 +25,11 @@ use crate::models::{Article, User};
 use futures::stream::{FuturesOrdered, StreamExt};
 
 pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
-    let results =
-        (0..num_users).map(|_| users::insert(repo.clone(), generate::new_user()) )
-            .collect::<FuturesOrdered<_>>()
-            .collect::<Vec<_>>().await;
+    let results = (0..num_users)
+        .map(|_| users::insert(repo.clone(), generate::new_user()))
+        .collect::<FuturesOrdered<_>>()
+        .collect::<Vec<_>>()
+        .await;
     results
         .into_iter()
         .map(|r| r.expect("Failed to create user"))
@@ -36,10 +37,12 @@ pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
 }
 
 pub async fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
-    let results =
-           users.iter().map(|user| articles::insert(repo.clone(), generate::new_article(user.id)) )
-           .collect::<FuturesOrdered<_>>().collect::<Vec<_>>()
-    .await;
+    let results = users
+        .iter()
+        .map(|user| articles::insert(repo.clone(), generate::new_article(user.id)))
+        .collect::<FuturesOrdered<_>>()
+        .collect::<Vec<_>>()
+        .await;
     results
         .into_iter()
         .map(|r| r.expect("Failed to create article"))

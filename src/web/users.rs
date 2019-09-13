@@ -1,15 +1,15 @@
 use crate::auth::{encode_token, Claims};
 use crate::conduit::users;
+use crate::middleware::ContextExt;
 use crate::models::*;
 use crate::web::diesel_error;
-use crate::middleware::ContextExt;
 use crate::Repo;
-use serde_derive::{Deserialize, Serialize};
 use log::info;
+use serde_derive::{Deserialize, Serialize};
 
 use http::status::StatusCode;
 use tide::{
-    error::{ StringError, ResultExt },
+    error::{ResultExt, StringError},
     response, App, Context, EndpointResult,
 };
 
@@ -39,27 +39,21 @@ pub struct AuthUser {
     password: String,
 }
 
-pub async fn register(
-    cx: Context<Repo>
-) -> EndpointResult {
+pub async fn register(cx: Context<Repo>) -> EndpointResult {
     let repo = cx.state();
     let registration: Registration = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
-    let result =  users::insert(repo, registration.user).await;
+    let result = users::insert(repo, registration.user).await;
 
     result
-        .map(|user| response::json  (user ))
+        .map(|user| response::json(user))
         .map_err(|e| diesel_error(&e))
 }
 
-
-pub async fn login(
-cx: Context<Repo>) -> EndpointResult {
+pub async fn login(cx: Context<Repo>) -> EndpointResult {
     let repo = cx.state();
     let auth: AuthRequest = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let user = auth.user;
-    let result =
-        users::find_by_email_password(repo.clone(), user.email, user.password).await
-    ;
+    let result = users::find_by_email_password(repo.clone(), user.email, user.password).await;
 
     match result {
         Ok(user) => {
@@ -67,39 +61,35 @@ cx: Context<Repo>) -> EndpointResult {
                 token: Some(encode_token(user.id)),
                 ..user
             };
-            Ok(response::json( user ))
+            Ok(response::json(user))
         }
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
         Err(e) => Err(diesel_error(&e)),
     }
 }
 
-
 pub async fn get_user(cx: Context<Repo>) -> EndpointResult {
     let auth = cx.get_claims().map_err(|e| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
     info!("Get user {}", auth.user_id());
 
-    let results =  users::find(repo, auth.user_id()).await;
+    let results = users::find(repo, auth.user_id()).await;
 
     results
         .map(|user| response::json(user))
         .map_err(|e| diesel_error(&e))
 }
 
-pub async fn update_user(
-    cx: Context<Repo>
-) -> EndpointResult {
+pub async fn update_user(cx: Context<Repo>) -> EndpointResult {
     let auth = cx.get_claims().map_err(|e| StatusCode::UNAUTHORIZED)?;
-    let update_params: UpdateUserRequest = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
+    let update_params: UpdateUserRequest =
+        cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let repo = cx.state();
     info!("Update user {} {:?}", auth.user_id(), update_params);
-    let results =
-        users::update(repo, auth.user_id(), update_params.user).await
-    ;
+    let results = users::update(repo, auth.user_id(), update_params.user).await;
 
     results
-        .map(|user| response::json ( user ))
+        .map(|user| response::json(user))
         .map_err(|e| diesel_error(&e))
 }
 
@@ -114,20 +104,20 @@ mod tests {
     use serde_json::{json, Value};
     // use tokio_async_await_test::async_test;
 
-#[test]
-fn register_and_login() {
-    futures::executor::block_on(async {
-        let server = TestServer::new(Repo::new());
-        let user = generate::new_user();
+    #[test]
+    fn register_and_login() {
+        futures::executor::block_on(async {
+            let server = TestServer::new(Repo::new());
+            let user = generate::new_user();
 
-        register_user(&server, &user).await;
-        let token = login_user(&server, &user).await;
-        let user_details =  get_user_details(&server, &token).await;
+            register_user(&server, &user).await;
+            let token = login_user(&server, &user).await;
+            let user_details = get_user_details(&server, &token).await;
 
-        assert_eq!(user_details["user"]["username"], user.username);
-        assert_eq!(user_details["user"]["email"], user.email);
-    })
-}
+            assert_eq!(user_details["user"]["username"], user.username);
+            assert_eq!(user_details["user"]["email"], user.email);
+        })
+    }
 
     // #[async_test]
     // async fn register_and_login() {
@@ -169,39 +159,43 @@ fn register_and_login() {
     // }
 
     async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) -> Value {
-        let res = server.call(
-            Request::post("/api/users")
-                .body(
-                    json!({
-                        "user": {
-                            "email": user.email,
-                            "password": user.password,
-                            "username": user.username,
-                        }
-                    })
-                    .to_string()
-                    .into()
-                )
-                .unwrap()
-        ).await;
+        let res = server
+            .call(
+                Request::post("/api/users")
+                    .body(
+                        json!({
+                            "user": {
+                                "email": user.email,
+                                "password": user.password,
+                                "username": user.username,
+                            }
+                        })
+                        .to_string()
+                        .into(),
+                    )
+                    .unwrap(),
+            )
+            .await;
         response_json(res).await
     }
 
     async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
-        let res = server.call(
-            Request::post("/api/users/login")
-                .body(
-                    json!({
-                        "user": {
-                            "email": user.email,
-                            "password": user.password,
-                        }
-                    })
-                    .to_string()
-                    .into(),
-                )
-                .unwrap()
-        ).await;
+        let res = server
+            .call(
+                Request::post("/api/users/login")
+                    .body(
+                        json!({
+                            "user": {
+                                "email": user.email,
+                                "password": user.password,
+                            }
+                        })
+                        .to_string()
+                        .into(),
+                    )
+                    .unwrap(),
+            )
+            .await;
         assert_eq!(res.status(), 200);
 
         let response_json = response_json(res).await;
@@ -214,12 +208,14 @@ fn register_and_login() {
     }
 
     async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
-        let res = server.call(
-            Request::get("/api/user")
-                .header("Authorization", format!("token: {}", token))
-                .body(Body::empty())
-                .unwrap()
-        ).await;
+        let res = server
+            .call(
+                Request::get("/api/user")
+                    .header("Authorization", format!("token: {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
         assert_eq!(res.status(), 200);
         response_json(res).await
     }
@@ -229,12 +225,14 @@ fn register_and_login() {
         details: &'a Value,
         token: &'a String,
     ) -> Value {
-        let res = server.call(
-            Request::put("/api/user")
-                .header("Authorization", format!("token: {}", token))
-                .body(details.to_string().into())
-                .unwrap()
-        ).await;
+        let res = server
+            .call(
+                Request::put("/api/user")
+                    .header("Authorization", format!("token: {}", token))
+                    .body(details.to_string().into())
+                    .unwrap(),
+            )
+            .await;
         assert_eq!(res.status(), 200);
         response_json(res).await
     }

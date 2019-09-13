@@ -1,11 +1,11 @@
 use diesel::r2d2::ConnectionManager;
-use futures_01::future::poll_fn;
-use r2d2::{Pool,CustomizeConnection, PooledConnection};
-use std::env;
-use log::error;
-use tokio_threadpool::blocking;
-use futures::compat::Compat01As03;
 use diesel::Connection;
+use futures::compat::Compat01As03;
+use futures_01::future::poll_fn;
+use log::error;
+use r2d2::{CustomizeConnection, Pool, PooledConnection};
+use std::env;
+use tokio_threadpool::blocking;
 
 /// A database "repository", for running database workloads.
 /// Manages a connection pool and running blocking tasks in a
@@ -13,7 +13,8 @@ use diesel::Connection;
 #[derive(Clone)]
 pub struct Repo<T>
 where
-    T: Connection + 'static, {
+    T: Connection + 'static,
+{
     connection_pool: Pool<ConnectionManager<T>>,
 }
 
@@ -52,7 +53,6 @@ where
         Repo { connection_pool }
     }
 
-
     pub fn with_test_transactions(database_url: &str) -> Self {
         let customizer = TestConnectionCustomizer {};
         let builder = Pool::builder().connection_customizer(Box::new(customizer));
@@ -63,9 +63,10 @@ where
     /// The closure will be passed a `Connection` from the pool to use.
     pub async fn run<F, R>(&self, f: F) -> R
     where
-        F: FnOnce(
-PooledConnection<ConnectionManager<T>>
-) -> R + Send + std::marker::Unpin + 'static,
+        F: FnOnce(PooledConnection<ConnectionManager<T>>) -> R
+            + Send
+            + std::marker::Unpin
+            + 'static,
         T: Send + 'static,
     {
         let pool = self.connection_pool.clone();
@@ -75,10 +76,11 @@ PooledConnection<ConnectionManager<T>>
         // `f.take()` allows the borrow checker to be sure `f` is not moved into the inner closure
         // multiple times if `poll_fn` is called multple times.
         let mut f = Some(f);
-        Compat01As03::new( poll_fn(|| blocking(|| (f.take().unwrap())(
-            pool.get().unwrap()
-        ))
-        .map_err(|_| panic!("the threadpool shut down")))).await
+        Compat01As03::new(poll_fn(|| {
+            blocking(|| (f.take().unwrap())(pool.get().unwrap()))
+                .map_err(|_| panic!("the threadpool shut down"))
+        }))
+        .await
         .expect("Error running async database task.")
     }
 }

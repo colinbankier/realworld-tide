@@ -1,8 +1,8 @@
 use crate::db;
 use crate::models::{Article, NewArticle};
+use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
-use diesel::pg::PgConnection;
 use serde_derive::Deserialize;
 use std::str::FromStr;
 
@@ -31,7 +31,8 @@ pub async fn insert(repo: Repo, article: NewArticle) -> Result<Article, Error> {
         diesel::insert_into(articles::table)
             .values(&article)
             .get_result(&conn)
-    }).await
+    })
+    .await
 }
 
 pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
@@ -39,8 +40,10 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
     use crate::schema::users::dsl::{username, users};
 
     repo.run(move |conn| {
-        let q = users.inner_join(articles)
-        .select(articles::all_columns()).into_boxed();
+        let q = users
+            .inner_join(articles)
+            .select(articles::all_columns())
+            .into_boxed();
 
         let q = if let Some(a) = query.author {
             q.filter(username.eq(a))
@@ -49,7 +52,8 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
         };
 
         q.load::<Article>(&conn)
-    } ).await
+    })
+    .await
 }
 
 #[cfg(test)]

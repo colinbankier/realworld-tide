@@ -19,7 +19,11 @@ impl<T: HttpService> TestBackend<T> {
 
     pub async fn call(&self, req: Request) -> Response {
         let mut connection = self.service.connect().into_future().await.ok().unwrap();
-        let response =  self.service.respond(&mut connection, req).into_future().await ;
+        let response = self
+            .service
+            .respond(&mut connection, req)
+            .into_future()
+            .await;
         response.ok().unwrap()
     }
 }
@@ -34,6 +38,6 @@ impl TestServer {
 }
 
 pub async fn response_json(res: Response) -> Value {
-    let body =  res.into_body().into_vec().await.unwrap();
+    let body = res.into_body().into_vec().await.unwrap();
     serde_json::from_str(from_utf8(&body).unwrap()).expect("Could not parse body.")
 }
