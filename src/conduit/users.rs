@@ -2,24 +2,25 @@ use crate::db;
 use crate::models::{NewUser, UpdateUser, User};
 use crate::schema::users;
 
+use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
-use diesel::pg::PgConnection;
 
 type Repo = db::Repo<PgConnection>;
 
 pub async fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
-     repo.run(move |conn| {
+    repo.run(move |conn| {
         // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(&conn)
-    }).await
+    })
+    .await
 }
 
 pub async fn find(repo: &Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-     repo.run(move |conn| users.find(user_id).first(&conn)).await
+    repo.run(move |conn| users.find(user_id).first(&conn)).await
 }
 
 pub async fn find_by_email_password(
@@ -28,21 +29,23 @@ pub async fn find_by_email_password(
     user_password: String,
 ) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-     repo.run(|conn| {
-    users
-        .filter(email.eq(user_email))
-        .filter(password.eq(user_password))
-        .first::<User>(&conn)
-    }).await
+    repo.run(|conn| {
+        users
+            .filter(email.eq(user_email))
+            .filter(password.eq(user_password))
+            .first::<User>(&conn)
+    })
+    .await
 }
 
 pub async fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-     repo.run(move |conn| {
+    repo.run(move |conn| {
         diesel::update(users.find(user_id))
             .set(&details)
             .get_result(&conn)
-    }).await
+    })
+    .await
 }
 
 #[cfg(test)]

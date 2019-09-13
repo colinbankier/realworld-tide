@@ -1,4 +1,10 @@
-#![feature(async_await, futures_api, await_macro, arbitrary_self_types,async_closure)]
+#![feature(
+    async_await,
+    futures_api,
+    await_macro,
+    arbitrary_self_types,
+    async_closure
+)]
 #![allow(proc_macro_derive_resolution_fallback)]
 
 #[macro_use]
@@ -15,10 +21,10 @@ mod web;
 #[cfg(test)]
 mod test_helpers;
 
+use diesel::PgConnection;
 use dotenv::dotenv;
 use std::env;
 use tide::App;
-use diesel::PgConnection;
 
 type Repo = db::Repo<PgConnection>;
 
