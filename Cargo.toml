@@ -10,8 +10,8 @@ path = "src/main.rs"
 
 [dependencies]
 tide = { git = "https://github.com/rustasync/tide.git" }
-diesel = { version = "1.3.3", features = ["postgres", "extras"] }
-r2d2 = "0.8.3"
+diesel = { version = "1.4", features = ["postgres", "extras"] }
+r2d2 = "0.8"
 serde = "1.0"
 serde_derive = "1.0"
 serde_urlencoded = "0.5.4"
@@ -23,23 +23,10 @@ tokio-threadpool = "0.1.9"
 log = "0.4.0"
 env_logger = "0.6.0"
 jsonwebtoken = "5.0.1"
-# tokio-async-await-test = { git = "https://github.com/colinbankier/tokio-async-await-test.git", branch = "futures-0.3.0-alpha.13"}
-# tokio-futures = "0.2"
-# tokio = { version = "0.1.15", default-features = false, features = ["rt-full"]}
 
 [dependencies.futures-preview]
 features = ["compat"]
 version = "0.3.0-alpha.13"
-
-[patch.crates-io]
-http-service = { git = "https://github.com/rustasync/http-service", branch = "master" }
-http-service-hyper = { git = "https://github.com/rustasync/http-service", branch = "master" }
-http-service-mock = { git = "https://github.com/rustasync/http-service", branch = "master" }
-
-# [patch.crates-io]
-# tokio = { git = "https://github.com/tokio-rs/tokio"}
-# tokio-futures = { git = "https://github.com/tokio-rs/tokio" }
-
 
 [dev-dependencies]
 fake = "1.2.2"
