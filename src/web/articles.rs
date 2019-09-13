@@ -1,15 +1,9 @@
-use http::status::StatusCode;
-
 use crate::conduit::{articles, articles::ArticleQuery};
 use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use serde_derive::Serialize;
-use tide::{
-    error::{ResultExt, StringError},
-    querystring::ContextExt,
-    response, App, Context, EndpointResult,
-};
+use tide::{querystring::ContextExt, response, Context, EndpointResult};
 
 #[derive(Serialize)]
 pub struct ArticleResponse {

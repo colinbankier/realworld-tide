@@ -30,5 +30,5 @@ version = "0.3.0-alpha.13"
 
 [dev-dependencies]
 fake = "1.2.2"
-http-service = "0.2.0"
+http-service = "0.3.1"
 serde_json = "1.0"

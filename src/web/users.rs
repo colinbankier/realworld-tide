@@ -1,4 +1,4 @@
-use crate::auth::{encode_token, Claims};
+use crate::auth::encode_token;
 use crate::conduit::users;
 use crate::middleware::ContextExt;
 use crate::models::*;
@@ -8,10 +8,7 @@ use log::info;
 use serde_derive::{Deserialize, Serialize};
 
 use http::status::StatusCode;
-use tide::{
-    error::{ResultExt, StringError},
-    response, App, Context, EndpointResult,
-};
+use tide::{response, Context, EndpointResult};
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -39,9 +36,9 @@ pub struct AuthUser {
     password: String,
 }
 
-pub async fn register(cx: Context<Repo>) -> EndpointResult {
-    let repo = cx.state();
+pub async fn register(mut cx: Context<Repo>) -> EndpointResult {
     let registration: Registration = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
+    let repo = cx.state();
     let result = users::insert(repo, registration.user).await;
 
     result
@@ -49,9 +46,9 @@ pub async fn register(cx: Context<Repo>) -> EndpointResult {
         .map_err(|e| diesel_error(&e))
 }
 
-pub async fn login(cx: Context<Repo>) -> EndpointResult {
-    let repo = cx.state();
+pub async fn login(mut cx: Context<Repo>) -> EndpointResult {
     let auth: AuthRequest = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
+    let repo = cx.state();
     let user = auth.user;
     let result = users::find_by_email_password(repo.clone(), user.email, user.password).await;
 
@@ -68,8 +65,8 @@ pub async fn login(cx: Context<Repo>) -> EndpointResult {
     }
 }
 
-pub async fn get_user(cx: Context<Repo>) -> EndpointResult {
-    let auth = cx.get_claims().map_err(|e| StatusCode::UNAUTHORIZED)?;
+pub async fn get_user(mut cx: Context<Repo>) -> EndpointResult {
+    let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
     info!("Get user {}", auth.user_id());
 
@@ -80,10 +77,10 @@ pub async fn get_user(cx: Context<Repo>) -> EndpointResult {
         .map_err(|e| diesel_error(&e))
 }
 
-pub async fn update_user(cx: Context<Repo>) -> EndpointResult {
-    let auth = cx.get_claims().map_err(|e| StatusCode::UNAUTHORIZED)?;
+pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
     let update_params: UpdateUserRequest =
         cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
+    let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
     info!("Update user {} {:?}", auth.user_id(), update_params);
     let results = users::update(repo, auth.user_id(), update_params.user).await;

@@ -4,7 +4,6 @@ use futures::compat::Compat01As03;
 use futures_01::future::poll_fn;
 use log::error;
 use r2d2::{CustomizeConnection, Pool, PooledConnection};
-use std::env;
 use tokio_threadpool::blocking;
 
 /// A database "repository", for running database workloads.
