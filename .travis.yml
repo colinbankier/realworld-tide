@@ -2,5 +2,18 @@ language: rust
 rust:
   - nightly
 cache: cargo
+services:
+  - postgresql
+env:
+  - POSTGRES_USER=postgres
+  - POSTGRES_PASSWORD=""
+  - POSTGRES_DB=realword
+  - POSTGRES_PORT=5432
+before_script:
+  - psql -c 'create database ${POSTGRES_DB};' -U postgres
 script:
   - cargo build
+  - cargo install diesel_cli --no-default-features --features postgres
+  - diesel database setup \
+    --database-url=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+  - ./scripts/run_tests.sh
