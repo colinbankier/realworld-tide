@@ -5,10 +5,11 @@ cache: cargo
 services:
   - postgresql
 env:
-  - POSTGRES_USER=postgres
-  - POSTGRES_PASSWORD=""
-  - POSTGRES_DB=realword
-  - POSTGRES_PORT=5432
+  global:
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=""
+    - POSTGRES_DB=realword
+    - POSTGRES_PORT=5432
 before_script:
   - psql -c 'create database ${POSTGRES_DB};' -U postgres
 script:
