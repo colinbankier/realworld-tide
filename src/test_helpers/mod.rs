@@ -1,6 +1,7 @@
 pub mod test_server;
 
 use r2d2::CustomizeConnection;
+use log::error;
 
 #[derive(Debug)]
 pub struct TestConnectionCustomizer;
@@ -23,10 +24,11 @@ use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::{Article, User};
 use futures::stream::{FuturesOrdered, StreamExt};
+use diesel::PgConnection;
 
-pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
+pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
-        .map(|_| users::insert(repo.clone(), generate::new_user()))
+        .map(|_| users::insert(repo, generate::new_user()))
         .collect::<FuturesOrdered<_>>()
         .collect::<Vec<_>>()
         .await;
@@ -36,10 +38,10 @@ pub async fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
         .collect()
 }
 
-pub async fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
+pub async fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Article> {
     let results = users
         .iter()
-        .map(|user| articles::insert(repo.clone(), generate::new_article(user.id)))
+        .map(|user| articles::insert(repo, generate::new_article(user.id)))
         .collect::<FuturesOrdered<_>>()
         .collect::<Vec<_>>()
         .await;

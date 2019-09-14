@@ -94,17 +94,18 @@ pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
 mod tests {
     use crate::models::NewUser;
     use crate::test_helpers::generate;
-    use crate::test_helpers::test_server::{response_json, TestServer};
+    use crate::test_helpers::test_server::{response_json, TestServer, get_repo};
     use crate::Repo;
     use http::Request;
     use http_service::Body;
     use serde_json::{json, Value};
+    use diesel::PgConnection;
     // use tokio_async_await_test::async_test;
 
     #[test]
     fn register_and_login() {
         futures::executor::block_on(async {
-            let server = TestServer::new(Repo::new());
+            let server = TestServer::new(get_repo());
             let user = generate::new_user();
 
             register_user(&server, &user).await;

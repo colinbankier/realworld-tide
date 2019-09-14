@@ -24,48 +24,49 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
     use crate::db::Repo;
-    use crate::test_helpers::test_server::response_json;
-    use crate::test_helpers::test_server::TestServer;
+    use crate::test_helpers::test_server::{TestServer, response_json, get_repo};
     use crate::test_helpers::{create_articles, create_users};
     use http::Request;
     use http_service::Body;
     use serde_json::Value;
-    use tokio_async_await_test::async_test;
+    use futures::executor::block_on;
 
-    #[async_test]
-    async fn should_list_articles() {
-        let repo = Repo::new();
-        let server = TestServer::new(repo.clone());
+    #[test]
+    fn should_list_articles() {
+        block_on( async {
+            let server = TestServer::new(get_repo());
+            let repo = get_repo();
+            let users = create_users(&repo, 5).await;
+            let _articles = create_articles(&repo, users).await;
+            let articles_list = get_articles(&server, None).await;
 
-        let users = create_users(&repo, 5).await;
-        let _articles = create_articles(&repo, users).await;
-
-        let articles_list = get_articles(&server, None).await;
-
-        match &articles_list["articles"] {
-            Value::Array(ref list) => assert_eq!(list.len(), 5),
-            _ => panic!(format!("Unexpected article response. {}", &articles_list)),
-        }
+            match &articles_list["articles"] {
+                Value::Array(ref list) => assert_eq!(list.len(), 5),
+                _ => panic!(format!("Unexpected article response. {}", &articles_list)),
+            }
+        })
     }
 
-    #[async_test]
-    async fn should_get_articles_by_author() {
-        let repo = Repo::new();
-        let server = TestServer::new(repo.clone());
+    #[test]
+    fn should_get_articles_by_author() {
+        block_on( async {
+            let server = TestServer::new(get_repo());
 
-        let users = create_users(&repo, 5).await;
-        let articles = create_articles(&repo, users.clone()).await;
+            let repo = get_repo();
+            let users = create_users(&repo, 5).await;
+            let articles = create_articles(&repo, users.clone()).await;
 
-        let articles_list =
-            get_articles(&server, Some(format!("author={}", users[0].username))).await;
+            let articles_list =
+                get_articles(&server, Some(format!("author={}", users[0].username))).await;
 
-        match &articles_list["articles"] {
-            Value::Array(ref list) => {
-                assert_eq!(list[0]["title"], articles[0].title);
-                assert_eq!(list.len(), 1);
+            match &articles_list["articles"] {
+                Value::Array(ref list) => {
+                    assert_eq!(list[0]["title"], articles[0].title);
+                    assert_eq!(list.len(), 1);
+                }
+                _ => panic!(format!("Unexpected article response. {}", &articles_list)),
             }
-            _ => panic!(format!("Unexpected article response. {}", &articles_list)),
-        }
+        })
     }
 
     async fn get_articles<'a>(server: &'a TestServer, query: Option<String>) -> Value {
