@@ -24,19 +24,19 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
     use crate::db::Repo;
-    use crate::test_helpers::test_server::{TestServer, response_json, get_repo};
+    use crate::test_helpers::test_server::{get_repo, response_json, TestServer};
     use crate::test_helpers::{create_articles, create_users};
+    use futures::executor::block_on;
+    use futures::executor::ThreadPool;
     use http::Request;
     use http_service::Body;
     use serde_json::Value;
-    use futures::executor::block_on;
-    use futures::executor::ThreadPool;
     use std::sync::Arc;
 
     #[test]
     fn should_list_articles() {
         let runtime = ThreadPool::new().unwrap();
-        runtime.spawn_ok( async move {
+        runtime.spawn_ok(async move {
             let server = TestServer::new(get_repo());
             let repo = get_repo();
             let users = create_users(&repo, 5).await;
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn should_get_articles_by_author() {
         let runtime = ThreadPool::new().unwrap();
-        runtime.spawn_ok( async move {
+        runtime.spawn_ok(async move {
             let server = TestServer::new(get_repo());
             let repo = get_repo();
             let users = create_users(&repo, 5).await;

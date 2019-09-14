@@ -1,7 +1,7 @@
 pub mod test_server;
 
-use r2d2::CustomizeConnection;
 use log::error;
+use r2d2::CustomizeConnection;
 
 #[derive(Debug)]
 pub struct TestConnectionCustomizer;
@@ -23,8 +23,8 @@ use crate::conduit::articles;
 use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::{Article, User};
-use futures::stream::{FuturesOrdered, StreamExt};
 use diesel::PgConnection;
+use futures::stream::{FuturesOrdered, StreamExt};
 
 pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
