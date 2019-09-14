@@ -3,18 +3,16 @@ rust:
   - nightly
 cache: cargo
 services:
-  - postgresql
+  - docker
 env:
   global:
     - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=""
+    - POSTGRES_PASSWORD=password
     - POSTGRES_DB=realword
     - POSTGRES_PORT=5432
 before_script:
-  - psql -c 'create database ${POSTGRES_DB};' -U postgres
+  - cargo install diesel_cli --no-default-features --features postgres
+  - ./scripts/init_db.sh
 script:
   - cargo build
-  - cargo install diesel_cli --no-default-features --features postgres
-  - diesel database setup \
-    --database-url=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
   - ./scripts/run_tests.sh
