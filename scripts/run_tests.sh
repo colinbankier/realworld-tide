@@ -11,14 +11,13 @@ DB_NAME="${POSTGRES_DB:=realword}"
 # Check if a port has been set, otherwise default to '5432'
 DB_PORT="${POSTGRES_PORT:=5432}"
 
+export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
 
 # Reset DB (in case it was left in a corrupted state)
-diesel database reset \
-    --database-url=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
+diesel database reset
 
 # Run tests
 cargo test
 
 # Reset DB
-diesel database reset \
-    --database-url=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
+diesel database reset
