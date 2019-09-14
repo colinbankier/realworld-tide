@@ -10,9 +10,9 @@ env:
     - POSTGRES_PASSWORD=password
     - POSTGRES_DB=realword
     - POSTGRES_PORT=5432
-before_script:
+before_install:
   - cargo install diesel_cli --no-default-features --features postgres
+before_script:
   - ./scripts/init_db.sh
 script:
-  - cargo build
-  - ./scripts/run_tests.sh
+  - cargo build && ./scripts/run_tests.sh
