@@ -9,7 +9,7 @@
 
 This codebase was created to demonstrate a fully fledged fullstack application built with **Rust/Tide** including CRUD operations, authentication, routing, pagination, and more.
 
-This project attempts to acheive the following:
+This project attempts to achieve the following:
  - Separate domain logic from web logic. The `conduit` module contains domain logic and the `web` module has logic for dealing with http stuff and json request/response formats.
  - Async queries with diesel. Diesel doesn't directly support async, but we can still build an async application around it using `tokio_threadpool::blocking`. The `db` module provides a `Repo` abstraction to encapsulate this.
  - Parallel database tests. Tests use isolated test transactions so database tests can be run in parallel.
