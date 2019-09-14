@@ -30,10 +30,13 @@ mod tests {
     use http_service::Body;
     use serde_json::Value;
     use futures::executor::block_on;
+    use futures::executor::ThreadPool;
+    use std::sync::Arc;
 
     #[test]
     fn should_list_articles() {
-        block_on( async {
+        let runtime = ThreadPool::new().unwrap();
+        runtime.spawn_ok( async move {
             let server = TestServer::new(get_repo());
             let repo = get_repo();
             let users = create_users(&repo, 5).await;
@@ -49,15 +52,15 @@ mod tests {
 
     #[test]
     fn should_get_articles_by_author() {
-        block_on( async {
+        let runtime = ThreadPool::new().unwrap();
+        runtime.spawn_ok( async move {
             let server = TestServer::new(get_repo());
-
             let repo = get_repo();
             let users = create_users(&repo, 5).await;
             let articles = create_articles(&repo, users.clone()).await;
 
-            let articles_list =
-                get_articles(&server, Some(format!("author={}", users[0].username))).await;
+            let query = Some(format!("author={}", users[0].username));
+            let articles_list = get_articles(&server, query).await;
 
             match &articles_list["articles"] {
                 Value::Array(ref list) => {

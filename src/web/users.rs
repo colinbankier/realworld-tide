@@ -100,11 +100,12 @@ mod tests {
     use http_service::Body;
     use serde_json::{json, Value};
     use diesel::PgConnection;
-    // use tokio_async_await_test::async_test;
+    use futures::executor::ThreadPool;
 
     #[test]
     fn register_and_login() {
-        futures::executor::block_on(async {
+        let runtime = ThreadPool::new().unwrap();
+        runtime.spawn_ok( async move {
             let server = TestServer::new(get_repo());
             let user = generate::new_user();
 
@@ -206,10 +207,11 @@ mod tests {
     }
 
     async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
+        let auth_header = format!("token: {}", token);
         let res = server
             .call(
                 Request::get("/api/user")
-                    .header("Authorization", format!("token: {}", token))
+                    .header("Authorization", auth_header)
                     .body(Body::empty())
                     .unwrap(),
             )

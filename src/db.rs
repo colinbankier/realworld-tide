@@ -77,7 +77,9 @@ where
         let mut f = Some(f);
         Compat01As03::new(poll_fn(|| {
             blocking(|| (f.take().unwrap())(pool.get().unwrap()))
-                .map_err(|_| panic!("the threadpool shut down"))
+                .map_err(|e| {
+                    panic!("the threadpool shut down: {:?}", e)
+                })
         }))
         .await
         .expect("Error running async database task.")
