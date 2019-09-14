@@ -66,15 +66,12 @@ You are ready to go!
 
 ## Run tests
 Run tests, including DB integration tests
+
 ```
-cargo make test
+./scripts/run_tests.sh
 ```
 
 ## Run app and realworld test suite
-Setup database using diesel cli
-```
-diesel database setup
-```
 Run the app
 ```
 cargo run
