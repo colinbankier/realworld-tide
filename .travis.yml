@@ -1,18 +1,34 @@
 language: rust
-rust:
-  - nightly
+rust: nightly
+
 cache: cargo
+
 services:
   - docker
+
 env:
   global:
     - POSTGRES_USER=postgres
     - POSTGRES_PASSWORD=password
     - POSTGRES_DB=realword
     - POSTGRES_PORT=5435
+
 before_install:
   - cargo install diesel_cli --no-default-features --features postgres
-before_script:
-  - ./scripts/init_db.sh
-script:
-  - cargo build && ./scripts/run_tests.sh
+
+matrix:
+  include:
+  - name: cargo fmt
+    cache: false
+    install:
+    - rustup component add rustfmt
+    script:
+    - cargo fmt --all -- --check
+  - name: cargo build
+    script:
+    - cargo build
+  - name: cargo test
+    before_script:
+      - ./scripts/init_db.sh
+    script:
+    - ./scripts/run_tests.sh
