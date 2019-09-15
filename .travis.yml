@@ -11,6 +11,12 @@ matrix:
     - rustup component add rustfmt
     script:
     - cargo fmt --all -- --check
+  - name: cargo clippy
+    cache: false
+    install:
+    - rustup component add clippy
+    script:
+    - cargo clippy -- -D warnings
   - name: cargo build
     script:
     - cargo build
