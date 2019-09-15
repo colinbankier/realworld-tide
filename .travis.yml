@@ -17,6 +17,11 @@ matrix:
     - rustup component add clippy
     script:
     - cargo clippy -- -D warnings
+  - name: cargo audit
+    install:
+    - cargo install cargo-audit
+    script:
+    - cargo audit
   - name: cargo build
     script:
     - cargo build
