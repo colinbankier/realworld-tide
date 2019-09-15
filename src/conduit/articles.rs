@@ -26,6 +26,7 @@ impl FromStr for ArticleQuery {
     }
 }
 
+#[allow(dead_code)]
 pub async fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
         diesel::insert_into(articles::table)
@@ -58,8 +59,7 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test_helpers::{create_articles, create_users};
+
     // use tokio_async_await_test::async_test;
 
     // #[async_test]

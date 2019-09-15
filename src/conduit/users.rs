@@ -50,9 +50,7 @@ pub async fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<Us
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test_helpers::generate;
-    use fake::fake;
+
     // use tokio_async_await_test::async_test;
 
     // #[async_test]

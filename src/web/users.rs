@@ -20,6 +20,7 @@ pub struct UpdateUserRequest {
     user: UpdateUser,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct UserResponse {
     user: User,
@@ -41,16 +42,14 @@ pub async fn register(mut cx: Context<Repo>) -> EndpointResult {
     let repo = cx.state();
     let result = users::insert(repo, registration.user).await;
 
-    result
-        .map(|user| response::json(user))
-        .map_err(|e| diesel_error(&e))
+    result.map(response::json).map_err(|e| diesel_error(&e))
 }
 
 pub async fn login(mut cx: Context<Repo>) -> EndpointResult {
     let auth: AuthRequest = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let repo = cx.state();
     let user = auth.user;
-    let result = users::find_by_email_password(repo.clone(), user.email, user.password).await;
+    let result = users::find_by_email_password(repo, user.email, user.password).await;
 
     match result {
         Ok(user) => {
@@ -72,9 +71,7 @@ pub async fn get_user(mut cx: Context<Repo>) -> EndpointResult {
 
     let results = users::find(repo, auth.user_id()).await;
 
-    results
-        .map(|user| response::json(user))
-        .map_err(|e| diesel_error(&e))
+    results.map(response::json).map_err(|e| diesel_error(&e))
 }
 
 pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
@@ -85,9 +82,7 @@ pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
     info!("Update user {} {:?}", auth.user_id(), update_params);
     let results = users::update(repo, auth.user_id(), update_params.user).await;
 
-    results
-        .map(|user| response::json(user))
-        .map_err(|e| diesel_error(&e))
+    results.map(response::json).map_err(|e| diesel_error(&e))
 }
 
 #[cfg(test)]
@@ -95,8 +90,7 @@ mod tests {
     use crate::models::NewUser;
     use crate::test_helpers::generate;
     use crate::test_helpers::test_server::{get_repo, response_json, TestServer};
-    use crate::Repo;
-    use diesel::PgConnection;
+
     use futures::executor::ThreadPool;
     use http::Request;
     use http_service::Body;
@@ -220,6 +214,7 @@ mod tests {
         response_json(res).await
     }
 
+    #[allow(dead_code)]
     async fn update_user_details<'a>(
         server: &'a TestServer,
         details: &'a Value,

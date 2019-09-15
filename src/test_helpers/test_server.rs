@@ -1,6 +1,6 @@
 use crate::db::Repo;
 use crate::set_routes;
-use diesel::r2d2::ConnectionManager;
+
 use diesel::PgConnection;
 use futures::prelude::*;
 use http_service::{HttpService, Request, Response};

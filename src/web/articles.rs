@@ -5,6 +5,7 @@ use crate::Repo;
 use serde_derive::Serialize;
 use tide::{querystring::ContextExt, response, Context, EndpointResult};
 
+#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct ArticleResponse {
     articles: Vec<Article>,
@@ -15,23 +16,20 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
     let repo = cx.state();
     let result = articles::find(repo, query).await;
 
-    result
-        .map(|articles| response::json(articles))
-        .map_err(|e| diesel_error(&e))
+    result.map(response::json).map_err(|e| diesel_error(&e))
 }
 
 #[cfg(test)]
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
-    use crate::db::Repo;
+
     use crate::test_helpers::test_server::{get_repo, response_json, TestServer};
     use crate::test_helpers::{create_articles, create_users};
-    use futures::executor::block_on;
+
     use futures::executor::ThreadPool;
     use http::Request;
     use http_service::Body;
     use serde_json::Value;
-    use std::sync::Arc;
 
     #[test]
     fn should_list_articles() {
