@@ -3,19 +3,6 @@ rust: nightly
 
 cache: cargo
 
-services:
-  - docker
-
-env:
-  global:
-    - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=password
-    - POSTGRES_DB=realword
-    - POSTGRES_PORT=5435
-
-before_install:
-  - cargo install diesel_cli --no-default-features --features postgres
-
 matrix:
   include:
   - name: cargo fmt
@@ -28,6 +15,16 @@ matrix:
     script:
     - cargo build
   - name: cargo test
+    services:
+      - docker
+    before_install:
+      - cargo install diesel_cli --no-default-features --features postgres
+    env:
+      global:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_DB=realword
+        - POSTGRES_PORT=5435
     before_script:
       - ./scripts/init_db.sh
     script:
