@@ -9,7 +9,7 @@
 
 This codebase was created to demonstrate a fully fledged fullstack application built with **Rust/Tide** including CRUD operations, authentication, routing, pagination, and more.
 
-This project attempts to acheive the following:
+This project attempts to achieve the following:
  - Separate domain logic from web logic. The `conduit` module contains domain logic and the `web` module has logic for dealing with http stuff and json request/response formats.
  - Async queries with diesel. Diesel doesn't directly support async, but we can still build an async application around it using `tokio_threadpool::blocking`. The `db` module provides a `Repo` abstraction to encapsulate this.
  - Parallel database tests. Tests use isolated test transactions so database tests can be run in parallel.
@@ -33,25 +33,45 @@ For more information on how to this works with other frontends/backends, head ov
 
 # Getting started
 
-Ensure postgres is installed and running.
-Ensure user 'realworld-tide' exists and can create databases.
+## Setup
+
+### Prerequisites
+
+- Rust (see [here](https://www.rust-lang.org/tools/install) for instructions)
+- Docker (see [here](https://docs.docker.com/install/) for instructions)
+- Postgres (see [here](https://www.postgresql.org/download/) for instructions)
+
+### Setup steps
+- Set the channel for this project to nightly:
+```bash
+# Execute in the top-level folder of the project
+rustup override set nightly
 ```
-sudo -u postgres psql -c "CREATE USER \"realworld-tide\" WITH ENCRYPTED PASSWORD 'password';"
-sudo -u postgres psql -c "ALTER USER \"realworld-tide\" CREATEDB;"
+- Install the `diesel` CLI:
+```bash
+cargo install diesel_cli --no-default-features --features postgres
 ```
-Ensure diesel cli is installed, see [http://diesel.rs/guides/getting-started/]
+- Launch a local Postgres instance and run SQL migrations:
+```bash
+# This will launch a docker container named `realworld-postgres`
+# You can customise its behaviour using env variables:
+# - database name, using POSTGRES_DB
+# - user, using POSTGRES_USER
+# - password, using POSTGRES_PASSWORD
+# - port, using POSTGRES_PORT
+./scripts/init_db.sh
+```
+
+You are ready to go!
 
 ## Run tests
 Run tests, including DB integration tests
+
 ```
-cargo make test
+./scripts/run_tests.sh
 ```
 
 ## Run app and realworld test suite
-Setup database using diesel cli
-```
-diesel database setup
-```
 Run the app
 ```
 cargo run

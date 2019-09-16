@@ -44,7 +44,7 @@ fn seconds_from_now(secs: u64) -> u64 {
 pub fn extract_token(headers: &HeaderMap) -> Option<&str> {
     match headers.get("Authorization") {
         Some(h) => match h.to_str() {
-            Ok(hx) => hx.split(" ").nth(1),
+            Ok(hx) => hx.split(' ').nth(1),
             _ => None,
         },
         _ => None,

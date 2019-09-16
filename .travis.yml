@@ -1,0 +1,44 @@
+language: rust
+# Keep nightly version in sync with Tide CI version
+rust: nightly-2019-08-21
+
+cache: cargo
+
+matrix:
+  include:
+  - name: cargo fmt
+    cache: false
+    install:
+    - rustup component add rustfmt
+    script:
+    - cargo fmt --all -- --check
+  - name: cargo clippy
+    install:
+    - rustup component add clippy
+    script:
+    - cargo clippy -- -D warnings
+  - name: cargo audit
+    install:
+    - cargo install cargo-audit
+    script:
+    - cargo audit
+  - name: cargo build
+    script:
+    - cargo build
+  - name: cargo test
+    services:
+      - docker
+    before_install:
+      - >
+        [[ "$(diesel --version)" == "diesel 1.4.0" ]]
+        || cargo install diesel_cli --no-default-features --features postgres
+    env:
+      global:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_DB=realword
+        - POSTGRES_PORT=5435
+    before_script:
+      - ./scripts/init_db.sh
+    script:
+    - ./scripts/run_tests.sh
