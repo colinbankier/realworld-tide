@@ -41,9 +41,9 @@ impl Settings {
         // Start off by merging in the "default" configuration file
         s.merge(File::with_name("appsettings"))?;
 
-        // Add in settings from the environment (with a prefix of APP)
-        // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
-        s.merge(Environment::with_prefix("app"))?;
+        // Add in settings from the environment (with a prefix of APP and '_' as separator)
+        // Eg.. `APP_APPLICATION_PORT=5001 would set `Settings.application.port`
+        s.merge(Environment::with_prefix("app").separator("_"))?;
 
         // Deserialize (and thus freeze) the entire configuration as
         s.try_into()
