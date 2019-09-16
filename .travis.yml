@@ -19,7 +19,7 @@ matrix:
     - cargo clippy -- -D warnings
   - name: cargo audit
     install:
-    - cargo install cargo-audit
+    - cargo install --force cargo-audit
     script:
     - cargo audit
   - name: cargo build
