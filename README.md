@@ -82,3 +82,12 @@ git clone https://github.com/gothinkster/realworld
 cd realworld/api
 APIURL=http://localhost:8181/api ./run-api-tests.sh
 ```
+
+## Configuration
+
+The default settings are stored in `appsettings.yml`.
+
+They can also be overriden using environment variables, prefixed with `APP`: 
+the value of `APP_APPLICATION_PORT` will have higher priority then `application.port` in `appsettings.yml`.
+
+All configurable parameters are listed in `configuration.rs`.
