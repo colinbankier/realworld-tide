@@ -15,7 +15,6 @@ r2d2 = "0.8"
 serde = "1.0"
 serde_derive = "1.0"
 serde_urlencoded = "0.5.4"
-dotenv = "0.9.0"
 chrono = { version = "0.4.6", features = ["serde"] }
 http = "0.1"
 futures_01 = { version = "0.1.25", package = "futures" }
@@ -23,6 +22,7 @@ tokio-threadpool = "0.1.9"
 log = "0.4.0"
 env_logger = "0.6.0"
 jsonwebtoken = "5.0.1"
+config = "0.9.3"
 
 [dependencies.futures-preview]
 features = ["compat"]
