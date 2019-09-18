@@ -8,12 +8,11 @@ DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 # Check if a password has been set, otherwise default to 'realworld'
 DB_NAME="${POSTGRES_DB:=realword}"
-# Check if a port has been set, otherwise default to '5432'
-DB_PORT="${POSTGRES_PORT:=5432}"
+# Check if a port has been set, otherwise default to '5434'
+DB_PORT="${POSTGRES_PORT:=5434}"
 
 # Launch postgres using Docker
 docker run \
-    --name realworld-postgres --rm \
     -e POSTGRES_USER=${DB_USER} \
     -e POSTGRES_PASSWORD=${DB_PASSWORD} \
     -e POSTGRES_DB=${DB_NAME} \

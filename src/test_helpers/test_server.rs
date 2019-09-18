@@ -5,9 +5,9 @@ use diesel::PgConnection;
 use futures::prelude::*;
 use http_service::{HttpService, Request, Response};
 use serde_json::Value;
-use std::env;
 use std::str::from_utf8;
 use tide::Server;
+use crate::configuration::Settings;
 
 pub type TestServer = TestBackend<Server<Repo<PgConnection>>>;
 
@@ -41,8 +41,8 @@ impl TestServer {
 }
 
 pub fn get_repo() -> Repo<PgConnection> {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    return Repo::new(&database_url);
+    let settings = Settings::new().expect("Failed to load configuration");
+    return Repo::new(&settings.database.connection_string());
 }
 
 pub async fn response_json(res: Response) -> Value {

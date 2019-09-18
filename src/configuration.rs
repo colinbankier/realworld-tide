@@ -1,5 +1,6 @@
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
+use std::env;
 
 #[derive(Debug, Deserialize)]
 pub struct Application {
@@ -39,9 +40,15 @@ impl Settings {
         let mut s = Config::new();
 
         // Start off by merging in the "default" configuration file
-        s.merge(File::with_name("appsettings"))?;
+        s.merge(File::with_name("configuration/base"))?;
 
-        // Add in settings from the environment (with a prefix of APP and '_' as separator)
+        // Detect the running environment
+        let environment = env::var("APP_ENVIRONMENT").unwrap_or("development".into());
+
+        // Add in environment-specific settings (optional)
+        s.merge(File::with_name(&format!("configuration/{}", environment)).required(false))?;
+
+        // Add in settings from environment variables (with a prefix of APP and '_' as separator)
         // Eg.. `APP_APPLICATION_PORT=5001 would set `Settings.application.port`
         s.merge(Environment::with_prefix("app").separator("_"))?;
 
