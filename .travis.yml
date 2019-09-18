@@ -17,9 +17,10 @@ matrix:
     - rustup component add clippy
     script:
     - cargo clippy -- -D warnings
-  - name: cargo audit
+  - name: Check for known vulnerabilities in our dependency tree
     install:
-    - cargo install cargo-audit
+    # Use --force to automatically update when a new version is available
+    - cargo install --force cargo-audit
     script:
     - cargo audit
   - name: cargo build
