@@ -6,19 +6,19 @@ extern crate diesel;
 
 mod auth;
 mod conduit;
+mod configuration;
 mod db;
 mod middleware;
 mod models;
 mod schema;
 mod web;
-mod configuration;
 
 #[cfg(test)]
 mod test_helpers;
 
+use crate::configuration::Settings;
 use diesel::PgConnection;
 use tide::App;
-use crate::configuration::Settings;
 
 type Repo = db::Repo<PgConnection>;
 
@@ -40,5 +40,9 @@ fn main() {
     let state = Repo::new(&settings.database.connection_string());
     let mut app = App::with_state(state);
     app = set_routes(app);
-    app.run(format!("{}:{}", settings.application.host, settings.application.port)).unwrap();
+    app.run(format!(
+        "{}:{}",
+        settings.application.host, settings.application.port
+    ))
+    .unwrap();
 }

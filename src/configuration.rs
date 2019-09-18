@@ -4,7 +4,7 @@ use std::env;
 
 #[derive(Debug, Deserialize)]
 pub struct Application {
-    pub host: String ,
+    pub host: String,
     pub port: usize,
 }
 
@@ -19,7 +19,10 @@ pub struct Postgres {
 
 impl Postgres {
     pub fn connection_string(&self) -> String {
-        format!("postgres://{}:{}@{}:{}/{}", self.username, self.password, self.host, self.port, self.db)
+        format!(
+            "postgres://{}:{}@{}:{}/{}",
+            self.username, self.password, self.host, self.port, self.db
+        )
     }
 }
 

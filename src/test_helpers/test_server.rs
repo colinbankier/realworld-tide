@@ -1,13 +1,13 @@
 use crate::db::Repo;
 use crate::set_routes;
 
+use crate::configuration::Settings;
 use diesel::PgConnection;
 use futures::prelude::*;
 use http_service::{HttpService, Request, Response};
 use serde_json::Value;
 use std::str::from_utf8;
 use tide::Server;
-use crate::configuration::Settings;
 
 pub type TestServer = TestBackend<Server<Repo<PgConnection>>>;
 
