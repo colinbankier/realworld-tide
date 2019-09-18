@@ -19,7 +19,7 @@ matrix:
     - cargo clippy -- -D warnings
   - name: cargo audit
     install:
-    - cargo install cargo-audit
+    - cargo install --force cargo-audit
     script:
     - cargo audit
   - name: cargo build
@@ -42,3 +42,7 @@ matrix:
       - ./scripts/init_db.sh
     script:
     - ./scripts/run_tests.sh
+    after_success: |
+      bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+      cargo tarpaulin --all --forward --out Xml
+      bash <(curl -s https://codecov.io/bash)
