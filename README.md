@@ -83,8 +83,8 @@ Run the app
 # - user, using POSTGRES_USER
 # - password, using POSTGRES_PASSWORD
 # - port, using POSTGRES_PORT
-# 5435 is the port specified in configuration/development.yml, the default choice
-POSTGRES_PORT=5435 ./scripts/init_db.sh
+# 5433 is the port specified in configuration/development.yml, the default choice
+POSTGRES_PORT=5433 ./scripts/init_db.sh
 # Launch the application!
 cargo run
 ```
