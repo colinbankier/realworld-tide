@@ -17,8 +17,9 @@ matrix:
     - rustup component add clippy
     script:
     - cargo clippy -- -D warnings
-  - name: cargo audit
+  - name: Check for known vulnerabilities in our dependency tree
     install:
+    # Use --force to automatically update when a new version is available
     - cargo install --force cargo-audit
     script:
     - cargo audit
@@ -37,7 +38,7 @@ matrix:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=password
         - POSTGRES_DB=realword
-        - POSTGRES_PORT=5435
+        - POSTGRES_PORT=5434
     before_script:
       - ./scripts/init_db.sh
     script:

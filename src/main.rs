@@ -6,6 +6,7 @@ extern crate diesel;
 
 mod auth;
 mod conduit;
+mod configuration;
 mod db;
 mod middleware;
 mod models;
@@ -15,9 +16,8 @@ mod web;
 #[cfg(test)]
 mod test_helpers;
 
+use crate::configuration::Settings;
 use diesel::PgConnection;
-use dotenv::dotenv;
-use std::env;
 use tide::App;
 
 type Repo = db::Repo<PgConnection>;
@@ -34,11 +34,15 @@ pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
 }
 
 fn main() {
-    dotenv().ok();
+    let settings = Settings::new().expect("Failed to load configuration");
     env_logger::init();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let mut app = App::with_state(Repo::new(&database_url));
+    let state = Repo::new(&settings.database.connection_string());
+    let mut app = App::with_state(state);
     app = set_routes(app);
-    app.run("127.0.0.1:8000").unwrap();
+    app.run(format!(
+        "{}:{}",
+        settings.application.host, settings.application.port
+    ))
+    .unwrap();
 }
