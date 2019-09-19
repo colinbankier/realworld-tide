@@ -46,7 +46,7 @@ impl Settings {
         s.merge(File::with_name("configuration/base"))?;
 
         // Detect the running environment
-        let environment = env::var("APP_ENVIRONMENT").unwrap_or("development".into());
+        let environment = env::var("APP_ENVIRONMENT").unwrap_or_else(|_| "development".into());
 
         // Add in environment-specific settings (optional)
         s.merge(File::with_name(&format!("configuration/{}", environment)).required(false))?;
