@@ -19,7 +19,7 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
     result.map(response::json).map_err(|e| diesel_error(&e))
 }
 
-pub async fn get_article<T>(_cx: Context<Repo>) -> String
+pub async fn get_article(_cx: Context<Repo>) -> String
 {
     unimplemented!()
 }
