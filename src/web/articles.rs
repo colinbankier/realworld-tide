@@ -23,10 +23,10 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
 
-    use crate::test_helpers::test_server::{get_repo, response_json, TestServer};
+    use crate::test_helpers::test_server::{get_repo, response_json, TestServer, new};
     use crate::test_helpers::{create_articles, create_users};
 
-    use futures::executor::ThreadPool;
+    use futures_executor::ThreadPool;
     use http::Request;
     use http_service::Body;
     use serde_json::Value;
@@ -35,11 +35,11 @@ mod tests {
     fn should_list_articles() {
         let runtime = ThreadPool::new().unwrap();
         runtime.spawn_ok(async move {
-            let server = TestServer::new(get_repo());
+            let mut server = new(get_repo());
             let repo = get_repo();
             let users = create_users(&repo, 5).await;
             let _articles = create_articles(&repo, users).await;
-            let articles_list = get_articles(&server, None).await;
+            let articles_list = get_articles(&mut server, None).await;
 
             match &articles_list["articles"] {
                 Value::Array(ref list) => assert_eq!(list.len(), 5),
@@ -52,13 +52,13 @@ mod tests {
     fn should_get_articles_by_author() {
         let runtime = ThreadPool::new().unwrap();
         runtime.spawn_ok(async move {
-            let server = TestServer::new(get_repo());
+            let mut server = new(get_repo());
             let repo = get_repo();
             let users = create_users(&repo, 5).await;
             let articles = create_articles(&repo, users.clone()).await;
 
             let query = Some(format!("author={}", users[0].username));
-            let articles_list = get_articles(&server, query).await;
+            let articles_list = get_articles(&mut server, query).await;
 
             match &articles_list["articles"] {
                 Value::Array(ref list) => {
@@ -70,14 +70,14 @@ mod tests {
         })
     }
 
-    async fn get_articles<'a>(server: &'a TestServer, query: Option<String>) -> Value {
+    async fn get_articles<'a>(server: &'a mut TestServer, query: Option<String>) -> Value {
         let url = match query {
             None => "/api/articles".to_string(),
             Some(qs) => format!("/api/articles?{}", qs),
         };
         let res = server
-            .call(Request::get(url).body(Body::empty()).unwrap())
-            .await;
+            .simulate(Request::get(url).body(Body::empty()).unwrap())
+            .unwrap();
         assert_eq!(res.status(), 200);
         response_json(res).await
     }
