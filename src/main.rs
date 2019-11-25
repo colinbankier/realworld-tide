@@ -37,5 +37,5 @@ fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let mut app = App::with_state(Repo::new(&database_url));
     app = set_routes(app);
-    app.run("127.0.0.1:8000").unwrap();
+    app.serve("127.0.0.1:8000").unwrap();
 }

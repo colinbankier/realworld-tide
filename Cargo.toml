@@ -9,7 +9,7 @@ name = "realworld-tide"
 path = "src/main.rs"
 
 [dependencies]
-tide = "0.3.0"
+tide = { version = "0.3.0", features = ["hyper"] }
 diesel = { version = "1.4", features = ["postgres", "extras"] }
 r2d2 = "0.8"
 serde = "1.0"
@@ -19,7 +19,7 @@ dotenv = "0.9.0"
 chrono = { version = "0.4.6", features = ["serde"] }
 http = "0.1"
 futures_01 = { version = "0.1.25", package = "futures" }
-tokio-threadpool = "0.1.9"
+tokio-threadpool = "*"
 log = "0.4.0"
 env_logger = "0.6.0"
 jsonwebtoken = "5.0.1"
@@ -30,5 +30,9 @@ version = "0.3.1"
 
 [dev-dependencies]
 fake = "1.2.2"
-http-service = "0.3.1"
 serde_json = "1.0"
+
+# [patch.crates-io]
+# http-service = { git = "https://github.com/http-rs/http-service.git" }
+# http-service-mock = { git = "https://github.com/http-rs/http-service.git" }
+# http-service-hyper = { git = "https://github.com/http-rs/http-service.git" }
