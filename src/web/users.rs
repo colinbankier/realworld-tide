@@ -151,7 +151,7 @@ mod tests {
     //     assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
     // }
 
-    async fn register_user<'a>(server: &'a mut TestServer, user: &'a NewUser) -> Value {
+    async fn register_user(server: &mut TestServer, user: &NewUser) -> Value {
         let res = server
             .simulate(
                 Request::post("/api/users")
@@ -172,7 +172,7 @@ mod tests {
         response_json(res).await
     }
 
-    async fn login_user<'a>(server: &'a mut TestServer, user: &'a NewUser) -> String {
+    async fn login_user(server: &mut TestServer, user: &NewUser) -> String {
         let res = server
             .simulate(
                 Request::post("/api/users/login")
@@ -200,7 +200,7 @@ mod tests {
             .to_string()
     }
 
-    async fn get_user_details<'a>(server: &'a mut TestServer, token: &'a String) -> Value {
+    async fn get_user_details(server: &mut TestServer, token: &String) -> Value {
         let auth_header = format!("token: {}", token);
         let res = server
             .simulate(
@@ -215,10 +215,10 @@ mod tests {
     }
 
     #[allow(dead_code)]
-    async fn update_user_details<'a>(
-        server: &'a mut TestServer,
-        details: &'a Value,
-        token: &'a String,
+    async fn update_user_details(
+        server: &mut TestServer,
+        details: &Value,
+        token: &String,
     ) -> Value {
         let res = server
             .simulate(
