@@ -4,6 +4,8 @@ use crate::web::diesel_error;
 use crate::Repo;
 use serde_derive::Serialize;
 use tide::{querystring::ContextExt, response, Context, EndpointResult};
+use tide::error::{ResultExt, Error};
+use http::status::StatusCode;
 
 #[allow(dead_code)]
 #[derive(Serialize)]
@@ -19,9 +21,18 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
     result.map(response::json).map_err(|e| diesel_error(&e))
 }
 
-pub async fn get_article(_cx: Context<Repo>) -> String
+pub async fn get_article(cx: Context<Repo>) -> EndpointResult
 {
-    unimplemented!()
+    let slug: String = cx.param("slug").client_err()?;
+    let repo = cx.state();
+    let result = articles::find_one(repo, &slug).await;
+    result.map(response::json)
+        .map_err(|error| {
+            match error {
+                diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
+                e => diesel_error(&e)
+            }
+        })
 }
 
 #[cfg(test)]

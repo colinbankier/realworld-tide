@@ -35,7 +35,7 @@ pub struct UpdateUser {
     pub bio: Option<String>,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Article {
     pub id: i32,
     pub title: String,

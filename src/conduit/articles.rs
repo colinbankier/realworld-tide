@@ -52,14 +52,32 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
             q
         };
 
-        q.load::<Article>(&conn)
+        q.load(&conn)
+    })
+    .await
+}
+
+pub async fn find_one(repo: &Repo, slug: &str) -> Result<Article, Error> {
+    use crate::schema::articles::dsl::*;
+    use crate::schema::users::dsl::users;
+
+    repo.run(move |conn| {
+        users
+            .inner_join(articles)
+            .select(articles::all_columns())
+            .first(&conn)
     })
     .await
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::test_helpers::test_server::{get_repo, new};
+    use crate::conduit::users;
+    use crate::models::{NewArticle, NewUser};
+    use super::*;
 
+    use futures_executor::ThreadPool;
     // use tokio_async_await_test::async_test;
 
     // #[async_test]
@@ -73,4 +91,32 @@ mod tests {
 
     //     assert_eq!(results.len(), 5);
     // }
+
+    #[test]
+    fn register_and_login() {
+        let runtime = ThreadPool::new().unwrap();
+        runtime.spawn_ok(async move {
+            let repo = get_repo();
+            let slug = "my_slug".to_string();
+
+            let user = NewUser {
+                username: "my_user".into(),
+                email: "my_email@hotmail.com".into(),
+                password: "somepass".into()
+            };
+            let user = users::insert(&repo, user).await.unwrap();
+
+            let article = NewArticle {
+                title: "My article".into(),
+                slug: slug.clone(),
+                description: "My article description".into(),
+                body: "ohoh".into(),
+                user_id: user.id
+            };
+            let expected_article = insert(&repo, article).await.unwrap();
+
+            let retrieved_article = find_one(&repo, &slug).await.unwrap();
+            assert_eq!(expected_article, retrieved_article);
+        })
+    }
 }
