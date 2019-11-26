@@ -93,7 +93,7 @@ mod tests {
     // }
 
     #[test]
-    fn register_and_login() {
+    fn insert_and_retrieve_article() {
         let runtime = ThreadPool::new().unwrap();
         runtime.spawn_ok(async move {
             let repo = get_repo();
