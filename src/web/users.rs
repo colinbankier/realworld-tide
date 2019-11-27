@@ -89,7 +89,7 @@ pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
 mod tests {
     use crate::models::NewUser;
     use crate::test_helpers::generate;
-    use crate::test_helpers::test_server::{get_repo, response_json, TestServer, new};
+    use crate::test_helpers::test_server::{get_repo, new, response_json, TestServer};
 
     use futures_executor::ThreadPool;
     use http::Request;
