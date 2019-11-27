@@ -3,7 +3,7 @@ use crate::models::{Article, NewArticle};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::str::FromStr;
 
 use crate::schema::articles;

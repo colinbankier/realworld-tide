@@ -2,7 +2,7 @@ use crate::schema::articles;
 use crate::schema::users;
 use chrono::NaiveDateTime;
 use diesel::{Insertable, Queryable};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "users"]
