@@ -8,8 +8,8 @@ DB_USER=${POSTGRES_USER:=postgres}
 DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
 # Check if a password has been set, otherwise default to 'realworld'
 DB_NAME="${POSTGRES_DB:=realword}"
-# Check if a port has been set, otherwise default to '5432'
-DB_PORT="${POSTGRES_PORT:=5432}"
+# Check if a port has been set, otherwise default to '5434'
+DB_PORT="${POSTGRES_PORT:=5434}"
 
 export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
 
@@ -17,7 +17,7 @@ export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${
 diesel database reset
 
 # Run tests
-cargo test
+APP_ENVIRONMENT=test cargo test
 
 # Reset DB
 diesel database reset
