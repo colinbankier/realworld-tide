@@ -2,7 +2,7 @@ use crate::conduit::{articles, articles::ArticleQuery};
 use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
-use serde_derive::Serialize;
+use serde::Serialize;
 use tide::{querystring::ContextExt, response, Context, EndpointResult};
 use tide::error::{ResultExt, Error};
 use http::status::StatusCode;

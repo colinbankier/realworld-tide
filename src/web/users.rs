@@ -5,7 +5,7 @@ use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use log::info;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use http::status::StatusCode;
 use tide::{response, Context, EndpointResult};
