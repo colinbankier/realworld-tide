@@ -1,0 +1,4 @@
+application:
+  host: localhost
+database:
+  port: 5433

@@ -48,12 +48,6 @@ cargo install diesel_cli --no-default-features --features postgres
 ```
 - Launch a local Postgres instance and run SQL migrations:
 ```bash
-# This will launch a docker container named `realworld-postgres`
-# You can customise its behaviour using env variables:
-# - database name, using POSTGRES_DB
-# - user, using POSTGRES_USER
-# - password, using POSTGRES_PASSWORD
-# - port, using POSTGRES_PORT
 ./scripts/init_db.sh
 ```
 
@@ -62,18 +56,56 @@ You are ready to go!
 ## Run tests
 Run tests, including DB integration tests
 
-```
+```bash
+# This will launch a Postgres instance in a docker container.
+# You can customise its behaviour using env variables:
+# - database name, using POSTGRES_DB
+# - user, using POSTGRES_USER
+# - password, using POSTGRES_PASSWORD
+# - port, using POSTGRES_PORT
+# 5434 is the port specified in configuration/test.yml, the test configuration file
+POSTGRES_PORT=5434 ./scripts/init_db.sh
+# Execute the tests
 ./scripts/run_tests.sh
 ```
 
 ## Run app and realworld test suite
 Run the app
-```
+```bash
+# This will launch a Postgres instance in a docker container.
+# You can customise its behaviour using env variables:
+# - database name, using POSTGRES_DB
+# - user, using POSTGRES_USER
+# - password, using POSTGRES_PASSWORD
+# - port, using POSTGRES_PORT
+# 5433 is the port specified in configuration/development.yml, the default choice
+POSTGRES_PORT=5433 ./scripts/init_db.sh
+# Launch the application!
 cargo run
 ```
-Run the "realworld" Postman tests
-```
+You can pass the `--release` flag to squeeze in the last drop of performance.
+
+By default, we look for Postgres on a different port when executing tests - hence you can run the test suite
+and interact with the application locally without suffering any interference.
+
+If you want to run the "realworld" Postman tests, just execute
+```bash
 git clone https://github.com/gothinkster/realworld
 cd realworld/api
 APIURL=http://localhost:8181/api ./run-api-tests.sh
 ```
+
+## Configuration
+
+All configuration files are in the `configuration` folder.
+
+The default settings are stored in `configuration/base.yml`.
+
+Environment-specific configuration files can be used to override or supply additional values on top the
+default settings (see `development.yml` or `test.yml`).
+In a production environment, you could introduce a `production.yml` to store production-specific configuration values.
+
+Configuration files can also be overriden using environment variables, prefixed with `APP`: 
+the value of `APP_APPLICATION_PORT` will have higher priority then `application.port` in `base.yml` or `development.yml`.
+
+All configurable parameters are listed in `configuration.rs`.

@@ -1,10 +1,10 @@
 use crate::db::Repo;
 use crate::set_routes;
 
+use crate::configuration::Settings;
 use diesel::PgConnection;
 use http_service::Response;
 use serde_json::Value;
-use std::env;
 use std::str::from_utf8;
 use tide::Server;
 use http_service_mock::{make_server, TestBackend};
@@ -19,8 +19,8 @@ pub fn new(repo: Repo<PgConnection>) -> TestServer {
 }
 
 pub fn get_repo() -> Repo<PgConnection> {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    return Repo::new(&database_url);
+    let settings = Settings::new().expect("Failed to load configuration");
+    return Repo::new(&settings.database.connection_string());
 }
 
 pub async fn response_json(res: Response) -> Value {

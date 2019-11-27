@@ -16,9 +16,10 @@ matrix:
     - rustup component add clippy
     script:
     - cargo clippy -- -D warnings
-  - name: cargo audit
+  - name: Check for known vulnerabilities in our dependency tree
     install:
-    - cargo install cargo-audit
+    # Use --force to automatically update when a new version is available
+    - cargo install --force cargo-audit
     script:
     - cargo audit
   - name: cargo build
@@ -36,8 +37,12 @@ matrix:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=password
         - POSTGRES_DB=realword
-        - POSTGRES_PORT=5435
+        - POSTGRES_PORT=5434
     before_script:
       - ./scripts/init_db.sh
     script:
     - ./scripts/run_tests.sh
+    after_success: |
+      bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+      cargo tarpaulin --all --forward --out Xml
+      bash <(curl -s https://codecov.io/bash)
