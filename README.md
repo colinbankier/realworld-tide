@@ -37,16 +37,11 @@ For more information on how to this works with other frontends/backends, head ov
 
 ### Prerequisites
 
-- Rust (see [here](https://www.rust-lang.org/tools/install) for instructions)
+- Rust 1.39 (see [here](https://www.rust-lang.org/tools/install) for instructions)
 - Docker (see [here](https://docs.docker.com/install/) for instructions)
 - Postgres (see [here](https://www.postgresql.org/download/) for instructions)
 
 ### Setup steps
-- Set the channel for this project to nightly:
-```bash
-# Execute in the top-level folder of the project
-rustup override set nightly
-```
 - Install the `diesel` CLI:
 ```bash
 cargo install diesel_cli --no-default-features --features postgres

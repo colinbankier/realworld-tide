@@ -1,6 +1,5 @@
 language: rust
-# Keep nightly version in sync with Tide CI version
-rust: nightly-2019-08-21
+rust: stable
 
 cache: cargo
 
