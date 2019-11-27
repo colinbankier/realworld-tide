@@ -4,10 +4,10 @@ use crate::set_routes;
 use crate::configuration::Settings;
 use diesel::PgConnection;
 use http_service::Response;
+use http_service_mock::{make_server, TestBackend};
 use serde_json::Value;
 use std::str::from_utf8;
 use tide::Server;
-use http_service_mock::{make_server, TestBackend};
 
 pub type TestServer = TestBackend<Server<Repo<PgConnection>>>;
 

@@ -39,7 +39,7 @@ pub async fn get_article(cx: Context<Repo>) -> EndpointResult
 mod tests {
     // These tests are "integration" tests that exercise a workflow via the http service.
 
-    use crate::test_helpers::test_server::{get_repo, response_json, TestServer, new};
+    use crate::test_helpers::test_server::{get_repo, new, response_json, TestServer};
     use crate::test_helpers::{create_articles, create_users};
 
     use futures_executor::ThreadPool;
