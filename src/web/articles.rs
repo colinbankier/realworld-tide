@@ -2,10 +2,10 @@ use crate::conduit::{articles, articles::ArticleQuery};
 use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
-use serde::Serialize;
-use tide::{querystring::ContextExt, response, Context, EndpointResult};
-use tide::error::{ResultExt, Error};
 use http::status::StatusCode;
+use serde::Serialize;
+use tide::error::{Error, ResultExt};
+use tide::{querystring::ContextExt, response, Context, EndpointResult};
 
 #[allow(dead_code)]
 #[derive(Serialize)]
@@ -21,18 +21,14 @@ pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
     result.map(response::json).map_err(|e| diesel_error(&e))
 }
 
-pub async fn get_article(cx: Context<Repo>) -> EndpointResult
-{
+pub async fn get_article(cx: Context<Repo>) -> EndpointResult {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
     let result = articles::find_one(repo, &slug).await;
-    result.map(response::json)
-        .map_err(|error| {
-            match error {
-                diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
-                e => diesel_error(&e)
-            }
-        })
+    result.map(response::json).map_err(|error| match error {
+        diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
+        e => diesel_error(&e),
+    })
 }
 
 #[cfg(test)]

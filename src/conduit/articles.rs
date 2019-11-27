@@ -57,13 +57,15 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
     .await
 }
 
-pub async fn find_one(repo: &Repo, slug: &str) -> Result<Article, Error> {
-    use crate::schema::articles::dsl::*;
+pub async fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
+    use crate::schema::articles::dsl::{articles, slug};
     use crate::schema::users::dsl::users;
 
+    let slug_value = slug_value.to_owned();
     repo.run(move |conn| {
-        users
-            .inner_join(articles)
+        articles
+            .filter(slug.eq(slug_value))
+            .inner_join(users)
             .select(articles::all_columns())
             .first(&conn)
     })
@@ -72,10 +74,10 @@ pub async fn find_one(repo: &Repo, slug: &str) -> Result<Article, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_helpers::test_server::{get_repo, new};
+    use super::*;
     use crate::conduit::users;
     use crate::models::{NewArticle, NewUser};
-    use super::*;
+    use crate::test_helpers::test_server::{get_repo, new};
 
     use futures_executor::ThreadPool;
     // use tokio_async_await_test::async_test;
@@ -102,7 +104,7 @@ mod tests {
             let user = NewUser {
                 username: "my_user".into(),
                 email: "my_email@hotmail.com".into(),
-                password: "somepass".into()
+                password: "somepass".into(),
             };
             let user = users::insert(&repo, user).await.unwrap();
 
@@ -111,7 +113,7 @@ mod tests {
                 slug: slug.clone(),
                 description: "My article description".into(),
                 body: "ohoh".into(),
-                user_id: user.id
+                user_id: user.id,
             };
             let expected_article = insert(&repo, article).await.unwrap();
 
