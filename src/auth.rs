@@ -1,7 +1,7 @@
 use http::HeaderMap;
 use jsonwebtoken::{decode, encode, Header, Validation};
 use log::debug;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 

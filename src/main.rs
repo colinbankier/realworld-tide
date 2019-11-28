@@ -1,6 +1,3 @@
-#![feature(arbitrary_self_types, async_closure)]
-#![allow(proc_macro_derive_resolution_fallback)]
-
 #[macro_use]
 extern crate diesel;
 
@@ -40,9 +37,9 @@ fn main() {
     let state = Repo::new(&settings.database.connection_string());
     let mut app = App::with_state(state);
     app = set_routes(app);
-    app.run(format!(
+    let address = format!(
         "{}:{}",
         settings.application.host, settings.application.port
-    ))
-    .unwrap();
+    );
+    app.serve(address).expect("Failed to start Tide app");
 }

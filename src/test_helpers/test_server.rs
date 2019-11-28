@@ -3,41 +3,19 @@ use crate::set_routes;
 
 use crate::configuration::Settings;
 use diesel::PgConnection;
-use futures::prelude::*;
-use http_service::{HttpService, Request, Response};
+use http_service::Response;
+use http_service_mock::{make_server, TestBackend};
 use serde_json::Value;
 use std::str::from_utf8;
 use tide::Server;
 
 pub type TestServer = TestBackend<Server<Repo<PgConnection>>>;
 
-pub struct TestBackend<T: HttpService> {
-    service: T,
-}
-
-impl<T: HttpService> TestBackend<T> {
-    fn wrap(service: T) -> Result<Self, <T::ConnectionFuture as TryFuture>::Error> {
-        Ok(Self { service })
-    }
-
-    pub async fn call(&self, req: Request) -> Response {
-        let mut connection = self.service.connect().into_future().await.ok().unwrap();
-        let response = self
-            .service
-            .respond(&mut connection, req)
-            .into_future()
-            .await;
-        response.ok().unwrap()
-    }
-}
-
 // TODO: separate app specific logic
-impl TestServer {
-    pub fn new(repo: Repo<PgConnection>) -> TestServer {
-        let app = crate::set_routes(tide::App::with_state(repo));
-        let app = set_routes(app);
-        TestBackend::wrap(app.into_http_service()).unwrap()
-    }
+pub fn new(repo: Repo<PgConnection>) -> TestServer {
+    let app = crate::set_routes(tide::App::with_state(repo));
+    let app = set_routes(app);
+    make_server(app.into_http_service()).unwrap()
 }
 
 pub fn get_repo() -> Repo<PgConnection> {

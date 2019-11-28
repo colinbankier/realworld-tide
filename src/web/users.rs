@@ -5,7 +5,7 @@ use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use log::info;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use http::status::StatusCode;
 use tide::{response, Context, EndpointResult};
@@ -89,9 +89,9 @@ pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
 mod tests {
     use crate::models::NewUser;
     use crate::test_helpers::generate;
-    use crate::test_helpers::test_server::{get_repo, response_json, TestServer};
+    use crate::test_helpers::test_server::{get_repo, new, response_json, TestServer};
 
-    use futures::executor::ThreadPool;
+    use futures_executor::ThreadPool;
     use http::Request;
     use http_service::Body;
     use serde_json::{json, Value};
@@ -100,12 +100,12 @@ mod tests {
     fn register_and_login() {
         let runtime = ThreadPool::new().unwrap();
         runtime.spawn_ok(async move {
-            let server = TestServer::new(get_repo());
+            let mut server = new(get_repo());
             let user = generate::new_user();
 
-            register_user(&server, &user).await;
-            let token = login_user(&server, &user).await;
-            let user_details = get_user_details(&server, &token).await;
+            register_user(&mut server, &user).await;
+            let token = login_user(&mut server, &user).await;
+            let user_details = get_user_details(&mut server, &token).await;
 
             assert_eq!(user_details["user"]["username"], user.username);
             assert_eq!(user_details["user"]["email"], user.email);
@@ -151,9 +151,9 @@ mod tests {
     //     assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
     // }
 
-    async fn register_user<'a>(server: &'a TestServer, user: &'a NewUser) -> Value {
+    async fn register_user(server: &mut TestServer, user: &NewUser) -> Value {
         let res = server
-            .call(
+            .simulate(
                 Request::post("/api/users")
                     .body(
                         json!({
@@ -168,13 +168,13 @@ mod tests {
                     )
                     .unwrap(),
             )
-            .await;
+            .unwrap();
         response_json(res).await
     }
 
-    async fn login_user<'a>(server: &'a TestServer, user: &'a NewUser) -> String {
+    async fn login_user(server: &mut TestServer, user: &NewUser) -> String {
         let res = server
-            .call(
+            .simulate(
                 Request::post("/api/users/login")
                     .body(
                         json!({
@@ -188,7 +188,7 @@ mod tests {
                     )
                     .unwrap(),
             )
-            .await;
+            .unwrap();
         assert_eq!(res.status(), 200);
 
         let response_json = response_json(res).await;
@@ -200,34 +200,34 @@ mod tests {
             .to_string()
     }
 
-    async fn get_user_details<'a>(server: &'a TestServer, token: &'a String) -> Value {
+    async fn get_user_details(server: &mut TestServer, token: &String) -> Value {
         let auth_header = format!("token: {}", token);
         let res = server
-            .call(
+            .simulate(
                 Request::get("/api/user")
                     .header("Authorization", auth_header)
                     .body(Body::empty())
                     .unwrap(),
             )
-            .await;
+            .unwrap();
         assert_eq!(res.status(), 200);
         response_json(res).await
     }
 
     #[allow(dead_code)]
-    async fn update_user_details<'a>(
-        server: &'a TestServer,
-        details: &'a Value,
-        token: &'a String,
+    async fn update_user_details(
+        server: &mut TestServer,
+        details: &Value,
+        token: &String,
     ) -> Value {
         let res = server
-            .call(
+            .simulate(
                 Request::put("/api/user")
                     .header("Authorization", format!("token: {}", token))
                     .body(details.to_string().into())
                     .unwrap(),
             )
-            .await;
+            .unwrap();
         assert_eq!(res.status(), 200);
         response_json(res).await
     }
