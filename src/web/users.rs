@@ -8,7 +8,7 @@ use log::info;
 use serde::{Deserialize, Serialize};
 
 use http::status::StatusCode;
-use tide::{Response, Request};
+use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -42,9 +42,9 @@ pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
     let repo = cx.state();
     let result = users::insert(repo, registration.user).await;
 
-    result.map(|b| {
-        Response::new(200).body_json(&b).unwrap()
-    }).map_err(|e| diesel_error(&e))
+    result
+        .map(|b| Response::new(200).body_json(&b).unwrap())
+        .map_err(|e| diesel_error(&e))
 }
 
 pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
@@ -59,9 +59,7 @@ pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
                 token: Some(encode_token(user.id)),
                 ..user
             };
-            Ok(Response::new(200).body_json(
-                &user
-            ).unwrap())
+            Ok(Response::new(200).body_json(&user).unwrap())
         }
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
         Err(e) => Err(diesel_error(&e)),
@@ -76,7 +74,7 @@ pub async fn get_user(mut cx: Request<Repo>) -> tide::Result<Response> {
     let results = users::find(repo, auth.user_id()).await;
     match results {
         Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
-        Err(e) => Err(diesel_error(&e))
+        Err(e) => Err(diesel_error(&e)),
     }
 }
 
@@ -90,7 +88,7 @@ pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
 
     match results {
         Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
-        Err(e) => Err(diesel_error(&e))
+        Err(e) => Err(diesel_error(&e)),
     }
 }
 

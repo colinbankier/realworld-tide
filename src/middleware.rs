@@ -1,9 +1,5 @@
 use futures::future::BoxFuture;
-use tide::{
-    Error, Request,
-    Middleware, Next,
-    Response,
-};
+use tide::{Error, Middleware, Next, Request, Response};
 
 use crate::auth::{extract_claims, Claims};
 
