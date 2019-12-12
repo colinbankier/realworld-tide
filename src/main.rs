@@ -15,11 +15,11 @@ mod test_helpers;
 
 use crate::configuration::Settings;
 use diesel::PgConnection;
-use tide::App;
+use tide::Server;
 
 type Repo = db::Repo<PgConnection>;
 
-pub fn set_routes(mut app: App<Repo>) -> App<Repo> {
+pub fn set_routes(mut app: Server<Repo>) -> Server<Repo> {
     app.at("/api").nest(|api| {
         api.at("/user").get(web::users::get_user);
         api.at("/user").put(web::users::update_user);
@@ -36,7 +36,7 @@ fn main() {
     env_logger::init();
 
     let state = Repo::new(&settings.database.connection_string());
-    let mut app = App::with_state(state);
+    let mut app = Server::with_state(state);
     app = set_routes(app);
     let address = format!(
         "{}:{}",
