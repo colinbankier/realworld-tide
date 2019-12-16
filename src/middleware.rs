@@ -20,9 +20,8 @@ pub trait ContextExt {
 impl<State> ContextExt for Request<State> {
     fn get_claims(&mut self) -> Result<Claims, Error> {
         let claims = self
-            .extensions()
-            .get::<Claims>()
-            .ok_or_else(|| Error("Auth middleware missing".to_owned()))?;
+            .local::<Claims>()
+            .expect("Missing auth middleware");
         Ok(claims.clone())
     }
 }
@@ -38,7 +37,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
             if let Some(c) = claims {
                 // The `let _ = ...` is a workaround for issue: https://github.com/rustasync/tide/issues/278
                 // Solution is according to suggestion in https://github.com/rust-lang/rust/issues/61579#issuecomment-500436524
-                let _ = cx.extensions_mut().insert(c);
+                let _ = cx.set_local(c);
                 return next.run(cx).await;
             } else {
                 return Response::new(403);
