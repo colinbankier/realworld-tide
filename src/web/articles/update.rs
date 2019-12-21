@@ -3,7 +3,7 @@ use crate::conduit::{articles, users};
 use crate::db::models::UpdateArticle;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::{Article, ArticleResponse};
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use http::status::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -38,11 +38,11 @@ pub async fn update_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
         description: request.article.description,
     };
     let updated_article =
-        articles::update(repo, article_update, slug).map_err(|e| diesel_error(&e))?;
-    let author = users::find(&repo, updated_article.user_id).map_err(|e| diesel_error(&e))?;
-    let n_fav = n_favorites(&repo, updated_article.id).map_err(|e| diesel_error(&e))?;
+        articles::update(repo, article_update, slug).map_err(|e| internal_error(&e))?;
+    let author = users::find(&repo, updated_article.user_id).map_err(|e| internal_error(&e))?;
+    let n_fav = n_favorites(&repo, updated_article.id).map_err(|e| internal_error(&e))?;
     let is_fav =
-        is_favorite(&repo, auth.user_id(), updated_article.id).map_err(|e| diesel_error(&e))?;
+        is_favorite(&repo, auth.user_id(), updated_article.id).map_err(|e| internal_error(&e))?;
 
     let response = ArticleResponse {
         article: Article::new(updated_article, author, n_fav, is_fav),

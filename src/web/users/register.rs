@@ -1,7 +1,7 @@
 use super::responses::UserResponse;
 use crate::conduit::users;
 use crate::db::models::*;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use serde::Deserialize;
 use tide::{Request, Response};
@@ -40,5 +40,5 @@ pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
                 .body_json(&UserResponse::new(user))
                 .unwrap()
         })
-        .map_err(|e| diesel_error(&e))
+        .map_err(|e| internal_error(&e))
 }

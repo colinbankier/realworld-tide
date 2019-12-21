@@ -1,7 +1,7 @@
 use crate::conduit::{articles, favorites};
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use itertools::Itertools;
 use serde;
@@ -36,11 +36,11 @@ pub async fn feed(cx: Request<Repo>) -> tide::Result<Response> {
         .user_id();
     let repo = cx.state();
     let result = articles::feed(repo, user_id, query.limit as i64, query.offset as i64)
-        .map_err(|e| diesel_error(&e))?;
+        .map_err(|e| internal_error(&e))?;
 
     let article_ids = result.iter().map(|(a, _, _)| a.id.to_owned()).collect_vec();
     let favs =
-        favorites::are_favorite(&repo, user_id, article_ids).map_err(|e| diesel_error(&e))?;
+        favorites::are_favorite(&repo, user_id, article_ids).map_err(|e| internal_error(&e))?;
     let result_with_fav = result
         .into_iter()
         .map(|(a, u, fav_count)| {

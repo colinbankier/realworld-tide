@@ -2,7 +2,7 @@ use crate::conduit::{articles, articles::ArticleQuery, favorites};
 use crate::db::models::{Article, User};
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use itertools::Itertools;
 use tide::{Request, Response};
@@ -17,7 +17,7 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     });
 
     let repo = cx.state();
-    let result = articles::find(repo, query).map_err(|e| diesel_error(&e))?;
+    let result = articles::find(repo, query).map_err(|e| internal_error(&e))?;
 
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let result_with_fav: Vec<(Article, User, i64, bool)> = match user_id {
@@ -25,7 +25,7 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
         Some(user_id) => {
             let article_ids = result.iter().map(|(a, _, _)| a.id.to_owned()).collect_vec();
             let favs = favorites::are_favorite(&repo, user_id, article_ids)
-                .map_err(|e| diesel_error(&e))?;
+                .map_err(|e| internal_error(&e))?;
             result
                 .into_iter()
                 .map(|(a, u, fav_count)| {

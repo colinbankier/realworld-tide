@@ -1,6 +1,6 @@
 use crate::conduit::articles;
 use crate::middleware::ContextExt;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use http::status::StatusCode;
 use tide::{Response, ResultExt};
@@ -13,6 +13,6 @@ pub async fn delete_article(cx: tide::Request<Repo>) -> tide::Result<Response> {
 
     let repo = cx.state();
 
-    articles::delete(repo, slug).map_err(|e| diesel_error(&e))?;
+    articles::delete(repo, slug).map_err(|e| internal_error(&e))?;
     Ok(Response::new(200))
 }

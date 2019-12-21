@@ -22,10 +22,12 @@ fn test_authenticate_user() {
     let repo = get_test_repo();
     // Create a new user
     let new_user = generate::new_user();
-    let user = users::insert(&repo, new_user).expect("Create user failed.");
+    let email = new_user.email.clone();
+    let password = new_user.password.clone();
+    let _user = users::insert(&repo, new_user).expect("Create user failed.");
 
     // Check the user is in the database.
-    let results = users::find_by_email_password(&repo, user.email, user.password);
+    let results = users::find_by_email_password(&repo, email, password);
     assert!(results.is_ok());
 }
 

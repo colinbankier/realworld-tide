@@ -2,7 +2,7 @@ use crate::conduit::articles;
 use crate::conduit::favorites;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::{Article, ArticleResponse};
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use http::status::StatusCode;
 use tide::{Error, Request, Response, ResultExt};
@@ -13,13 +13,13 @@ pub async fn get_article(cx: Request<Repo>) -> tide::Result<Response> {
     let repo = cx.state();
     let (article, author, n_favorites) = articles::find_one(repo, &slug).map_err(|e| match e {
         diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
-        e => diesel_error(&e),
+        e => internal_error(&e),
     })?;
 
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let favorited = match user_id {
         Some(user_id) => {
-            favorites::is_favorite(&repo, user_id, article.id).map_err(|e| diesel_error(&e))?
+            favorites::is_favorite(&repo, user_id, article.id).map_err(|e| internal_error(&e))?
         }
         None => false,
     };

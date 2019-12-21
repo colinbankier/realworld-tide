@@ -1,7 +1,7 @@
 use crate::conduit::users;
 use crate::db::models::*;
 use crate::middleware::ContextExt;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -27,6 +27,6 @@ pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
         Ok(user) => Ok(Response::new(200)
             .body_json(&UserResponse::new(user))
             .unwrap()),
-        Err(e) => Err(diesel_error(&e)),
+        Err(e) => Err(internal_error(&e)),
     }
 }

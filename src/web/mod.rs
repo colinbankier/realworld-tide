@@ -10,7 +10,7 @@ use tide::Error;
 
 pub use app::get_app;
 
-pub fn diesel_error(e: &diesel::result::Error) -> Error {
+pub fn internal_error<E: std::fmt::Display>(e: E) -> Error {
     error!("{}", e);
     Error::from(StatusCode::INTERNAL_SERVER_ERROR)
 }

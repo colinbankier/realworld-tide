@@ -2,7 +2,7 @@ use crate::conduit::{articles, comments, users};
 use crate::db::models::NewComment;
 use crate::middleware::ContextExt;
 use crate::web::comments::responses::{Comment, CommentResponse};
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use http::status::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -32,8 +32,8 @@ pub async fn create(mut cx: tide::Request<Repo>) -> tide::Result<Response> {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
 
-    let author = users::find(repo, author_id).map_err(|e| diesel_error(&e))?;
-    let (article, _, _) = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
+    let author = users::find(repo, author_id).map_err(|e| internal_error(&e))?;
+    let (article, _, _) = articles::find_one(&repo, &slug).map_err(|e| internal_error(&e))?;
 
     let new_comment = NewComment {
         author_id: author.id,
@@ -41,7 +41,7 @@ pub async fn create(mut cx: tide::Request<Repo>) -> tide::Result<Response> {
         body: new_comment.comment.body,
     };
 
-    let comment = comments::create_comment(repo, new_comment).map_err(|e| diesel_error(&e))?;
+    let comment = comments::create_comment(repo, new_comment).map_err(|e| internal_error(&e))?;
     let response = CommentResponse {
         comment: Comment::new(comment, author),
     };
