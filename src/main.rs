@@ -16,7 +16,7 @@ mod test_helpers;
 use crate::configuration::Settings;
 use async_std::task::block_on;
 use diesel::PgConnection;
-use tide::{IntoResponse, Request, Response, Server};
+use tide::{IntoResponse, Response, Server};
 
 type Repo = db::Repo<PgConnection>;
 
@@ -39,29 +39,17 @@ pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> 
 pub fn set_routes(mut app: Server<Repo>) -> Server<Repo> {
     app.at("/api").nest(|api| {
         api.at("/user")
-            .get(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::users::get_user(req).await)
-            });
+            .get(|req| async move { result_to_response(web::users::get_user(req).await) });
         api.at("/user")
-            .put(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::users::update_user(req).await)
-            });
+            .put(|req| async move { result_to_response(web::users::update_user(req).await) });
         api.at("/users")
-            .post(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::users::register(req).await)
-            });
+            .post(|req| async move { result_to_response(web::users::register(req).await) });
         api.at("/users/login")
-            .post(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::users::login(req).await)
-            });
+            .post(|req| async move { result_to_response(web::users::login(req).await) });
         api.at("/articles")
-            .get(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::articles::list_articles(req).await)
-            });
+            .get(|req| async move { result_to_response(web::articles::list_articles(req).await) });
         api.at("/articles/:slug")
-            .get(|mut req: tide::Request<Repo>| async move {
-                result_to_response(web::articles::get_article(req).await)
-            });
+            .get(|req| async move { result_to_response(web::articles::get_article(req).await) });
     });
     app
 }
