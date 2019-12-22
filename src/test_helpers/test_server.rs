@@ -7,7 +7,6 @@ use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
 use serde_json::Value;
-use std::io::Read;
 use tide::server::Service;
 
 pub type TestServer = TestBackend<Service<Repo<PgConnection>>>;
@@ -25,6 +24,6 @@ pub fn get_repo() -> Repo<PgConnection> {
 
 pub async fn response_json(mut res: Response) -> Value {
     let mut body = String::new();
-    res.body().read_to_string(&mut body);
+    res.body_mut().read_to_string(&mut body);
     serde_json::from_str(&body).expect("Could not parse body.")
 }

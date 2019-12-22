@@ -171,6 +171,7 @@ mod tests {
                             }
                         })
                         .to_string()
+                        .into_bytes()
                         .into(),
                     )
                     .unwrap(),
@@ -191,6 +192,7 @@ mod tests {
                             }
                         })
                         .to_string()
+                        .into_bytes()
                         .into(),
                     )
                     .unwrap(),
@@ -231,7 +233,7 @@ mod tests {
             .simulate(
                 Request::put("/api/user")
                     .header("Authorization", format!("token: {}", token))
-                    .body(details.to_string().into())
+                    .body(details.to_string().into_bytes().into())
                     .unwrap(),
             )
             .unwrap();
