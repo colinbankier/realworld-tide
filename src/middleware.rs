@@ -25,11 +25,7 @@ impl<State> ContextExt for Request<State> {
 }
 
 impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
-    fn handle<'a>(
-        &'a self,
-        cx: Request<State>,
-        next: Next<'a, State>,
-    ) -> BoxFuture<'a, Response> {
+    fn handle<'a>(&'a self, cx: Request<State>, next: Next<'a, State>) -> BoxFuture<'a, Response> {
         Box::pin(async move {
             let claims = extract_claims(cx.headers());
             if let Some(c) = claims {
