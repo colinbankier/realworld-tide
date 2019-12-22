@@ -1105,6 +1105,7 @@ dependencies = [
 name = "realworld-tide"
 version = "0.1.0"
 dependencies = [
+ "async-std 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.9.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "diesel 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",

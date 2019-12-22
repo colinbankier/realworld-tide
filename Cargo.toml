@@ -23,6 +23,7 @@ env_logger = "0.6.0"
 jsonwebtoken = "5.0.1"
 futures-util = "0.3.1"
 config = "0.9.3"
+async-std = "1"
 
 [dependencies.futures]
 features = ["compat"]

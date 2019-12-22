@@ -16,6 +16,7 @@ mod test_helpers;
 use crate::configuration::Settings;
 use diesel::PgConnection;
 use tide::Server;
+use async_std::task::block_on;
 
 type Repo = db::Repo<PgConnection>;
 
@@ -31,7 +32,7 @@ pub fn set_routes(mut app: Server<Repo>) -> Server<Repo> {
     app
 }
 
-fn main() {
+fn main() -> Result<(), std::io::Error> {
     let settings = Settings::new().expect("Failed to load configuration");
     env_logger::init();
 
@@ -42,5 +43,9 @@ fn main() {
         "{}:{}",
         settings.application.host, settings.application.port
     );
-    app.serve(address).expect("Failed to start Tide app");
+
+    block_on(async {
+        app.listen(address).await?;
+        Ok(())
+    })
 }
