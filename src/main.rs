@@ -14,20 +14,60 @@ mod web;
 mod test_helpers;
 
 use crate::configuration::Settings;
-use diesel::PgConnection;
-use tide::Server;
 use async_std::task::block_on;
+use diesel::PgConnection;
+use tide::{Server, Request, IntoResponse, Response};
 
 type Repo = db::Repo<PgConnection>;
 
+pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> Response {
+    match r {
+        Ok(r) => r.into_response(),
+        Err(r) => {
+            let res = r.into_response();
+            if res.status().is_success() {
+                panic!(
+                    "Attempted to yield error response with success code {:?}",
+                    res.status()
+                )
+            }
+            res
+        }
+    }
+}
+
 pub fn set_routes(mut app: Server<Repo>) -> Server<Repo> {
     app.at("/api").nest(|api| {
-        api.at("/user").get(web::users::get_user);
-        api.at("/user").put(web::users::update_user);
-        api.at("/users").post(web::users::register);
-        api.at("/users/login").post(web::users::login);
-        api.at("/articles").get(web::articles::list_articles);
-        api.at("/articles/:slug").get(web::articles::get_article);
+        api.at("/user").get(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::users::get_user(req).await)
+            }
+        });
+        api.at("/user").put(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::users::update_user(req).await)
+            }
+        });
+        api.at("/users").post(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::users::register(req).await)
+            }
+        });
+        api.at("/users/login").post(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::users::login(req).await)
+            }
+        });
+        api.at("/articles").get(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::articles::list_articles(req).await)
+            }
+        });
+        api.at("/articles/:slug").get(|mut req: tide::Request<Repo>| {
+            async move {
+                result_to_response(web::articles::get_article(req).await)
+            }
+        });
     });
     app
 }
