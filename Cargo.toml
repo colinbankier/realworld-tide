@@ -9,7 +9,7 @@ name = "realworld-tide"
 path = "src/main.rs"
 
 [dependencies]
-tide = { version = "0.4.0" }
+tide = { version = "0.5" }
 diesel = { version = "1.4", features = ["postgres", "extras"] }
 r2d2 = "0.8"
 serde = { version= "1", features = ["derive"] }
