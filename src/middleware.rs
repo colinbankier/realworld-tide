@@ -19,9 +19,7 @@ pub trait ContextExt {
 
 impl<State> ContextExt for Request<State> {
     fn get_claims(&mut self) -> Result<Claims, Error> {
-        let claims = self
-            .local::<Claims>()
-            .expect("Missing auth middleware");
+        let claims = self.local::<Claims>().expect("Missing auth middleware");
         Ok(claims.clone())
     }
 }
