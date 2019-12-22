@@ -2,12 +2,12 @@ use crate::db::Repo;
 use crate::set_routes;
 
 use crate::configuration::Settings;
+use async_std::io::prelude::ReadExt;
 use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
 use serde_json::Value;
 use std::io::Read;
-use async_std::io::prelude::ReadExt;
 use tide::server::Service;
 
 pub type TestServer = TestBackend<Service<Repo<PgConnection>>>;
