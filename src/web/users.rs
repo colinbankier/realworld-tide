@@ -8,7 +8,7 @@ use log::info;
 use serde::{Deserialize, Serialize};
 
 use http::status::StatusCode;
-use tide::{response, Context, EndpointResult};
+use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
 pub struct Registration {
@@ -37,15 +37,17 @@ pub struct AuthUser {
     password: String,
 }
 
-pub async fn register(mut cx: Context<Repo>) -> EndpointResult {
+pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
     let registration: Registration = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let repo = cx.state();
     let result = users::insert(repo, registration.user).await;
 
-    result.map(response::json).map_err(|e| diesel_error(&e))
+    result
+        .map(|b| Response::new(200).body_json(&b).unwrap())
+        .map_err(|e| diesel_error(&e))
 }
 
-pub async fn login(mut cx: Context<Repo>) -> EndpointResult {
+pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
     let auth: AuthRequest = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let repo = cx.state();
     let user = auth.user;
@@ -57,24 +59,26 @@ pub async fn login(mut cx: Context<Repo>) -> EndpointResult {
                 token: Some(encode_token(user.id)),
                 ..user
             };
-            Ok(response::json(user))
+            Ok(Response::new(200).body_json(&user).unwrap())
         }
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
         Err(e) => Err(diesel_error(&e)),
     }
 }
 
-pub async fn get_user(mut cx: Context<Repo>) -> EndpointResult {
+pub async fn get_user(mut cx: Request<Repo>) -> tide::Result<Response> {
     let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
     info!("Get user {}", auth.user_id());
 
     let results = users::find(repo, auth.user_id()).await;
-
-    results.map(response::json).map_err(|e| diesel_error(&e))
+    match results {
+        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Err(e) => Err(diesel_error(&e)),
+    }
 }
 
-pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
+pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
     let update_params: UpdateUserRequest =
         cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
     let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
@@ -82,7 +86,10 @@ pub async fn update_user(mut cx: Context<Repo>) -> EndpointResult {
     info!("Update user {} {:?}", auth.user_id(), update_params);
     let results = users::update(repo, auth.user_id(), update_params.user).await;
 
-    results.map(response::json).map_err(|e| diesel_error(&e))
+    match results {
+        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Err(e) => Err(diesel_error(&e)),
+    }
 }
 
 #[cfg(test)]
@@ -164,6 +171,7 @@ mod tests {
                             }
                         })
                         .to_string()
+                        .into_bytes()
                         .into(),
                     )
                     .unwrap(),
@@ -184,6 +192,7 @@ mod tests {
                             }
                         })
                         .to_string()
+                        .into_bytes()
                         .into(),
                     )
                     .unwrap(),
@@ -224,7 +233,7 @@ mod tests {
             .simulate(
                 Request::put("/api/user")
                     .header("Authorization", format!("token: {}", token))
-                    .body(details.to_string().into())
+                    .body(details.to_string().into_bytes().into())
                     .unwrap(),
             )
             .unwrap();

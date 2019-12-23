@@ -1,11 +1,5 @@
 use futures::future::BoxFuture;
-use http::StatusCode;
-use tide::{
-    error::StringError,
-    middleware::{Middleware, Next},
-    response::IntoResponse,
-    Context, Response,
-};
+use tide::{Error, Middleware, Next, Request, Response};
 
 use crate::auth::{extract_claims, Claims};
 
@@ -20,34 +14,24 @@ impl JwtMiddleware {
 }
 
 pub trait ContextExt {
-    fn get_claims(&mut self) -> Result<Claims, StringError>;
+    fn get_claims(&mut self) -> Result<Claims, Error>;
 }
 
-impl<State> ContextExt for Context<State> {
-    fn get_claims(&mut self) -> Result<Claims, StringError> {
-        let claims = self
-            .extensions()
-            .get::<Claims>()
-            .ok_or_else(|| StringError("Auth middleware missing".to_owned()))?;
+impl<State> ContextExt for Request<State> {
+    fn get_claims(&mut self) -> Result<Claims, Error> {
+        let claims = self.local::<Claims>().expect("Missing auth middleware");
         Ok(claims.clone())
     }
 }
 
 impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
-    fn handle<'a>(
-        &'a self,
-        mut cx: Context<State>,
-        next: Next<'a, State>,
-    ) -> BoxFuture<'a, Response> {
+    fn handle<'a>(&'a self, cx: Request<State>, next: Next<'a, State>) -> BoxFuture<'a, Response> {
         Box::pin(async move {
             let claims = extract_claims(cx.headers());
             if let Some(c) = claims {
-                // The `let _ = ...` is a workaround for issue: https://github.com/rustasync/tide/issues/278
-                // Solution is according to suggestion in https://github.com/rust-lang/rust/issues/61579#issuecomment-500436524
-                let _ = cx.extensions_mut().insert(c);
-                return next.run(cx).await;
+                return next.run(cx.set_local(c)).await;
             } else {
-                return StatusCode::UNAUTHORIZED.into_response();
+                return Response::new(403);
             }
         })
     }

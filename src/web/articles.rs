@@ -4,8 +4,7 @@ use crate::web::diesel_error;
 use crate::Repo;
 use http::status::StatusCode;
 use serde::Serialize;
-use tide::error::{Error, ResultExt};
-use tide::{querystring::ContextExt, response, Context, EndpointResult};
+use tide::{Error, Request, Response, ResultExt};
 
 #[allow(dead_code)]
 #[derive(Serialize)]
@@ -13,22 +12,26 @@ pub struct ArticleResponse {
     articles: Vec<Article>,
 }
 
-pub async fn list_articles(cx: Context<Repo>) -> EndpointResult {
-    let query = cx.url_query::<ArticleQuery>()?;
+pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
+    let query = cx.query::<ArticleQuery>()?;
     let repo = cx.state();
     let result = articles::find(repo, query).await;
 
-    result.map(response::json).map_err(|e| diesel_error(&e))
+    match result {
+        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Err(e) => Err(diesel_error(&e)),
+    }
 }
 
-pub async fn get_article(cx: Context<Repo>) -> EndpointResult {
+pub async fn get_article(cx: Request<Repo>) -> tide::Result<Response> {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
     let result = articles::find_one(repo, &slug).await;
-    result.map(response::json).map_err(|error| match error {
-        diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
-        e => diesel_error(&e),
-    })
+    match result {
+        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Err(diesel::NotFound) => Err(Error::from(StatusCode::NOT_FOUND)),
+        Err(e) => Err(diesel_error(&e)),
+    }
 }
 
 #[cfg(test)]

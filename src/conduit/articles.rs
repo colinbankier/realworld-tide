@@ -77,7 +77,7 @@ mod tests {
     use super::*;
     use crate::conduit::users;
     use crate::models::{NewArticle, NewUser};
-    use crate::test_helpers::test_server::{get_repo, new};
+    use crate::test_helpers::test_server::get_repo;
 
     use futures_executor::ThreadPool;
     // use tokio_async_await_test::async_test;
