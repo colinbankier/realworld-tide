@@ -7,8 +7,10 @@ use serde::Serialize;
 use tide::{Error, Request, Response, ResultExt};
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleResponse {
     articles: Vec<Article>,
+    articles_count: u64
 }
 
 pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
@@ -17,9 +19,16 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     let result = articles::find(repo, query);
 
     match result {
-        Ok(articles) => Ok(Response::new(200)
-            .body_json(&ArticleResponse { articles })
-            .unwrap()),
+        Ok(articles) => {
+            let articles_count = articles.len() as u64;
+            let response = ArticleResponse {
+                articles,
+                articles_count
+            };
+            Ok(Response::new(200)
+                .body_json(&response)
+                .unwrap())
+        },
         Err(e) => Err(diesel_error(&e)),
     }
 }
