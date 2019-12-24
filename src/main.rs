@@ -58,6 +58,7 @@ fn main() -> Result<(), std::io::Error> {
 
     let state = Repo::new(&settings.database.connection_string());
     let mut app = Server::with_state(state);
+    app.middleware(tide::middleware::RequestLogger::new());
     app = set_routes(app);
     let address = format!(
         "{}:{}",
