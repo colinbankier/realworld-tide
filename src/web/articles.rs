@@ -10,7 +10,7 @@ use tide::{Error, Request, Response, ResultExt};
 #[serde(rename_all = "camelCase")]
 pub struct ArticleResponse {
     articles: Vec<Article>,
-    articles_count: u64
+    articles_count: u64,
 }
 
 pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
@@ -23,12 +23,10 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
             let articles_count = articles.len() as u64;
             let response = ArticleResponse {
                 articles,
-                articles_count
+                articles_count,
             };
-            Ok(Response::new(200)
-                .body_json(&response)
-                .unwrap())
-        },
+            Ok(Response::new(200).body_json(&response).unwrap())
+        }
         Err(e) => Err(diesel_error(&e)),
     }
 }
