@@ -8,7 +8,7 @@ use diesel::result::Error;
 
 type Repo = db::Repo<PgConnection>;
 
-pub async fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
+pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     repo.run(move |conn| {
         // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
@@ -17,12 +17,12 @@ pub async fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     })
 }
 
-pub async fn find(repo: &Repo, user_id: i32) -> Result<User, Error> {
+pub fn find(repo: &Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
     repo.run(move |conn| users.find(user_id).first(&conn))
 }
 
-pub async fn find_by_email_password(
+pub fn find_by_email_password(
     repo: &Repo,
     user_email: String,
     user_password: String,
@@ -36,7 +36,7 @@ pub async fn find_by_email_password(
     })
 }
 
-pub async fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
+pub fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
     repo.run(move |conn| {
         diesel::update(users.find(user_id))

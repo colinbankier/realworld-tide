@@ -15,7 +15,7 @@ pub struct ArticleResponse {
 pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     let query = cx.query::<ArticleQuery>()?;
     let repo = cx.state();
-    let result = articles::find(repo, query).await;
+    let result = articles::find(repo, query);
 
     match result {
         Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
@@ -26,7 +26,7 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
 pub async fn get_article(cx: Request<Repo>) -> tide::Result<Response> {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
-    let result = articles::find_one(repo, &slug).await;
+    let result = articles::find_one(repo, &slug);
     match result {
         Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
         Err(diesel::NotFound) => Err(Error::from(StatusCode::NOT_FOUND)),

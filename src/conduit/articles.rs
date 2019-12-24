@@ -27,7 +27,7 @@ impl FromStr for ArticleQuery {
 }
 
 #[allow(dead_code)]
-pub async fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
+pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
         diesel::insert_into(articles::table)
             .values(&article)
@@ -35,7 +35,7 @@ pub async fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> 
     })
 }
 
-pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
+pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
     use crate::schema::articles::dsl::*;
     use crate::schema::users::dsl::{username, users};
 
@@ -55,7 +55,7 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
     })
 }
 
-pub async fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
+pub fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
     use crate::schema::articles::dsl::{articles, slug};
     use crate::schema::users::dsl::users;
 
@@ -103,7 +103,7 @@ mod tests {
                 email: "my_email@hotmail.com".into(),
                 password: "somepass".into(),
             };
-            let user = users::insert(&repo, user).await.unwrap();
+            let user = users::insert(&repo, user).unwrap();
 
             let article = NewArticle {
                 title: "My article".into(),
@@ -112,9 +112,9 @@ mod tests {
                 body: "ohoh".into(),
                 user_id: user.id,
             };
-            let expected_article = insert(&repo, article).await.unwrap();
+            let expected_article = insert(&repo, article).unwrap();
 
-            let retrieved_article = find_one(&repo, &slug).await.unwrap();
+            let retrieved_article = find_one(&repo, &slug).unwrap();
             assert_eq!(expected_article, retrieved_article);
         })
     }

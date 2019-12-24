@@ -24,14 +24,11 @@ use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::{Article, User};
 use diesel::PgConnection;
-use futures::stream::{FuturesOrdered, StreamExt};
 
 pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
         .map(|_| users::insert(repo, generate::new_user()))
-        .collect::<FuturesOrdered<_>>()
-        .collect::<Vec<_>>()
-        .await;
+        .collect::<Vec<_>>();
     results
         .into_iter()
         .map(|r| r.expect("Failed to create user"))
@@ -42,9 +39,7 @@ pub async fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec
     let results = users
         .iter()
         .map(|user| articles::insert(repo, generate::new_article(user.id)))
-        .collect::<FuturesOrdered<_>>()
-        .collect::<Vec<_>>()
-        .await;
+        .collect::<Vec<_>>();
     results
         .into_iter()
         .map(|r| r.expect("Failed to create article"))
