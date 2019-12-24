@@ -33,7 +33,6 @@ pub async fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> 
             .values(&article)
             .get_result(&conn)
     })
-    .await
 }
 
 pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
@@ -54,7 +53,6 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
 
         q.load(&conn)
     })
-    .await
 }
 
 pub async fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
@@ -69,7 +67,6 @@ pub async fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
             .select(articles::all_columns())
             .first(&conn)
     })
-    .await
 }
 
 #[cfg(test)]

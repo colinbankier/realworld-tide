@@ -15,12 +15,11 @@ pub async fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
             .values(&user)
             .get_result(&conn)
     })
-    .await
 }
 
 pub async fn find(repo: &Repo, user_id: i32) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    repo.run(move |conn| users.find(user_id).first(&conn)).await
+    repo.run(move |conn| users.find(user_id).first(&conn))
 }
 
 pub async fn find_by_email_password(
@@ -35,7 +34,6 @@ pub async fn find_by_email_password(
             .filter(password.eq(user_password))
             .first::<User>(&conn)
     })
-    .await
 }
 
 pub async fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
@@ -45,7 +43,6 @@ pub async fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<Us
             .set(&details)
             .get_result(&conn)
     })
-    .await
 }
 
 #[cfg(test)]
