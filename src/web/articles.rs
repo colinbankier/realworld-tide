@@ -6,7 +6,6 @@ use http::status::StatusCode;
 use serde::Serialize;
 use tide::{Error, Request, Response, ResultExt};
 
-#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct ArticleResponse {
     articles: Vec<Article>,
@@ -18,7 +17,9 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     let result = articles::find(repo, query);
 
     match result {
-        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Ok(articles) => Ok(Response::new(200)
+            .body_json(&ArticleResponse { articles })
+            .unwrap()),
         Err(e) => Err(diesel_error(&e)),
     }
 }
