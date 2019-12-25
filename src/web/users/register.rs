@@ -3,7 +3,7 @@ use crate::conduit::users;
 use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use http::status::StatusCode;
@@ -21,9 +21,16 @@ pub struct NewUserRequest {
     pub password: String,
 }
 
+#[derive(Serialize, Debug)]
+pub struct NewUserResponse {
+    pub user: User,
+}
+
 pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
-    let registration: RegistrationRequest =
-        cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
+    let registration: RegistrationRequest = cx
+        .body_json()
+        .await
+        .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let repo = cx.state();
 
     let user_id = Uuid::new_v4();
@@ -39,6 +46,10 @@ pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
     let result = users::insert(repo, new_user);
 
     result
-        .map(|b| Response::new(200).body_json(&b).unwrap())
+        .map(|user| {
+            Response::new(200)
+                .body_json(&NewUserResponse { user })
+                .unwrap()
+        })
         .map_err(|e| diesel_error(&e))
 }
