@@ -14,18 +14,6 @@ pub struct UpdateUserRequest {
     user: UpdateUser,
 }
 
-pub async fn get_user(cx: Request<Repo>) -> tide::Result<Response> {
-    let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
-    let repo = cx.state();
-    info!("Get user {}", auth.user_id());
-
-    let results = users::find(repo, auth.user_id());
-    match results {
-        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
-        Err(e) => Err(diesel_error(&e)),
-    }
-}
-
 pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
     let update_params: UpdateUserRequest =
         cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;

@@ -39,7 +39,7 @@ pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> 
 pub fn set_routes(mut app: Server<Repo>) -> Server<Repo> {
     app.at("/api").nest(|api| {
         api.at("/user")
-            .get(|req| async move { result_to_response(web::users::get_user(req).await) })
+            .get(|req| async move { result_to_response(web::users::get_current_user(req).await) })
             .put(|req| async move { result_to_response(web::users::update_user(req).await) });
         api.at("/users")
             .post(|req| async move { result_to_response(web::users::register(req).await) });
