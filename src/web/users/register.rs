@@ -4,10 +4,8 @@ use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-use http::status::StatusCode;
 use tide::{Request, Response};
+use uuid::Uuid;
 
 #[derive(Deserialize, Debug)]
 pub struct RegistrationRequest {

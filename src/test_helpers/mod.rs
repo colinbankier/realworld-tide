@@ -52,7 +52,6 @@ pub mod generate {
     use crate::auth::encode_token;
     use crate::models::{NewArticle, NewUser};
     use fake::fake;
-    use uuid::Uuid;
 
     pub fn new_user() -> NewUser {
         let user_id = Uuid::new_v4();
