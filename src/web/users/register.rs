@@ -1,9 +1,10 @@
+use super::responses::UserResponse;
 use crate::auth::encode_token;
 use crate::conduit::users;
 use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tide::{Request, Response};
 use uuid::Uuid;
 
@@ -17,11 +18,6 @@ pub struct NewUserRequest {
     pub username: String,
     pub email: String,
     pub password: String,
-}
-
-#[derive(Serialize, Debug)]
-pub struct NewUserResponse {
-    pub user: User,
 }
 
 pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
@@ -46,7 +42,7 @@ pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
     result
         .map(|user| {
             Response::new(200)
-                .body_json(&NewUserResponse { user })
+                .body_json(&UserResponse { user })
                 .unwrap()
         })
         .map_err(|e| diesel_error(&e))

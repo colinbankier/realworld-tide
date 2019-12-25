@@ -1,5 +1,8 @@
-pub mod register;
-pub mod users;
+mod login;
+mod register;
+mod responses;
+mod users;
 
+pub use login::login;
 pub use register::register;
-pub use users::{get_user, login, update_user};
+pub use users::{get_user, update_user};
