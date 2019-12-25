@@ -24,7 +24,6 @@ use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::{Article, User};
 use diesel::PgConnection;
-use uuid::Uuid;
 
 pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
@@ -52,6 +51,7 @@ pub mod generate {
     use crate::auth::encode_token;
     use crate::models::{NewArticle, NewUser};
     use fake::fake;
+    use uuid::Uuid;
 
     pub fn new_user() -> NewUser {
         let user_id = Uuid::new_v4();
