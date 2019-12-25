@@ -1,5 +1,4 @@
 use super::responses::UserResponse;
-use crate::auth::encode_token;
 use crate::conduit::users;
 use crate::db::models::*;
 use crate::web::diesel_error;
@@ -27,22 +26,18 @@ pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let repo = cx.state();
 
-    let user_id = Uuid::new_v4();
-    let token = encode_token(user_id);
-
     let new_user = NewUser {
         username: registration.user.username,
         email: registration.user.email,
         password: registration.user.password,
-        token,
-        id: user_id,
+        id: Uuid::new_v4(),
     };
     let result = users::insert(repo, new_user);
 
     result
         .map(|user| {
             Response::new(200)
-                .body_json(&UserResponse { user })
+                .body_json(&UserResponse::new(user))
                 .unwrap()
         })
         .map_err(|e| diesel_error(&e))

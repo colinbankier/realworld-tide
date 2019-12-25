@@ -15,10 +15,9 @@ pub async fn get_current_user(cx: Request<Repo>) -> tide::Result<Response> {
 
     let results = users::find(repo, auth.user_id());
     match results {
-        Ok(user) => {
-            let response = UserResponse { user };
-            Ok(Response::new(200).body_json(&response).unwrap())
-        }
+        Ok(user) => Ok(Response::new(200)
+            .body_json(&UserResponse::new(user))
+            .unwrap()),
         Err(e) => Err(diesel_error(&e)),
     }
 }

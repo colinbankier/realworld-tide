@@ -12,7 +12,6 @@ pub struct NewUser {
     pub username: String,
     pub email: String,
     pub password: String,
-    pub token: String,
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
@@ -23,7 +22,6 @@ pub struct User {
     pub password: String,
     pub bio: Option<String>,
     pub image: Option<String>,
-    pub token: Option<String>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

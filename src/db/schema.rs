@@ -19,7 +19,6 @@ table! {
         password -> Varchar,
         bio -> Nullable<Varchar>,
         image -> Nullable<Varchar>,
-        token -> Nullable<Varchar>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

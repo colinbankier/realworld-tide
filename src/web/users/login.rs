@@ -1,5 +1,4 @@
 use super::responses::UserResponse;
-use crate::auth::encode_token;
 use crate::conduit::users;
 use crate::db::models::*;
 use crate::web::diesel_error;
@@ -32,14 +31,9 @@ pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
     let result = users::find_by_email_password(repo, user.email, user.password);
 
     match result {
-        Ok(user) => {
-            let user = User {
-                token: Some(encode_token(user.id)),
-                ..user
-            };
-            let response = UserResponse { user };
-            Ok(Response::new(200).body_json(&response).unwrap())
-        }
+        Ok(user) => Ok(Response::new(200)
+            .body_json(&UserResponse::new(user))
+            .unwrap()),
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
         Err(e) => Err(diesel_error(&e)),
     }

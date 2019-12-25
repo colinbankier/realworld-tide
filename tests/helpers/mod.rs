@@ -37,13 +37,11 @@ pub mod generate {
 
     pub fn new_user() -> NewUser {
         let user_id = Uuid::new_v4();
-        let token = encode_token(user_id);
         NewUser {
             username: fake!(Internet.user_name).to_string(),
             email: fake!(Internet.free_email).to_string(),
             password: fake!(Lorem.word).to_string(),
             id: user_id,
-            token,
         }
     }
 

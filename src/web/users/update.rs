@@ -24,10 +24,9 @@ pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
     let results = users::update(repo, auth.user_id(), update_params.user);
 
     match results {
-        Ok(user) => {
-            let response = UserResponse { user };
-            Ok(Response::new(200).body_json(&response).unwrap())
-        }
+        Ok(user) => Ok(Response::new(200)
+            .body_json(&UserResponse::new(user))
+            .unwrap()),
         Err(e) => Err(diesel_error(&e)),
     }
 }
