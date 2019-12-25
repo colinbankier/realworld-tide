@@ -5,7 +5,7 @@ table! {
         slug -> Varchar,
         description -> Varchar,
         body -> Text,
-        user_id -> Int4,
+        user_id -> Uuid,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -13,7 +13,7 @@ table! {
 
 table! {
     users (id) {
-        id -> Int4,
+        id -> Uuid,
         username -> Varchar,
         email -> Varchar,
         password -> Varchar,

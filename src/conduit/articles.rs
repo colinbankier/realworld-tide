@@ -76,7 +76,9 @@ mod tests {
     use crate::models::{NewArticle, NewUser};
     use crate::test_helpers::test_server::get_repo;
 
+    use crate::auth::encode_token;
     use futures_executor::ThreadPool;
+    use uuid::Uuid;
     // use tokio_async_await_test::async_test;
 
     // #[async_test]
@@ -98,10 +100,14 @@ mod tests {
             let repo = get_repo();
             let slug = "my_slug".to_string();
 
+            let user_id = Uuid::new_v4();
+            let token = encode_token(user_id);
             let user = NewUser {
                 username: "my_user".into(),
                 email: "my_email@hotmail.com".into(),
                 password: "somepass".into(),
+                id: user_id,
+                token,
             };
             let user = users::insert(&repo, user).unwrap();
 

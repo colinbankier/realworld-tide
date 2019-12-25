@@ -5,6 +5,7 @@ use crate::schema::users;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
+use uuid::Uuid;
 
 type Repo = db::Repo<PgConnection>;
 
@@ -17,7 +18,7 @@ pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     })
 }
 
-pub fn find(repo: &Repo, user_id: i32) -> Result<User, Error> {
+pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
     repo.run(move |conn| users.find(user_id).first(&conn))
 }
@@ -36,7 +37,7 @@ pub fn find_by_email_password(
     })
 }
 
-pub fn update(repo: &Repo, user_id: i32, details: UpdateUser) -> Result<User, Error> {
+pub fn update(repo: &Repo, user_id: Uuid, details: UpdateUser) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
     repo.run(move |conn| {
         diesel::update(users.find(user_id))

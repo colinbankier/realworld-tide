@@ -4,18 +4,19 @@ use log::debug;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 // TODO: get the secret from config
 const SECRET: &str = "secret";
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
-    sub: i32,
+    sub: Uuid,
     exp: u64,
 }
 
 impl Claims {
-    pub fn user_id(&self) -> i32 {
+    pub fn user_id(&self) -> Uuid {
         self.sub
     }
 }
@@ -24,11 +25,11 @@ fn validation() -> Validation {
     Validation::default()
 }
 
-pub fn encode_token(sub: i32) -> String {
+pub fn encode_token(sub: Uuid) -> String {
     encode(&Header::default(), &claims_for(sub, 3600), SECRET.as_ref()).unwrap()
 }
 
-pub fn claims_for(user_id: i32, expire_in: u64) -> Claims {
+pub fn claims_for(user_id: Uuid, expire_in: u64) -> Claims {
     Claims {
         sub: user_id,
         exp: seconds_from_now(expire_in),
@@ -64,10 +65,12 @@ pub fn extract_claims(headers: &HeaderMap) -> Option<Claims> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use uuid::Uuid;
 
     #[test]
     fn encode_decode_token() {
-        let token = encode_token(123);
+        let sub = Uuid::new_v4();
+        let token = encode_token(sub);
         let decoded = decode::<Claims>(&token, "secret".as_ref(), &Validation::default());
         if let Err(e) = &decoded {
             println!("decode err: {}", e);

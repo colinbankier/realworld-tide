@@ -11,11 +11,6 @@ use http::status::StatusCode;
 use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
-pub struct Registration {
-    user: NewUser,
-}
-
-#[derive(Deserialize, Debug)]
 pub struct UpdateUserRequest {
     user: UpdateUser,
 }
@@ -35,16 +30,6 @@ pub struct AuthRequest {
 pub struct AuthUser {
     email: String,
     password: String,
-}
-
-pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
-    let registration: Registration = cx.body_json().await.map_err(|_| StatusCode::BAD_REQUEST)?;
-    let repo = cx.state();
-    let result = users::insert(repo, registration.user);
-
-    result
-        .map(|b| Response::new(200).body_json(&b).unwrap())
-        .map_err(|e| diesel_error(&e))
 }
 
 pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {

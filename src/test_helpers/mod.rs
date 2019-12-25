@@ -24,6 +24,7 @@ use crate::conduit::users;
 use crate::db::Repo;
 use crate::models::{Article, User};
 use diesel::PgConnection;
+use uuid::Uuid;
 
 pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
@@ -48,24 +49,30 @@ pub async fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec
 
 /// Functions for generating test data
 pub mod generate {
+    use crate::auth::encode_token;
     use crate::models::{NewArticle, NewUser};
     use fake::fake;
+    use uuid::Uuid;
 
     pub fn new_user() -> NewUser {
+        let user_id = Uuid::new_v4();
+        let token = encode_token(user_id);
         NewUser {
             username: fake!(Internet.user_name).to_string(),
             email: fake!(Internet.free_email).to_string(),
             password: fake!(Lorem.word).to_string(),
+            id: user_id,
+            token,
         }
     }
 
-    pub fn new_article(user_id: i32) -> NewArticle {
+    pub fn new_article(user_id: Uuid) -> NewArticle {
         NewArticle {
             title: fake!(Lorem.sentence(4, 10)).to_string(),
             slug: format!("{}{}", fake!(Lorem.word).to_string(), user_id),
             description: fake!(Lorem.paragraph(3, 10)),
             body: fake!(Lorem.paragraph(10, 5)),
-            user_id: user_id,
+            user_id,
         }
     }
 }

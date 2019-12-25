@@ -3,18 +3,21 @@ use crate::schema::users;
 use chrono::NaiveDateTime;
 use diesel::{Insertable, Queryable};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "users"]
 pub struct NewUser {
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub password: String,
+    pub token: String,
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
-    pub id: i32,
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub password: String,
@@ -42,7 +45,7 @@ pub struct Article {
     pub slug: String,
     pub description: String,
     pub body: String,
-    pub user_id: i32,
+    pub user_id: Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -54,5 +57,5 @@ pub struct NewArticle {
     pub slug: String,
     pub description: String,
     pub body: String,
-    pub user_id: i32,
+    pub user_id: Uuid,
 }
