@@ -6,6 +6,7 @@ use helpers::test_db::get_repo;
 use realworld_tide::conduit::users;
 use realworld_tide::models::UpdateUser;
 
+#[test]
 fn test_create_user() {
     let repo = get_repo();
 
@@ -16,6 +17,7 @@ fn test_create_user() {
     assert!(results.is_ok());
 }
 
+#[test]
 fn test_authenticate_user() {
     let repo = get_repo();
     // Create a new user
@@ -27,6 +29,7 @@ fn test_authenticate_user() {
     assert!(results.is_ok());
 }
 
+#[test]
 fn test_update_user() {
     let repo = get_repo();
     // Create a new user
