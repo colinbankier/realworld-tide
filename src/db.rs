@@ -3,8 +3,6 @@ use diesel::Connection;
 use r2d2::{Pool, PooledConnection};
 
 /// A database "repository", for running database workloads.
-/// Manages a connection pool and running blocking tasks in a
-/// way that does not block the tokio event loop.
 #[derive(Clone)]
 pub struct Repo<T>
 where

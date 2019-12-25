@@ -1,5 +1,6 @@
 use futures::future::BoxFuture;
 use http::status::StatusCode;
+use log::info;
 use tide::{Error, Middleware, Next, Request, Response};
 
 use crate::auth::{extract_claims, Claims};
@@ -28,7 +29,9 @@ impl<State> ContextExt for Request<State> {
 impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
     fn handle<'a>(&'a self, cx: Request<State>, next: Next<'a, State>) -> BoxFuture<'a, Response> {
         Box::pin(async move {
+            info!("Headers: {:?}", cx.headers());
             let claims = extract_claims(cx.headers());
+            info!("Claims: {:?}", claims);
             if let Some(c) = claims {
                 return next.run(cx.set_local(c)).await;
             } else {
