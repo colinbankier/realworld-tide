@@ -22,7 +22,7 @@ pub trait ContextExt {
 impl<State> ContextExt for Request<State> {
     fn get_claims(&self) -> Result<&Claims, Error> {
         self.local::<Claims>()
-            .ok_or(Error::from(StatusCode::UNAUTHORIZED))
+            .ok_or_else(|| Error::from(StatusCode::UNAUTHORIZED))
     }
 }
 
