@@ -1,6 +1,6 @@
 use futures::future::BoxFuture;
-use tide::{Error, Middleware, Next, Request, Response};
 use http::status::StatusCode;
+use tide::{Error, Middleware, Next, Request, Response};
 
 use crate::auth::{extract_claims, Claims};
 
@@ -20,7 +20,8 @@ pub trait ContextExt {
 
 impl<State> ContextExt for Request<State> {
     fn get_claims(&self) -> Result<&Claims, Error> {
-        self.local::<Claims>().ok_or(Error::from(StatusCode::UNAUTHORIZED))
+        self.local::<Claims>()
+            .ok_or(Error::from(StatusCode::UNAUTHORIZED))
     }
 }
 
