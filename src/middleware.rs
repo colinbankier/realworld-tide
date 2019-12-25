@@ -1,5 +1,6 @@
 use futures::future::BoxFuture;
 use tide::{Error, Middleware, Next, Request, Response};
+use http::status::StatusCode;
 
 use crate::auth::{extract_claims, Claims};
 
@@ -14,13 +15,12 @@ impl JwtMiddleware {
 }
 
 pub trait ContextExt {
-    fn get_claims(&mut self) -> Result<Claims, Error>;
+    fn get_claims(&self) -> Result<&Claims, Error>;
 }
 
 impl<State> ContextExt for Request<State> {
-    fn get_claims(&mut self) -> Result<Claims, Error> {
-        let claims = self.local::<Claims>().expect("Missing auth middleware");
-        Ok(claims.clone())
+    fn get_claims(&self) -> Result<&Claims, Error> {
+        self.local::<Claims>().ok_or(Error::from(StatusCode::UNAUTHORIZED))
     }
 }
 
@@ -31,7 +31,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
             if let Some(c) = claims {
                 return next.run(cx.set_local(c)).await;
             } else {
-                return Response::new(403);
+                return next.run(cx).await;
             }
         })
     }

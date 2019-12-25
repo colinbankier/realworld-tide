@@ -66,7 +66,7 @@ pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
     }
 }
 
-pub async fn get_user(mut cx: Request<Repo>) -> tide::Result<Response> {
+pub async fn get_user(cx: Request<Repo>) -> tide::Result<Response> {
     let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
     info!("Get user {}", auth.user_id());
