@@ -50,7 +50,7 @@ fn should_get_articles_by_author() {
     })
 }
 
-async fn get_articles<'a>(server: &'a mut TestServer, query: Option<String>) -> Value {
+async fn get_articles(server: &mut TestServer, query: Option<String>) -> Value {
     let url = match query {
         None => "/api/articles".to_string(),
         Some(qs) => format!("/api/articles?{}", qs),

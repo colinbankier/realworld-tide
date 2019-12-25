@@ -29,44 +29,34 @@ fn register_and_login() {
     })
 }
 
-// #[async_test]
-// async fn register_and_login() {
-//     let server = TestServer::new(Repo::new());
-//     let user = generate::new_user();
+#[test]
+fn update_and_retrieve_user_details() {
+    let runtime = ThreadPool::new().unwrap();
+    runtime.spawn_ok(async move {
+        let mut server = new(get_repo());
+        let user = generate::new_user();
 
-//     register_user(&server, &user).await;
-//     let token = login_user(&server, &user).await;
-//     let user_details =  get_user_details(&server, &token).await;
+        let stored_user = register_user(&mut server, &user).await;
+        let token = login_user(&mut server, &user).await;
 
-//     assert_eq!(user_details["user"]["username"], user.username);
-//     assert_eq!(user_details["user"]["email"], user.email);
-// }
+        assert_eq!(stored_user["user"]["bio"], Value::Null);
+        assert_eq!(stored_user["user"]["image"], Value::Null);
 
-// #[async_test]
-// async fn update_and_retrieve_user_details() {
-//     let server = TestServer::new(Repo::new());
-//     let user = generate::new_user();
+        let new_details = json!({
+            "user": {
+                "bio": "I like to code.",
+                "image": "https://www.rust-lang.org/static/images/rust-logo-blk.svg",
+            }
+        });
+        let updated_user = update_user_details(&mut server, &new_details, &token).await;
+        assert_eq!(updated_user["user"]["bio"], new_details["user"]["bio"]);
+        assert_eq!(updated_user["user"]["image"], new_details["user"]["image"]);
 
-//     let stored_user = register_user(&server, &user).await;
-//     let token = login_user(&server, &user).await;
-
-//     assert_eq!(stored_user["user"]["bio"], Value::Null);
-//     assert_eq!(stored_user["user"]["image"], Value::Null);
-
-//     let new_details = json!({
-//         "user": {
-//             "bio": "I like to code.",
-//             "image": "https://www.rust-lang.org/static/images/rust-logo-blk.svg",
-//         }
-//     });
-//     let updated_user =  update_user_details(&server, &new_details, &token).await;
-//     assert_eq!(updated_user["user"]["bio"], new_details["user"]["bio"]);
-//     assert_eq!(updated_user["user"]["image"], new_details["user"]["image"]);
-
-//     let user_details =  get_user_details(&server, &token).await;
-//     assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
-//     assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
-// }
+        let user_details = get_user_details(&mut server, &token).await;
+        assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
+        assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
+    })
+}
 
 async fn register_user(server: &mut TestServer, user: &NewUser) -> Value {
     let res = server
@@ -133,7 +123,6 @@ async fn get_user_details(server: &mut TestServer, token: &String) -> Value {
     response_json(res).await
 }
 
-#[allow(dead_code)]
 async fn update_user_details(server: &mut TestServer, details: &Value, token: &String) -> Value {
     let res = server
         .simulate(
