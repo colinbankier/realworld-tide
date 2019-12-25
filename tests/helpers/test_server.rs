@@ -1,19 +1,18 @@
-use crate::db::Repo;
-use crate::set_routes;
+use realworld_tide::db::Repo;
+use realworld_tide::web::get_app;
 
-use crate::configuration::Settings;
 use async_std::io::prelude::ReadExt;
 use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
+use realworld_tide::configuration::Settings;
 use serde_json::Value;
 use tide::server::Service;
 
 pub type TestServer = TestBackend<Service<Repo<PgConnection>>>;
 
 pub fn new(repo: Repo<PgConnection>) -> TestServer {
-    let app = crate::set_routes(tide::with_state(repo));
-    let app = set_routes(app);
+    let app = get_app(repo);
     make_server(app.into_http_service()).unwrap()
 }
 

@@ -8,6 +8,10 @@ edition = "2018"
 name = "realworld-tide"
 path = "src/main.rs"
 
+[lib]
+name = "realworld_tide"
+path = "src/lib.rs"
+
 [dependencies]
 tide = { path = "../tide" }
 diesel = { version = "1.4", features = ["postgres", "extras", "uuidv07"] }

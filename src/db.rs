@@ -24,20 +24,6 @@ where
 
     /// Creates a repo with a pool builder, allowing you to customize
     /// any connection pool configuration.
-    ///
-    /// ```rust
-    /// # use diesel::sqlite::SqliteConnection;
-    /// use r2d2::Pool;
-    /// use core::time::Duration;
-    ///
-    /// type Repo = db::Repo<SqliteConnection>;
-    /// let database_url = ":memory:";
-    /// let repo = Repo::from_pool_builder(database_url,
-    ///     Pool::builder()
-    ///         .connection_timeout(Duration::from_secs(120))
-    ///         .max_size(100)
-    /// );
-    /// ```
     pub fn from_pool_builder(
         database_url: &str,
         builder: r2d2::Builder<ConnectionManager<T>>,

@@ -19,11 +19,11 @@ where
     }
 }
 
-use crate::conduit::articles;
-use crate::conduit::users;
-use crate::db::Repo;
-use crate::models::{Article, User};
 use diesel::PgConnection;
+use realworld_tide::conduit::articles;
+use realworld_tide::conduit::users;
+use realworld_tide::db::Repo;
+use realworld_tide::models::{Article, User};
 
 pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
@@ -48,9 +48,9 @@ pub async fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec
 
 /// Functions for generating test data
 pub mod generate {
-    use crate::auth::encode_token;
-    use crate::models::{NewArticle, NewUser};
     use fake::fake;
+    use realworld_tide::auth::encode_token;
+    use realworld_tide::models::{NewArticle, NewUser};
     use uuid::Uuid;
 
     pub fn new_user() -> NewUser {
