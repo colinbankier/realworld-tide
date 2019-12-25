@@ -1,7 +1,7 @@
 use super::responses::UserResponse;
 use crate::auth::encode_token;
 use crate::conduit::users;
-use crate::models::*;
+use crate::db::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use serde::Deserialize;

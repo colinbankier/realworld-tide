@@ -1,5 +1,5 @@
 use crate::conduit::{articles, articles::ArticleQuery};
-use crate::models::*;
+use crate::db::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use http::status::StatusCode;

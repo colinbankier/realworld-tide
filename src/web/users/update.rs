@@ -1,6 +1,6 @@
 use crate::conduit::users;
+use crate::db::models::*;
 use crate::middleware::ContextExt;
-use crate::models::*;
 use crate::web::diesel_error;
 use crate::Repo;
 use log::info;

@@ -1,6 +1,6 @@
 // These tests are "integration" tests that exercise a workflow via the http service.
 
-use realworld_tide::models::NewUser;
+use realworld_tide::db::models::NewUser;
 
 mod helpers;
 

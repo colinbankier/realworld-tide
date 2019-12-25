@@ -4,8 +4,8 @@ pub mod test_server;
 use diesel::PgConnection;
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::users;
+use realworld_tide::db::models::{Article, User};
 use realworld_tide::db::Repo;
-use realworld_tide::models::{Article, User};
 
 pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
@@ -32,7 +32,7 @@ pub fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Artic
 pub mod generate {
     use fake::fake;
     use realworld_tide::auth::encode_token;
-    use realworld_tide::models::{NewArticle, NewUser};
+    use realworld_tide::db::models::{NewArticle, NewUser};
     use uuid::Uuid;
 
     pub fn new_user() -> NewUser {

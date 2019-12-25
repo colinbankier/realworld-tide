@@ -1,4 +1,4 @@
-use crate::models::User;
+use crate::db::models::User;
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]

@@ -8,8 +8,6 @@ pub mod conduit;
 pub mod configuration;
 pub mod db;
 pub mod middleware;
-pub mod models;
-pub mod schema;
 pub mod web;
 
 type Repo = db::Repo<PgConnection>;

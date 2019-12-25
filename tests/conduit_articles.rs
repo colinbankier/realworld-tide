@@ -6,7 +6,7 @@ use helpers::{create_articles, create_users};
 
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::users;
-use realworld_tide::models::NewArticle;
+use realworld_tide::db::models::NewArticle;
 
 #[test]
 fn list_articles() {

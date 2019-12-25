@@ -1,12 +1,11 @@
 use crate::db;
-use crate::models::{Article, NewArticle};
+use crate::db::models::{Article, NewArticle};
+use crate::db::schema::articles;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
 use serde::Deserialize;
 use std::str::FromStr;
-
-use crate::schema::articles;
 
 type Repo = db::Repo<PgConnection>;
 
@@ -34,8 +33,8 @@ pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
 }
 
 pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
-    use crate::schema::articles::dsl::*;
-    use crate::schema::users::dsl::{username, users};
+    use crate::db::schema::articles::dsl::*;
+    use crate::db::schema::users::dsl::{username, users};
 
     repo.run(move |conn| {
         let q = users
@@ -54,8 +53,8 @@ pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
 }
 
 pub fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
-    use crate::schema::articles::dsl::{articles, slug};
-    use crate::schema::users::dsl::users;
+    use crate::db::schema::articles::dsl::{articles, slug};
+    use crate::db::schema::users::dsl::users;
 
     let slug_value = slug_value.to_owned();
     repo.run(move |conn| {

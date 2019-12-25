@@ -4,7 +4,7 @@ use fake::fake;
 use helpers::generate;
 use helpers::test_db::get_repo;
 use realworld_tide::conduit::users;
-use realworld_tide::models::UpdateUser;
+use realworld_tide::db::models::UpdateUser;
 
 #[test]
 fn test_create_user() {
