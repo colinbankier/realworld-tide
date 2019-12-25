@@ -37,7 +37,8 @@ pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
                 token: Some(encode_token(user.id)),
                 ..user
             };
-            Ok(Response::new(200).body_json(&user).unwrap())
+            let response = UserResponse { user };
+            Ok(Response::new(200).body_json(&response).unwrap())
         }
         Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
         Err(e) => Err(diesel_error(&e)),
