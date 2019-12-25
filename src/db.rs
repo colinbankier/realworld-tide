@@ -1,7 +1,6 @@
 use diesel::r2d2::ConnectionManager;
 use diesel::Connection;
-use log::error;
-use r2d2::{CustomizeConnection, Pool, PooledConnection};
+use r2d2::{Pool, PooledConnection};
 
 /// A database "repository", for running database workloads.
 /// Manages a connection pool and running blocking tasks in a
@@ -35,12 +34,6 @@ where
         Repo { connection_pool }
     }
 
-    pub fn with_test_transactions(database_url: &str) -> Self {
-        let customizer = TestConnectionCustomizer {};
-        let builder = Pool::builder().connection_customizer(Box::new(customizer));
-        Self::from_pool_builder(database_url, builder)
-    }
-
     pub fn run<F, R>(&self, f: F) -> R
     where
         F: FnOnce(PooledConnection<ConnectionManager<T>>) -> R
@@ -50,21 +43,5 @@ where
         T: Send + 'static,
     {
         f(self.connection_pool.get().unwrap())
-    }
-}
-
-#[derive(Debug)]
-pub struct TestConnectionCustomizer;
-
-impl<C, E> CustomizeConnection<C, E> for TestConnectionCustomizer
-where
-    C: diesel::connection::Connection,
-    E: std::error::Error + Sync + Send,
-{
-    fn on_acquire(&self, conn: &mut C) -> Result<(), E> {
-        if let Err(e) = conn.begin_test_transaction() {
-            error!("Error beginning test transaction: {}", e);
-        }
-        Ok(())
     }
 }

@@ -2,7 +2,8 @@
 
 mod helpers;
 
-use helpers::test_server::{get_repo, new, response_json, TestServer};
+use helpers::test_db::get_repo;
+use helpers::test_server::{new, response_json, TestServer};
 use helpers::{create_articles, create_users};
 
 use futures_executor::ThreadPool;
@@ -16,8 +17,8 @@ fn should_list_articles() {
     runtime.spawn_ok(async move {
         let mut server = new(get_repo());
         let repo = get_repo();
-        let users = create_users(&repo, 5).await;
-        let _articles = create_articles(&repo, users).await;
+        let users = create_users(&repo, 5);
+        let _articles = create_articles(&repo, users);
         let articles_list = get_articles(&mut server, None).await;
 
         match &articles_list["articles"] {
@@ -33,8 +34,8 @@ fn should_get_articles_by_author() {
     runtime.spawn_ok(async move {
         let mut server = new(get_repo());
         let repo = get_repo();
-        let users = create_users(&repo, 5).await;
-        let articles = create_articles(&repo, users.clone()).await;
+        let users = create_users(&repo, 5);
+        let articles = create_articles(&repo, users.clone());
 
         let query = Some(format!("author={}", users[0].username));
         let articles_list = get_articles(&mut server, query).await;

@@ -5,7 +5,8 @@ use realworld_tide::models::NewUser;
 mod helpers;
 
 use helpers::generate;
-use helpers::test_server::{get_repo, new, response_json, TestServer};
+use helpers::test_db::get_repo;
+use helpers::test_server::{new, response_json, TestServer};
 
 use futures_executor::ThreadPool;
 use http::Request;

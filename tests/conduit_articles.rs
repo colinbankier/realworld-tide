@@ -1,56 +1,41 @@
 mod helpers;
 
-use helpers::test_server::get_repo;
+use helpers::generate::new_user;
+use helpers::test_db::get_repo;
+use helpers::{create_articles, create_users};
 
-use futures_executor::ThreadPool;
-use realworld_tide::auth::encode_token;
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::users;
-use realworld_tide::models::{NewArticle, NewUser};
-use uuid::Uuid;
+use realworld_tide::models::NewArticle;
 
-// use tokio_async_await_test::async_test;
+#[test]
+fn list_articles() {
+    let repo = get_repo();
 
-// #[async_test]
-// async fn test_list_articles() {
-//     let repo = Repo::new();
+    let users = create_users(&repo, 5);
+    let _articles = create_articles(&repo, users);
+    let results = articles::find(&repo, Default::default()).expect("Failed to get articles");
 
-//     let users =  create_users(&repo, 5).await ;
-//     let _articles =  create_articles(&repo, users);
-//     let results =
-//         find(repo.clone(), Default::default()).await.expect("Failed to get articles");
-
-//     assert_eq!(results.len(), 5);
-// }
+    assert_eq!(results.len(), 5);
+}
 
 #[test]
 fn insert_and_retrieve_article() {
-    let runtime = ThreadPool::new().unwrap();
-    runtime.spawn_ok(async move {
-        let repo = get_repo();
-        let slug = "my_slug".to_string();
+    let repo = get_repo();
+    let slug = "my_slug".to_string();
 
-        let user_id = Uuid::new_v4();
-        let token = encode_token(user_id);
-        let user = NewUser {
-            username: "my_user".into(),
-            email: "my_email@hotmail.com".into(),
-            password: "somepass".into(),
-            id: user_id,
-            token,
-        };
-        let user = users::insert(&repo, user).unwrap();
+    let user = new_user();
+    let user = users::insert(&repo, user).unwrap();
 
-        let article = NewArticle {
-            title: "My article".into(),
-            slug: slug.clone(),
-            description: "My article description".into(),
-            body: "ohoh".into(),
-            user_id: user.id,
-        };
-        let expected_article = articles::insert(&repo, article).unwrap();
+    let article = NewArticle {
+        title: "My article".into(),
+        slug: slug.clone(),
+        description: "My article description".into(),
+        body: "ohoh".into(),
+        user_id: user.id,
+    };
+    let expected_article = articles::insert(&repo, article).unwrap();
 
-        let retrieved_article = articles::find_one(&repo, &slug).unwrap();
-        assert_eq!(expected_article, retrieved_article);
-    })
+    let retrieved_article = articles::find_one(&repo, &slug).unwrap();
+    assert_eq!(expected_article, retrieved_article);
 }

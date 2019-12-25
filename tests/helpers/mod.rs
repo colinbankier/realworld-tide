@@ -1,23 +1,5 @@
+pub mod test_db;
 pub mod test_server;
-
-use log::error;
-use r2d2::CustomizeConnection;
-
-#[derive(Debug)]
-pub struct TestConnectionCustomizer;
-
-impl<C, E> CustomizeConnection<C, E> for TestConnectionCustomizer
-where
-    C: diesel::connection::Connection,
-    E: std::error::Error + Sync + Send,
-{
-    fn on_acquire(&self, conn: &mut C) -> Result<(), E> {
-        if let Err(e) = conn.begin_test_transaction() {
-            error!("Error beginning test transaction: {}", e);
-        }
-        Ok(())
-    }
-}
 
 use diesel::PgConnection;
 use realworld_tide::conduit::articles;
@@ -25,7 +7,7 @@ use realworld_tide::conduit::users;
 use realworld_tide::db::Repo;
 use realworld_tide::models::{Article, User};
 
-pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
+pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     let results = (0..num_users)
         .map(|_| users::insert(repo, generate::new_user()))
         .collect::<Vec<_>>();
@@ -35,7 +17,7 @@ pub async fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User
         .collect()
 }
 
-pub async fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Article> {
+pub fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Article> {
     let results = users
         .iter()
         .map(|user| articles::insert(repo, generate::new_article(user.id)))
