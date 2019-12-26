@@ -23,7 +23,6 @@ impl FromStr for ArticleQuery {
     }
 }
 
-#[allow(dead_code)]
 pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
         diesel::insert_into(articles::table)
