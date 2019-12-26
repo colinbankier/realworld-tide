@@ -5,7 +5,13 @@ use crate::Repo;
 use tide::{Request, Response};
 
 pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
-    let query = cx.query::<ArticleQuery>()?;
+    // This can be avoided once https://github.com/http-rs/tide/pull/384 gets merged
+    let query = cx.query::<ArticleQuery>().unwrap_or(ArticleQuery {
+        author: None,
+        favorited: None,
+        tag: None,
+    });
+
     let repo = cx.state();
     let result = articles::find(repo, query);
 

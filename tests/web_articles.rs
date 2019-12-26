@@ -102,9 +102,7 @@ async fn create_article(
 
 async fn get_articles(server: &mut TestServer, query: Option<String>) -> Value {
     let url = match query {
-        // Adding a useless query parameter to avoid an issue in Tide's parsing
-        // See https://github.com/http-rs/tide/pull/384
-        None => format!("/api/articles?random=random"),
+        None => format!("/api/articles"),
         Some(qs) => format!("/api/articles?{}", qs),
     };
     let res = server
