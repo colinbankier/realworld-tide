@@ -5,6 +5,7 @@ table! {
         slug -> Varchar,
         description -> Varchar,
         body -> Text,
+        tag_list -> Array<Text>,
         user_id -> Uuid,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,

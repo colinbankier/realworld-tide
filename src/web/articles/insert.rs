@@ -9,15 +9,18 @@ use serde::{Deserialize, Serialize};
 use tide::Response;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
     pub article: NewArticleRequest,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewArticleRequest {
     pub title: String,
     pub description: String,
     pub body: String,
+    pub tag_list: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -40,6 +43,7 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
         title: new_article.article.title,
         body: new_article.article.body,
         slug: "".to_string(),
+        tag_list: new_article.article.tag_list,
         user_id: user.id,
     };
     let result = articles::insert(repo, new_article);

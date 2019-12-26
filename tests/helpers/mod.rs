@@ -52,6 +52,7 @@ pub mod generate {
             slug: format!("{}{}", fake!(Lorem.word).to_string(), user_id),
             description: fake!(Lorem.paragraph(3, 10)),
             body: fake!(Lorem.paragraph(10, 5)),
+            tag_list: vec![fake!(Lorem.word).to_string()],
             user_id,
         }
     }

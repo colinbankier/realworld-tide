@@ -32,6 +32,7 @@ fn insert_and_retrieve_article() {
         slug: slug.clone(),
         description: "My article description".into(),
         body: "ohoh".into(),
+        tag_list: vec!["a tag!".to_string()],
         user_id: user.id,
     };
     let expected_article = articles::insert(&repo, article).unwrap();

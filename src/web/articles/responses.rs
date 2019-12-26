@@ -19,6 +19,7 @@ pub struct Article {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub author: Author,
+    pub tag_list: Vec<String>,
 }
 
 impl Article {
@@ -30,6 +31,7 @@ impl Article {
             body: a.body,
             created_at: a.created_at,
             updated_at: a.updated_at,
+            tag_list: a.tag_list,
             author: Author {
                 username: u.username,
                 bio: u.bio,

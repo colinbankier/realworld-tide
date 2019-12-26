@@ -43,6 +43,7 @@ pub struct Article {
     pub slug: String,
     pub description: String,
     pub body: String,
+    pub tag_list: Vec<String>,
     pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -55,5 +56,6 @@ pub struct NewArticle {
     pub slug: String,
     pub description: String,
     pub body: String,
+    pub tag_list: Vec<String>,
     pub user_id: Uuid,
 }

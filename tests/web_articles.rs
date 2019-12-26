@@ -86,6 +86,7 @@ async fn create_article(
             "title": article.title,
             "description": article.description,
             "body": article.body,
+            "tagList": vec!["a tag".to_string()],
         }
     });
     let auth_header = format!("token: {}", encode_token(user_id.to_owned()));
