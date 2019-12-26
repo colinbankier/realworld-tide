@@ -1,5 +1,5 @@
 use crate::db;
-use crate::db::models::{Article, NewArticle};
+use crate::db::models::{Article, NewArticle, User};
 use crate::db::schema::articles;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -31,14 +31,14 @@ pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     })
 }
 
-pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
+pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User)>, Error> {
     use crate::db::schema::articles::dsl::*;
     use crate::db::schema::users::dsl::{username, users};
 
     repo.run(move |conn| {
-        let q = users
-            .inner_join(articles)
-            .select(articles::all_columns())
+        let q = articles
+            .inner_join(users)
+            .select((articles::all_columns(), users::all_columns()))
             .into_boxed();
 
         let q = if let Some(a) = query.author {
@@ -51,7 +51,7 @@ pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
     })
 }
 
-pub fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
+pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User), Error> {
     use crate::db::schema::articles::dsl::{articles, slug};
     use crate::db::schema::users::dsl::users;
 
@@ -60,7 +60,7 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
         articles
             .filter(slug.eq(slug_value))
             .inner_join(users)
-            .select(articles::all_columns())
+            .select((articles::all_columns(), users::all_columns()))
             .first(&conn)
     })
 }

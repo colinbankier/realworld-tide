@@ -1,10 +1,11 @@
 use crate::conduit::{articles, users};
 use crate::db::models::NewArticle;
 use crate::middleware::ContextExt;
+use crate::web::articles::responses::Article;
 use crate::web::diesel_error;
 use crate::Repo;
 use http::status::StatusCode;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tide::Response;
 
 #[derive(Deserialize)]
@@ -17,6 +18,12 @@ pub struct NewArticleRequest {
     pub title: String,
     pub description: String,
     pub body: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewArticleResponse {
+    pub article: Article,
 }
 
 pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Response> {
@@ -37,7 +44,12 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
     };
     let result = articles::insert(repo, new_article);
     match result {
-        Ok(b) => Ok(Response::new(200).body_json(&b).unwrap()),
+        Ok(article) => {
+            let response = NewArticleResponse {
+                article: Article::new(article, user),
+            };
+            Ok(Response::new(200).body_json(&response).unwrap())
+        }
         Err(e) => Err(diesel_error(&e)),
     }
 }

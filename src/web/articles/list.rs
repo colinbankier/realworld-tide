@@ -16,8 +16,8 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     let result = articles::find(repo, query);
 
     match result {
-        Ok(articles) => {
-            let response = ArticlesResponse::new(articles);
+        Ok(result) => {
+            let response = ArticlesResponse::new(result);
             Ok(Response::new(200).body_json(&response).unwrap())
         }
         Err(e) => Err(diesel_error(&e)),

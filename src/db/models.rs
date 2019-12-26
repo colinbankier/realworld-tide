@@ -14,7 +14,7 @@ pub struct NewUser {
     pub password: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
     pub id: Uuid,
     pub username: String,

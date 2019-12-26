@@ -18,21 +18,41 @@ pub struct Article {
     pub body: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub author: Author,
+}
+
+impl Article {
+    pub fn new(a: models::Article, u: models::User) -> Self {
+        Self {
+            title: a.title,
+            slug: a.slug,
+            description: a.description,
+            body: a.body,
+            created_at: a.created_at,
+            updated_at: a.updated_at,
+            author: Author {
+                username: u.username,
+                bio: u.bio,
+                image: u.image,
+            },
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Author {
+    pub username: String,
+    pub bio: Option<String>,
+    pub image: Option<String>,
 }
 
 impl ArticlesResponse {
-    pub fn new(articles: Vec<models::Article>) -> Self {
-        let articles_count = articles.len() as u64;
-        let articles = articles
+    pub fn new(results: Vec<(models::Article, models::User)>) -> Self {
+        let articles_count = results.len() as u64;
+        let articles = results
             .into_iter()
-            .map(|a| Article {
-                title: a.title,
-                slug: a.slug,
-                description: a.description,
-                body: a.body,
-                created_at: a.created_at,
-                updated_at: a.updated_at,
-            })
+            .map(|(a, u)| Article::new(a, u))
             .collect();
         Self {
             articles,
