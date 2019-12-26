@@ -2,24 +2,24 @@
 
 mod helpers;
 
-use helpers::test_db::get_repo;
-use helpers::test_server::{new, response_json, TestServer};
+use helpers::generate;
+use helpers::test_server::{response_json, TestApp, TestServer};
 use helpers::{create_articles, create_users};
 
-use futures_executor::ThreadPool;
-use http::Request;
+use async_std::task;
+use http::{Request, Response};
 use http_service::Body;
-use serde_json::Value;
+use realworld_tide::conduit::users;
+use realworld_tide::db::models::NewArticle;
+use serde_json::{json, Value};
 
 #[test]
 fn should_list_articles() {
-    let runtime = ThreadPool::new().unwrap();
-    runtime.spawn_ok(async move {
-        let mut server = new(get_repo());
-        let repo = get_repo();
-        let users = create_users(&repo, 5);
-        let _articles = create_articles(&repo, users);
-        let articles_list = get_articles(&mut server, None).await;
+    let mut server = TestApp::new();
+    task::block_on(async move {
+        let users = create_users(&server.repository, 5);
+        let _articles = create_articles(&server.repository, users);
+        let articles_list = get_articles(&mut server.server, None).await;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => assert_eq!(list.len(), 5),
@@ -30,24 +30,67 @@ fn should_list_articles() {
 
 #[test]
 fn should_get_articles_by_author() {
-    let runtime = ThreadPool::new().unwrap();
-    runtime.spawn_ok(async move {
-        let mut server = new(get_repo());
-        let repo = get_repo();
-        let users = create_users(&repo, 5);
-        let articles = create_articles(&repo, users.clone());
+    let mut server = TestApp::new();
+    task::block_on(async move {
+        let users = create_users(&server.repository, 5);
+        let articles = create_articles(&server.repository, users.clone());
 
         let query = Some(format!("author={}", users[0].username));
-        let articles_list = get_articles(&mut server, query).await;
+        let articles_list = get_articles(&mut server.server, query).await;
 
         match &articles_list["articles"] {
             Value::Array(ref list) => {
-                assert_eq!(list[0]["title"], articles[0].title);
                 assert_eq!(list.len(), 1);
+                assert_eq!(list[0]["title"], articles[0].title);
             }
             _ => panic!(format!("Unexpected article response. {}", &articles_list)),
         }
     })
+}
+
+#[test]
+fn should_create_article() {
+    let mut server = TestApp::new();
+    task::block_on(async move {
+        let user = generate::new_user();
+        let user = users::insert(&server.repository, user).expect("Failed to create user");
+
+        let article = generate::new_article(user.id);
+        let response = create_article(&mut server.server, &article).await;
+        assert!(response.status().is_success());
+        assert!(false);
+
+        let query = Some(format!("author={}", user.username));
+        let articles_list = get_articles(&mut server.server, query).await;
+
+        match &articles_list["articles"] {
+            Value::Array(ref list) => {
+                assert_eq!(list.len(), 1);
+                assert_eq!(list[0]["title"], article.title);
+                assert_eq!(list[0]["description"], article.description);
+                assert_eq!(list[0]["body"], article.body);
+            }
+            _ => panic!(format!("Unexpected article response. {}", &articles_list)),
+        }
+    })
+}
+
+async fn create_article(server: &mut TestServer, article: &NewArticle) -> Response<Body> {
+    let body = json!({
+        "article": {
+            "title": article.title,
+            "description": article.description,
+            "body": article.body,
+        }
+    });
+    let res = server
+        .simulate(
+            Request::post("/api/articles")
+                .body(body.to_string().into_bytes().into())
+                .unwrap(),
+        )
+        .unwrap();
+    res
 }
 
 async fn get_articles(server: &mut TestServer, query: Option<String>) -> Value {

@@ -1,9 +1,6 @@
-use crate::db;
 use crate::web;
-use diesel::PgConnection;
+use crate::Repo;
 use tide::{IntoResponse, Response, Server};
-
-type Repo = db::Repo<PgConnection>;
 
 pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> Response {
     match r {

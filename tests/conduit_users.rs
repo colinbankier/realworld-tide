@@ -2,13 +2,13 @@ mod helpers;
 
 use fake::fake;
 use helpers::generate;
-use helpers::test_db::get_repo;
+use helpers::test_db::get_test_repo;
 use realworld_tide::conduit::users;
 use realworld_tide::db::models::UpdateUser;
 
 #[test]
 fn test_create_user() {
-    let repo = get_repo();
+    let repo = get_test_repo();
 
     let new_user = generate::new_user();
     let user = users::insert(&repo, new_user).expect("Create user failed.");
@@ -19,7 +19,7 @@ fn test_create_user() {
 
 #[test]
 fn test_authenticate_user() {
-    let repo = get_repo();
+    let repo = get_test_repo();
     // Create a new user
     let new_user = generate::new_user();
     let user = users::insert(&repo, new_user).expect("Create user failed.");
@@ -31,7 +31,7 @@ fn test_authenticate_user() {
 
 #[test]
 fn test_update_user() {
-    let repo = get_repo();
+    let repo = get_test_repo();
     // Create a new user
     let new_user = generate::new_user();
     let user = users::insert(&repo, new_user).expect("Create user failed.");

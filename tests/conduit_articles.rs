@@ -1,7 +1,7 @@
 mod helpers;
 
 use helpers::generate::new_user;
-use helpers::test_db::get_repo;
+use helpers::test_db::get_test_repo;
 use helpers::{create_articles, create_users};
 
 use realworld_tide::conduit::articles;
@@ -10,7 +10,7 @@ use realworld_tide::db::models::NewArticle;
 
 #[test]
 fn list_articles() {
-    let repo = get_repo();
+    let repo = get_test_repo();
 
     let users = create_users(&repo, 5);
     let _articles = create_articles(&repo, users);
@@ -21,7 +21,7 @@ fn list_articles() {
 
 #[test]
 fn insert_and_retrieve_article() {
-    let repo = get_repo();
+    let repo = get_test_repo();
     let slug = "my_slug".to_string();
 
     let user = new_user();
