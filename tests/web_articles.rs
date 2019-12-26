@@ -7,11 +7,13 @@ use helpers::test_server::{response_json, TestApp, TestServer};
 use helpers::{create_articles, create_users};
 
 use async_std::task;
-use http::{Request, Response};
+use http::{Request, Response, StatusCode};
 use http_service::Body;
+use realworld_tide::auth::encode_token;
 use realworld_tide::conduit::users;
 use realworld_tide::db::models::NewArticle;
 use serde_json::{json, Value};
+use uuid::Uuid;
 
 #[test]
 fn should_list_articles() {
@@ -56,9 +58,8 @@ fn should_create_article() {
         let user = users::insert(&server.repository, user).expect("Failed to create user");
 
         let article = generate::new_article(user.id);
-        let response = create_article(&mut server.server, &article).await;
-        assert!(response.status().is_success());
-        assert!(false);
+        let response = create_article(&mut server.server, &article, &user.id).await;
+        assert_eq!(response.status(), StatusCode::OK);
 
         let query = Some(format!("author={}", user.username));
         let articles_list = get_articles(&mut server.server, query).await;
@@ -75,7 +76,11 @@ fn should_create_article() {
     })
 }
 
-async fn create_article(server: &mut TestServer, article: &NewArticle) -> Response<Body> {
+async fn create_article(
+    server: &mut TestServer,
+    article: &NewArticle,
+    user_id: &Uuid,
+) -> Response<Body> {
     let body = json!({
         "article": {
             "title": article.title,
@@ -83,9 +88,11 @@ async fn create_article(server: &mut TestServer, article: &NewArticle) -> Respon
             "body": article.body,
         }
     });
+    let auth_header = format!("token: {}", encode_token(user_id.to_owned()));
     let res = server
         .simulate(
             Request::post("/api/articles")
+                .header("Authorization", auth_header)
                 .body(body.to_string().into_bytes().into())
                 .unwrap(),
         )
