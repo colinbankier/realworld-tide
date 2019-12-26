@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod test_db;
 pub mod test_server;
 
@@ -31,7 +33,6 @@ pub fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Artic
 /// Functions for generating test data
 pub mod generate {
     use fake::fake;
-    use realworld_tide::auth::encode_token;
     use realworld_tide::db::models::{NewArticle, NewUser};
     use uuid::Uuid;
 

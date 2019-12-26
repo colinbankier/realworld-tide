@@ -5,7 +5,6 @@ use realworld_tide::db::models::NewUser;
 mod helpers;
 
 use helpers::generate;
-use helpers::test_db::get_repo;
 use helpers::test_server::{response_json, TestApp, TestServer};
 
 use async_std::task;
