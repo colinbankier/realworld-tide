@@ -10,6 +10,12 @@ pub fn get_repo() -> Repo<PgConnection> {
     Repo::new(&settings.database.connection_string())
 }
 
+/// The returned repository executes all queries in a SQL transaction,
+/// which is never committed (hence the DB state never changes for other observers).
+///
+/// Its useful to speed up tests where all DB interactions are executed
+/// from the same instance of Repo<PgConnection>
+/// (e.g. no need to drop rows at the end of the test).
 pub fn get_test_repo() -> Repo<PgConnection> {
     let settings = Settings::new().expect("Failed to load configuration");
     let customizer = TestConnectionCustomizer {};
@@ -17,6 +23,7 @@ pub fn get_test_repo() -> Repo<PgConnection> {
     Repo::from_pool_builder(&settings.database.connection_string(), builder)
 }
 
+/// Delete all rows in all the tables in the database.
 pub fn clean_db(repo: &Repo<PgConnection>) {
     repo.run(move |conn| {
         conn.batch_execute("DELETE FROM users; DELETE FROM articles;")
