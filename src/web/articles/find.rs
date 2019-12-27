@@ -10,8 +10,8 @@ pub async fn get_article(cx: Request<Repo>) -> tide::Result<Response> {
     let repo = cx.state();
     let result = articles::find_one(repo, &slug);
     match result {
-        Ok((article, user)) => {
-            let response = ArticlesResponse::new(vec![(article, user)]);
+        Ok((article, user, n_favorites)) => {
+            let response = ArticlesResponse::new(vec![(article, user, n_favorites)]);
             Ok(Response::new(200).body_json(&response).unwrap())
         }
         Err(diesel::NotFound) => Err(Error::from(StatusCode::NOT_FOUND)),

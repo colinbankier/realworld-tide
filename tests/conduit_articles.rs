@@ -37,7 +37,7 @@ fn insert_and_retrieve_article() {
     };
     let expected_article = articles::insert(&repo, article).unwrap();
 
-    let (retrieved_article, retrieved_user) = articles::find_one(&repo, &slug).unwrap();
+    let (retrieved_article, retrieved_user, _) = articles::find_one(&repo, &slug).unwrap();
     assert_eq!(expected_article, retrieved_article);
     assert_eq!(user, retrieved_user);
 }

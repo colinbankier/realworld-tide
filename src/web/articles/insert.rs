@@ -50,7 +50,7 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
     match result {
         Ok(article) => {
             let response = NewArticleResponse {
-                article: Article::new(article, user),
+                article: Article::new(article, user, 0),
             };
             Ok(Response::new(200).body_json(&response).unwrap())
         }
