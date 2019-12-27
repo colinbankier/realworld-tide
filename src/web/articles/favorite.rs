@@ -1,7 +1,7 @@
 use crate::conduit::articles;
 use crate::conduit::favorites;
 use crate::middleware::ContextExt;
-use crate::web::articles::responses::ArticlesResponse;
+use crate::web::articles::responses::{Article, ArticleResponse};
 use crate::web::diesel_error;
 use crate::Repo;
 use http::status::StatusCode;
@@ -19,6 +19,8 @@ pub async fn favorite(cx: Request<Repo>) -> tide::Result<Response> {
     favorites::favorite(&repo, user_id, article.id).map_err(|e| diesel_error(&e))?;
     let n_favorites = favorites::n_favorites(&repo, article.id).map_err(|e| diesel_error(&e))?;
 
-    let response = ArticlesResponse::new(vec![(article, author, n_favorites)]);
+    let response = ArticleResponse {
+        article: Article::new(article, author, n_favorites),
+    };
     Ok(Response::new(200).body_json(&response).unwrap())
 }

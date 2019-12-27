@@ -11,6 +11,12 @@ pub struct ArticlesResponse {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ArticleResponse {
+    pub article: Article,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Article {
     pub title: String,
     pub slug: String,
