@@ -3,12 +3,12 @@
 mod helpers;
 
 use helpers::generate;
-use helpers::test_server::{response_json, TestApp, TestServer};
+use helpers::test_server::TestApp;
 
 use async_std::task;
-use http::Request;
-use http_service::Body;
-use serde_json::{json, Value};
+use realworld_tide::db::models::UpdateUser;
+use realworld_tide::web::users::responses::UserResponse;
+use realworld_tide::web::users::update::UpdateUserRequest;
 
 #[test]
 fn register_and_login() {
@@ -18,10 +18,10 @@ fn register_and_login() {
 
         server.register_user(&user).await.unwrap();
         let token = server.login_user(&user).await.unwrap().user.token;
-        let user_details = get_user_details(&mut server.server, &token).await;
+        let user_details = server.get_current_user(&token).await.unwrap();
 
-        assert_eq!(user_details["user"]["username"], user.username);
-        assert_eq!(user_details["user"]["email"], user.email);
+        assert_eq!(user_details.user.username, user.username);
+        assert_eq!(user_details.user.email, user.email);
     })
 }
 
@@ -37,45 +37,26 @@ fn update_and_retrieve_user_details() {
         assert_eq!(stored_user.user.bio, None);
         assert_eq!(stored_user.user.image, None);
 
-        let new_details = json!({
-            "user": {
-                "bio": "I like to code.",
-                "image": "https://www.rust-lang.org/static/images/rust-logo-blk.svg",
-            }
-        });
-        let updated_user = update_user_details(&mut server.server, &new_details, &token).await;
-        assert_eq!(updated_user["user"]["bio"], new_details["user"]["bio"]);
-        assert_eq!(updated_user["user"]["image"], new_details["user"]["image"]);
+        let new_details = UpdateUserRequest {
+            user: UpdateUser {
+                bio: Some("I like to code.".to_string()),
+                image: Some(
+                    "https://www.rust-lang.org/static/images/rust-logo-blk.svg".to_string(),
+                ),
+                email: None,
+                password: None,
+                username: None,
+            },
+        };
+        let updated_user: UserResponse = server
+            .update_user_details(&new_details, &token)
+            .await
+            .unwrap();
+        assert_eq!(updated_user.user.bio, new_details.user.bio);
+        assert_eq!(updated_user.user.image, new_details.user.image);
 
-        let user_details = get_user_details(&mut server.server, &token).await;
-        assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
-        assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
+        let current_user: UserResponse = server.get_current_user(&token).await.unwrap();
+        assert_eq!(current_user.user.bio, new_details.user.bio);
+        assert_eq!(current_user.user.image, new_details.user.image);
     })
-}
-
-async fn get_user_details(server: &mut TestServer, token: &String) -> Value {
-    let auth_header = format!("token: {}", token);
-    let res = server
-        .simulate(
-            Request::get("/api/user")
-                .header("Authorization", auth_header)
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .unwrap();
-    assert_eq!(res.status(), 200);
-    response_json(res).await
-}
-
-async fn update_user_details(server: &mut TestServer, details: &Value, token: &String) -> Value {
-    let res = server
-        .simulate(
-            Request::put("/api/user")
-                .header("Authorization", format!("token: {}", token))
-                .body(details.to_string().into_bytes().into())
-                .unwrap(),
-        )
-        .unwrap();
-    assert_eq!(res.status(), 200);
-    response_json(res).await
 }

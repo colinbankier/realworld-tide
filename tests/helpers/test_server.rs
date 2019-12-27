@@ -8,6 +8,7 @@ use async_std::io::prelude::ReadExt;
 use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
+use realworld_tide::web::users::update::UpdateUserRequest;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use tide::server::Service;
@@ -68,6 +69,37 @@ impl TestApp {
                         .into_bytes()
                         .into(),
                     )
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn get_current_user(&mut self, token: &String) -> Result<UserResponse, Response> {
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::get("/api/user")
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn update_user_details(
+        &mut self,
+        details: &UpdateUserRequest,
+        token: &String,
+    ) -> Result<UserResponse, Response> {
+        let response = self
+            .server
+            .simulate(
+                http::Request::put("/api/user")
+                    .header("Authorization", format!("token: {}", token))
+                    .body(serde_json::to_string(details).unwrap().into_bytes().into())
                     .unwrap(),
             )
             .unwrap();

@@ -27,7 +27,7 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Debug, AsChangeset, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, AsChangeset, Default, Clone)]
 #[table_name = "users"]
 pub struct UpdateUser {
     pub email: Option<String>,

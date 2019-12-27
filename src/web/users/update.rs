@@ -4,15 +4,15 @@ use crate::middleware::ContextExt;
 use crate::web::diesel_error;
 use crate::Repo;
 use log::info;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::web::users::responses::UserResponse;
 use http::status::StatusCode;
 use tide::{Request, Response};
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateUserRequest {
-    user: UpdateUser,
+    pub user: UpdateUser,
 }
 
 pub async fn update_user(mut cx: Request<Repo>) -> tide::Result<Response> {
