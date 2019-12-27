@@ -1,5 +1,5 @@
 use crate::conduit::favorites::n_favorites;
-use crate::db::models::{Article, NewArticle, User};
+use crate::db::models::{Article, NewArticle, UpdateArticle, User};
 use crate::db::schema::articles;
 use crate::Repo;
 use diesel::prelude::*;
@@ -25,6 +25,20 @@ pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
         diesel::insert_into(articles::table)
             .values(&article)
+            .get_result(&conn)
+    })
+}
+
+pub fn update(
+    repo: &Repo,
+    article_update: UpdateArticle,
+    slug_value: String,
+) -> Result<Article, Error> {
+    use crate::db::schema::articles::dsl::{articles, slug};
+
+    repo.run(move |conn| {
+        diesel::update(articles.filter(slug.eq(slug_value)))
+            .set(&article_update)
             .get_result(&conn)
     })
 }

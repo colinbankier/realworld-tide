@@ -2,11 +2,12 @@ mod helpers;
 
 use helpers::generate::new_user;
 use helpers::test_db::get_test_repo;
-use helpers::{create_articles, create_users};
+use helpers::{create_article, create_articles, create_user, create_users};
 
+use fake::fake;
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::users;
-use realworld_tide::db::models::NewArticle;
+use realworld_tide::db::models::{NewArticle, UpdateArticle};
 
 #[test]
 fn list_articles() {
@@ -40,4 +41,24 @@ fn insert_and_retrieve_article() {
     let (retrieved_article, retrieved_user, _) = articles::find_one(&repo, &slug).unwrap();
     assert_eq!(expected_article, retrieved_article);
     assert_eq!(user, retrieved_user);
+}
+
+#[test]
+fn update_article() {
+    let repo = get_test_repo();
+
+    let user = create_user(&repo);
+    let article = create_article(&repo, user.clone());
+
+    let update = UpdateArticle {
+        title: fake!(Lorem.sentence(4, 10)).to_string(),
+        description: fake!(Lorem.paragraph(3, 10)),
+        body: fake!(Lorem.paragraph(10, 5)),
+    };
+    articles::update(&repo, update.clone(), article.slug.clone()).unwrap();
+
+    let (updated_article, _, _) = articles::find_one(&repo, &article.slug).unwrap();
+    assert_eq!(update.title, updated_article.title);
+    assert_eq!(update.description, updated_article.description);
+    assert_eq!(update.body, updated_article.body);
 }

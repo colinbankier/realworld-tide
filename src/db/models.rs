@@ -2,7 +2,7 @@ use crate::db::schema::articles;
 use crate::db::schema::favorites;
 use crate::db::schema::users;
 use chrono::{DateTime, Utc};
-use diesel::{Insertable, Queryable};
+use diesel::{AsChangeset, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -59,6 +59,14 @@ pub struct NewArticle {
     pub body: String,
     pub tag_list: Vec<String>,
     pub user_id: Uuid,
+}
+
+#[derive(AsChangeset, Deserialize, Debug, Clone)]
+#[table_name = "articles"]
+pub struct UpdateArticle {
+    pub title: String,
+    pub description: String,
+    pub body: String,
 }
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
