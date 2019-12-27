@@ -4,7 +4,7 @@ mod helpers;
 
 use helpers::generate;
 use helpers::test_server::TestApp;
-use helpers::{create_articles, create_users};
+use helpers::{create_article, create_articles, create_users};
 
 use async_std::task;
 use realworld_tide::auth::encode_token;
@@ -20,6 +20,36 @@ fn should_list_articles() {
         create_articles(&server.repository, users);
         let articles = server.get_articles(None).await.unwrap().articles;
         assert_eq!(articles.len(), 5);
+    })
+}
+
+#[test]
+fn favorite_count_is_updated_correctly() {
+    task::block_on(async move {
+        let mut server = TestApp::new();
+
+        let n_users = 5;
+        let users = create_users(&server.repository, n_users);
+
+        let author = users[0].clone();
+        let slug = create_article(&server.repository, author).slug;
+
+        let article = server.get_article(&slug).await.unwrap().article;
+        assert_eq!(slug, article.slug);
+        assert_eq!(article.favorites_count, 0);
+
+        for (i, user) in users.iter().enumerate() {
+            let token = encode_token(user.id);
+            server.favorite_article(&slug, &token).await.unwrap();
+
+            let n_fav = server
+                .get_article(&slug)
+                .await
+                .unwrap()
+                .article
+                .favorites_count;
+            assert_eq!(n_fav, (i + 1) as u64);
+        }
     })
 }
 
