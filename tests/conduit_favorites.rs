@@ -30,10 +30,11 @@ fn you_can_favorite_an_article_twice_but_it_only_counts_for_one() {
     assert!(result.is_ok());
 
     assert_eq!(1, favorites::n_favorites(&repo, article.id).unwrap());
+    assert!(favorites::is_favorite(&repo, user.id, vec![article.id]).unwrap()[&article.id])
 }
 
 #[test]
-fn n_favorites_works() {
+fn favorites_works() {
     let repo = get_test_repo();
 
     let author = create_user(&repo);
@@ -42,7 +43,9 @@ fn n_favorites_works() {
     let n_fans = 10;
     let fans = create_users(&repo, n_fans);
     for fan in &fans {
+        assert!(!favorites::is_favorite(&repo, fan.id, vec![article.id]).unwrap()[&article.id]);
         favorites::favorite(&repo, fan.id, article.id).expect("Failed to fav article");
+        assert!(favorites::is_favorite(&repo, fan.id, vec![article.id]).unwrap()[&article.id]);
     }
 
     assert_eq!(
