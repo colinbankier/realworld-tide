@@ -10,24 +10,23 @@ use realworld_tide::db::models::{Article, User};
 use realworld_tide::db::Repo;
 
 pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
-    let results = (0..num_users)
-        .map(|_| users::insert(repo, generate::new_user()))
-        .collect::<Vec<_>>();
-    results
-        .into_iter()
-        .map(|r| r.expect("Failed to create user"))
-        .collect()
+    (0..num_users).map(|_| create_user(repo)).collect()
+}
+
+pub fn create_user(repo: &Repo<PgConnection>) -> User {
+    users::insert(repo, generate::new_user()).expect("Failed to create user")
 }
 
 pub fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Article> {
-    let results = users
+    users
         .iter()
         .map(|user| articles::insert(repo, generate::new_article(user.id)))
-        .collect::<Vec<_>>();
-    results
-        .into_iter()
-        .map(|r| r.expect("Failed to create article"))
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .expect("Failed to create articles")
+}
+
+pub fn create_article(repo: &Repo<PgConnection>, user: User) -> Article {
+    articles::insert(repo, generate::new_article(user.id)).expect("Failed to create articles")
 }
 
 /// Functions for generating test data
