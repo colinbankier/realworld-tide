@@ -184,6 +184,25 @@ impl TestApp {
             .unwrap();
         response_json_if_success(response).await
     }
+
+    pub async fn unfavorite_article(
+        &mut self,
+        slug: &str,
+        token: &str,
+    ) -> Result<ArticleResponse, Response> {
+        let url = format!("/api/articles/{}/favorite", slug);
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::delete(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
 }
 
 impl std::ops::Drop for TestApp {

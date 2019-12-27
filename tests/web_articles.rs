@@ -50,6 +50,21 @@ fn favorite_count_is_updated_correctly() {
             assert_eq!(a.favorites_count, (i + 1) as u64);
             assert!(a.favorited);
         }
+
+        for user in &users {
+            let token = encode_token(user.id);
+            server.unfavorite_article(&slug, &token).await.unwrap();
+
+            let a = server
+                .get_article(&slug, Some(&token))
+                .await
+                .unwrap()
+                .article;
+            assert!(!a.favorited);
+        }
+
+        let article = server.get_article(&slug, None).await.unwrap().article;
+        assert_eq!(article.favorites_count, 0);
     })
 }
 
