@@ -62,3 +62,17 @@ fn update_article() {
     assert_eq!(update.description, updated_article.description);
     assert_eq!(update.body, updated_article.body);
 }
+
+#[test]
+fn you_cannot_update_an_article_that_does_not_exist() {
+    let repo = get_test_repo();
+    let slug = "A random slug";
+
+    let update = UpdateArticle {
+        title: fake!(Lorem.sentence(4, 10)).to_string(),
+        description: fake!(Lorem.paragraph(3, 10)),
+        body: fake!(Lorem.paragraph(10, 5)),
+    };
+    let result = articles::update(&repo, update.clone(), slug.to_string());
+    assert!(result.is_err());
+}

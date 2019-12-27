@@ -127,6 +127,27 @@ impl TestApp {
         response_json_if_success(response).await
     }
 
+    pub async fn update_article(
+        &mut self,
+        article: &realworld_tide::web::articles::update::Request,
+        slug: &str,
+        token: &str,
+    ) -> Result<ArticleResponse, Response> {
+        let url = format!("/api/articles/{}", slug);
+        let body = serde_json::to_string(article).unwrap();
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::put(url)
+                    .header("Authorization", auth_header)
+                    .body(body.into_bytes().into())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
     pub async fn get_articles(
         &mut self,
         query: Option<ArticleQuery>,

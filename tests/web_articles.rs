@@ -4,13 +4,15 @@ mod helpers;
 
 use helpers::generate;
 use helpers::test_server::TestApp;
-use helpers::{create_article, create_articles, create_users};
+use helpers::{create_article, create_articles, create_user, create_users};
 
 use async_std::task;
+use fake::fake;
 use realworld_tide::auth::encode_token;
 use realworld_tide::conduit::articles::ArticleQuery;
 use realworld_tide::conduit::users;
 use realworld_tide::web::articles::insert::NewArticleRequest;
+use realworld_tide::web::articles::update::UpdateArticleRequest;
 
 #[test]
 fn should_list_articles() {
@@ -127,5 +129,33 @@ fn should_create_article() {
         assert_eq!(retrieved_article.description, article.description);
         assert_eq!(retrieved_article.body, article.body);
         assert_ne!(retrieved_article.slug, "");
+    })
+}
+
+#[test]
+fn should_update_article() {
+    task::block_on(async move {
+        let mut server = TestApp::new();
+        let user = create_user(&server.repository);
+        let token = encode_token(user.id);
+        let article = create_article(&server.repository, user.clone());
+
+        let update = realworld_tide::web::articles::update::Request {
+            article: UpdateArticleRequest {
+                title: fake!(Lorem.sentence(4, 10)).to_string(),
+                description: fake!(Lorem.paragraph(3, 10)),
+                body: fake!(Lorem.paragraph(10, 5)),
+            },
+        };
+        let updated_article = server
+            .update_article(&update, &article.slug, &token)
+            .await
+            .unwrap();
+        assert_eq!(update.article.title, updated_article.article.title);
+        assert_eq!(
+            update.article.description,
+            updated_article.article.description
+        );
+        assert_eq!(update.article.body, updated_article.article.body);
     })
 }
