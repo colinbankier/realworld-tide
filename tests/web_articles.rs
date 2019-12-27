@@ -70,6 +70,7 @@ fn should_create_article() {
                 assert_eq!(list[0]["title"], article.title);
                 assert_eq!(list[0]["description"], article.description);
                 assert_eq!(list[0]["body"], article.body);
+                assert_ne!(list[0]["slug"], "");
             }
             _ => panic!(format!("Unexpected article response. {}", &articles_list)),
         }
