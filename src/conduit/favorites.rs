@@ -22,9 +22,14 @@ pub fn favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<(), Error
     })
 }
 
+/// Given a user and an article, return if the user has marked it as favorite.
+pub fn is_favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<bool, Error> {
+    Ok(are_favorite(repo, user_id, vec![article_id])?[&article_id])
+}
+
 /// Given a user and a list of articles, return for each of them if the user has
 /// marked them as favorite.
-pub fn is_favorite(
+pub fn are_favorite(
     repo: &Repo,
     user_id_value: Uuid,
     article_ids: Vec<i32>,
