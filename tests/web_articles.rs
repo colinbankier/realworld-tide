@@ -142,20 +142,17 @@ fn should_update_article() {
 
         let update = realworld_tide::web::articles::update::Request {
             article: UpdateArticleRequest {
-                title: fake!(Lorem.sentence(4, 10)).to_string(),
-                description: fake!(Lorem.paragraph(3, 10)),
-                body: fake!(Lorem.paragraph(10, 5)),
+                title: Some(fake!(Lorem.sentence(4, 10)).to_string()),
+                description: None,
+                body: Some(fake!(Lorem.paragraph(10, 5))),
             },
         };
         let updated_article = server
             .update_article(&update, &article.slug, &token)
             .await
             .unwrap();
-        assert_eq!(update.article.title, updated_article.article.title);
-        assert_eq!(
-            update.article.description,
-            updated_article.article.description
-        );
-        assert_eq!(update.article.body, updated_article.article.body);
+        assert_eq!(update.article.title, updated_article.article.title.into());
+        assert_eq!(article.description, updated_article.article.description);
+        assert_eq!(update.article.body, updated_article.article.body.into());
     })
 }

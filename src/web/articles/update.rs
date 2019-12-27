@@ -18,9 +18,9 @@ pub struct Request {
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateArticleRequest {
-    pub title: String,
-    pub description: String,
-    pub body: String,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub body: Option<String>,
 }
 
 pub async fn update_article(mut cx: tide::Request<Repo>) -> tide::Result<Response> {

@@ -51,16 +51,16 @@ fn update_article() {
     let article = create_article(&repo, user.clone());
 
     let update = UpdateArticle {
-        title: fake!(Lorem.sentence(4, 10)).to_string(),
-        description: fake!(Lorem.paragraph(3, 10)),
-        body: fake!(Lorem.paragraph(10, 5)),
+        title: Some(fake!(Lorem.sentence(4, 10)).to_string()),
+        description: Some(fake!(Lorem.paragraph(3, 10))),
+        body: Some(fake!(Lorem.paragraph(10, 5))),
     };
     articles::update(&repo, update.clone(), article.slug.clone()).unwrap();
 
     let (updated_article, _, _) = articles::find_one(&repo, &article.slug).unwrap();
-    assert_eq!(update.title, updated_article.title);
-    assert_eq!(update.description, updated_article.description);
-    assert_eq!(update.body, updated_article.body);
+    assert_eq!(update.title, updated_article.title.into());
+    assert_eq!(update.description, updated_article.description.into());
+    assert_eq!(update.body, updated_article.body.into());
 }
 
 #[test]
@@ -69,9 +69,9 @@ fn you_cannot_update_an_article_that_does_not_exist() {
     let slug = "A random slug";
 
     let update = UpdateArticle {
-        title: fake!(Lorem.sentence(4, 10)).to_string(),
-        description: fake!(Lorem.paragraph(3, 10)),
-        body: fake!(Lorem.paragraph(10, 5)),
+        title: Some(fake!(Lorem.sentence(4, 10)).to_string()),
+        description: Some(fake!(Lorem.paragraph(3, 10))),
+        body: Some(fake!(Lorem.paragraph(10, 5))),
     };
     let result = articles::update(&repo, update.clone(), slug.to_string());
     assert!(result.is_err());

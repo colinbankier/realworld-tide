@@ -64,9 +64,9 @@ pub struct NewArticle {
 #[derive(AsChangeset, Deserialize, Debug, Clone)]
 #[table_name = "articles"]
 pub struct UpdateArticle {
-    pub title: String,
-    pub description: String,
-    pub body: String,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub body: Option<String>,
 }
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
