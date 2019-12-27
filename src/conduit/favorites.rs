@@ -22,6 +22,22 @@ pub fn favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<(), Error
     })
 }
 
+pub fn unfavorite(repo: &Repo, user_id_value: Uuid, article_id_value: i32) -> Result<(), Error> {
+    use crate::db::schema::favorites::dsl::{article_id, favorites, user_id};
+
+    let to_be_deleted = favorites.filter(
+        article_id
+            .eq(article_id_value)
+            .and(user_id.eq(user_id_value)),
+    );
+    repo.run(move |conn| {
+        diesel::delete(to_be_deleted)
+            .execute(&conn)
+            // Discard the number of deleted rows
+            .map(|_| ())
+    })
+}
+
 /// Given a user and an article, return if the user has marked it as favorite.
 pub fn is_favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<bool, Error> {
     Ok(are_favorite(repo, user_id, vec![article_id])?[&article_id])
