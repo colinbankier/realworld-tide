@@ -49,12 +49,29 @@ impl TestApp {
                     .unwrap(),
             )
             .unwrap();
-        if response.status().is_success() {
-            let registered_user: UserResponse = response_json(response).await;
-            Ok(registered_user)
-        } else {
-            Err(response)
-        }
+        response_json_if_success(response).await
+    }
+
+    pub async fn login_user(&mut self, user: &NewUser) -> Result<UserResponse, Response> {
+        let response = self
+            .server
+            .simulate(
+                http::Request::post("/api/users/login")
+                    .body(
+                        json!({
+                            "user": {
+                                "email": user.email,
+                                "password": user.password,
+                            }
+                        })
+                        .to_string()
+                        .into_bytes()
+                        .into(),
+                    )
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
     }
 }
 
@@ -62,6 +79,16 @@ impl std::ops::Drop for TestApp {
     fn drop(&mut self) {
         println!("Cleaning");
         clean_db(&self.repository)
+    }
+}
+
+pub async fn response_json_if_success<T: DeserializeOwned>(
+    response: Response,
+) -> Result<T, Response> {
+    if response.status().is_success() {
+        Ok(response_json(response).await)
+    } else {
+        Err(response)
     }
 }
 

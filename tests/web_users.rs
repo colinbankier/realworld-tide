@@ -1,7 +1,5 @@
 // These tests are "integration" tests that exercise a workflow via the http service.
 
-use realworld_tide::db::models::NewUser;
-
 mod helpers;
 
 use helpers::generate;
@@ -18,11 +16,8 @@ fn register_and_login() {
         let mut server = TestApp::new();
         let user = generate::new_user();
 
-        server
-            .register_user(&user)
-            .await
-            .expect("Failed to register user");
-        let token = login_user(&mut server.server, &user).await;
+        server.register_user(&user).await.unwrap();
+        let token = server.login_user(&user).await.unwrap().user.token;
         let user_details = get_user_details(&mut server.server, &token).await;
 
         assert_eq!(user_details["user"]["username"], user.username);
@@ -36,11 +31,8 @@ fn update_and_retrieve_user_details() {
         let mut server = TestApp::new();
         let user = generate::new_user();
 
-        let stored_user = server
-            .register_user(&user)
-            .await
-            .expect("Failed to register user");
-        let token = login_user(&mut server.server, &user).await;
+        let stored_user = server.register_user(&user).await.unwrap();
+        let token = server.login_user(&user).await.unwrap().user.token;
 
         assert_eq!(stored_user.user.bio, None);
         assert_eq!(stored_user.user.image, None);
@@ -59,35 +51,6 @@ fn update_and_retrieve_user_details() {
         assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
         assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
     })
-}
-
-async fn login_user(server: &mut TestServer, user: &NewUser) -> String {
-    let res = server
-        .simulate(
-            Request::post("/api/users/login")
-                .body(
-                    json!({
-                        "user": {
-                            "email": user.email,
-                            "password": user.password,
-                        }
-                    })
-                    .to_string()
-                    .into_bytes()
-                    .into(),
-                )
-                .unwrap(),
-        )
-        .unwrap();
-    assert_eq!(res.status(), 200);
-
-    let response_json: Value = response_json(res).await;
-
-    assert!(response_json["user"]["token"].is_string());
-    response_json["user"]["token"]
-        .as_str()
-        .expect("Token not found")
-        .to_string()
 }
 
 async fn get_user_details(server: &mut TestServer, token: &String) -> Value {
