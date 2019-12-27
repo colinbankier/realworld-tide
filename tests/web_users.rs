@@ -18,7 +18,10 @@ fn register_and_login() {
         let mut server = TestApp::new();
         let user = generate::new_user();
 
-        register_user(&mut server.server, &user).await;
+        server
+            .register_user(&user)
+            .await
+            .expect("Failed to register user");
         let token = login_user(&mut server.server, &user).await;
         let user_details = get_user_details(&mut server.server, &token).await;
 
@@ -33,11 +36,14 @@ fn update_and_retrieve_user_details() {
         let mut server = TestApp::new();
         let user = generate::new_user();
 
-        let stored_user = register_user(&mut server.server, &user).await;
+        let stored_user = server
+            .register_user(&user)
+            .await
+            .expect("Failed to register user");
         let token = login_user(&mut server.server, &user).await;
 
-        assert_eq!(stored_user["user"]["bio"], Value::Null);
-        assert_eq!(stored_user["user"]["image"], Value::Null);
+        assert_eq!(stored_user.user.bio, None);
+        assert_eq!(stored_user.user.image, None);
 
         let new_details = json!({
             "user": {
@@ -53,28 +59,6 @@ fn update_and_retrieve_user_details() {
         assert_eq!(user_details["user"]["bio"], new_details["user"]["bio"]);
         assert_eq!(user_details["user"]["image"], new_details["user"]["image"]);
     })
-}
-
-async fn register_user(server: &mut TestServer, user: &NewUser) -> Value {
-    let res = server
-        .simulate(
-            Request::post("/api/users")
-                .body(
-                    json!({
-                        "user": {
-                            "email": user.email,
-                            "password": user.password,
-                            "username": user.username,
-                        }
-                    })
-                    .to_string()
-                    .into_bytes()
-                    .into(),
-                )
-                .unwrap(),
-        )
-        .unwrap();
-    response_json(res).await
 }
 
 async fn login_user(server: &mut TestServer, user: &NewUser) -> String {
@@ -97,7 +81,7 @@ async fn login_user(server: &mut TestServer, user: &NewUser) -> String {
         .unwrap();
     assert_eq!(res.status(), 200);
 
-    let response_json = response_json(res).await;
+    let response_json: Value = response_json(res).await;
 
     assert!(response_json["user"]["token"].is_string());
     response_json["user"]["token"]
