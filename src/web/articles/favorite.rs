@@ -20,7 +20,7 @@ pub async fn favorite(cx: Request<Repo>) -> tide::Result<Response> {
     let n_favorites = favorites::n_favorites(&repo, article.id).map_err(|e| diesel_error(&e))?;
 
     let response = ArticleResponse {
-        article: Article::new(article, author, n_favorites),
+        article: Article::new(article, author, n_favorites, true),
     };
     Ok(Response::new(200).body_json(&response).unwrap())
 }

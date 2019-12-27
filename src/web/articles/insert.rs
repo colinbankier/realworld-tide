@@ -44,7 +44,7 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
 
     let article = articles::insert(repo, new_article).map_err(|e| diesel_error(&e))?;
     let response = ArticleResponse {
-        article: Article::new(article, user, 0),
+        article: Article::new(article, user, 0, false),
     };
     Ok(Response::new(200).body_json(&response).unwrap())
 }

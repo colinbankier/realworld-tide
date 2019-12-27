@@ -22,6 +22,7 @@ pub struct Article {
     pub slug: String,
     pub description: String,
     pub body: String,
+    pub favorited: bool,
     pub favorites_count: u64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -30,12 +31,13 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn new(a: models::Article, u: models::User, n_fav: i64) -> Self {
+    pub fn new(a: models::Article, u: models::User, n_fav: i64, favorited: bool) -> Self {
         Self {
             title: a.title,
             slug: a.slug,
             description: a.description,
             body: a.body,
+            favorited,
             favorites_count: n_fav as u64,
             created_at: a.created_at,
             updated_at: a.updated_at,
@@ -58,11 +60,11 @@ pub struct Author {
 }
 
 impl ArticlesResponse {
-    pub fn new(results: Vec<(models::Article, models::User, i64)>) -> Self {
+    pub fn new(results: Vec<(models::Article, models::User, i64, bool)>) -> Self {
         let articles_count = results.len() as u64;
         let articles = results
             .into_iter()
-            .map(|(a, u, n_fav)| Article::new(a, u, n_fav))
+            .map(|(a, u, n_fav, favorited)| Article::new(a, u, n_fav, favorited))
             .collect();
         Self {
             articles,

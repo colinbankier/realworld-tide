@@ -32,9 +32,9 @@ fn favorite_count_is_updated_correctly() {
         let users = create_users(&server.repository, n_users);
 
         let author = users[0].clone();
-        let slug = create_article(&server.repository, author).slug;
+        let slug = create_article(&server.repository, author.clone()).slug;
 
-        let article = server.get_article(&slug).await.unwrap().article;
+        let article = server.get_article(&slug, None).await.unwrap().article;
         assert_eq!(slug, article.slug);
         assert_eq!(article.favorites_count, 0);
 
@@ -42,13 +42,13 @@ fn favorite_count_is_updated_correctly() {
             let token = encode_token(user.id);
             server.favorite_article(&slug, &token).await.unwrap();
 
-            let n_fav = server
-                .get_article(&slug)
+            let a = server
+                .get_article(&slug, Some(&token))
                 .await
                 .unwrap()
-                .article
-                .favorites_count;
-            assert_eq!(n_fav, (i + 1) as u64);
+                .article;
+            assert_eq!(a.favorites_count, (i + 1) as u64);
+            assert!(a.favorited);
         }
     })
 }

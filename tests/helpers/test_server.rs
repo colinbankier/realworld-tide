@@ -144,16 +144,25 @@ impl TestApp {
         response_json_if_success(response).await
     }
 
-    pub async fn get_article(&mut self, slug: &str) -> Result<ArticleResponse, Response> {
+    pub async fn get_article(
+        &mut self,
+        slug: &str,
+        token: Option<&str>,
+    ) -> Result<ArticleResponse, Response> {
         let url = format!("/api/articles/{}", slug);
-        let response = self
-            .server
-            .simulate(
+        let request = match token {
+            Some(token) => {
+                let auth_header = format!("token: {}", token);
                 http::Request::get(url)
+                    .header("Authorization", auth_header)
                     .body(http_service::Body::empty())
-                    .unwrap(),
-            )
-            .unwrap();
+                    .unwrap()
+            }
+            None => http::Request::get(url)
+                .body(http_service::Body::empty())
+                .unwrap(),
+        };
+        let response = self.server.simulate(request).unwrap();
         response_json_if_success(response).await
     }
 
