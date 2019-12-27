@@ -1,7 +1,7 @@
 mod helpers;
 
 use helpers::test_db::get_test_repo;
-use helpers::{create_article, create_user};
+use helpers::{create_article, create_user, create_users};
 
 use realworld_tide::conduit::favorites;
 
@@ -30,4 +30,23 @@ fn you_can_favorite_an_article_twice_but_it_only_counts_for_one() {
     assert!(result.is_ok());
 
     assert_eq!(1, favorites::n_favorites(&repo, article.id).unwrap());
+}
+
+#[test]
+fn n_favorites_works() {
+    let repo = get_test_repo();
+
+    let author = create_user(&repo);
+    let article = create_article(&repo, author);
+
+    let n_fans = 10;
+    let fans = create_users(&repo, n_fans);
+    for fan in &fans {
+        favorites::favorite(&repo, fan.id, article.id).expect("Failed to fav article");
+    }
+
+    assert_eq!(
+        n_fans as i64,
+        favorites::n_favorites(&repo, article.id).unwrap()
+    );
 }
