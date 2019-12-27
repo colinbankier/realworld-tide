@@ -61,12 +61,12 @@ fn should_get_articles_by_author() {
         create_articles(&server.repository, users.clone());
 
         let author = users[0].clone();
-        let query = Some(ArticleQuery {
+        let query = ArticleQuery {
             author: Some(author.username),
             tag: None,
             favorited: None,
-        });
-        let articles = server.get_articles(query).await.unwrap().articles;
+        };
+        let articles = server.get_articles(Some(query)).await.unwrap().articles;
 
         assert_eq!(articles.len(), 1);
         let retrieved_article = articles[0].clone();
