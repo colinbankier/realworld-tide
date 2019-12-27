@@ -6,16 +6,16 @@ use crate::web::diesel_error;
 use crate::Repo;
 use http::status::StatusCode;
 use itertools::Itertools;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tide::Response;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Request {
     pub article: NewArticleRequest,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NewArticleRequest {
     pub title: String,

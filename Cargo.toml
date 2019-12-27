@@ -39,3 +39,4 @@ serde_json = "1.0"
 http-service = "0.4"
 http-service-mock = "0.4"
 futures-executor = { version = "0.3.1", features = ["thread-pool"] }
+serde_qs = "0.5.2"

@@ -1,12 +1,12 @@
 use crate::auth::encode_token;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct UserResponse {
     pub user: User,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct User {
     pub username: String,
     pub email: String,

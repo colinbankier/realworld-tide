@@ -4,10 +4,10 @@ use crate::db::schema::articles;
 use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ArticleQuery {
     pub author: Option<String>,
     pub favorited: Option<String>,

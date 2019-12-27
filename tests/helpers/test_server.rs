@@ -8,6 +8,8 @@ use async_std::io::prelude::ReadExt;
 use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
+use realworld_tide::conduit::articles::ArticleQuery;
+use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
 use realworld_tide::web::users::update::UpdateUserRequest;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -100,6 +102,42 @@ impl TestApp {
                 http::Request::put("/api/user")
                     .header("Authorization", format!("token: {}", token))
                     .body(serde_json::to_string(details).unwrap().into_bytes().into())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn create_article(
+        &mut self,
+        article: &realworld_tide::web::articles::insert::Request,
+        token: &str,
+    ) -> Result<ArticleResponse, Response> {
+        let body = serde_json::to_string(article).unwrap();
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::post("/api/articles")
+                    .header("Authorization", auth_header)
+                    .body(body.into_bytes().into())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn get_articles(
+        &mut self,
+        query: Option<ArticleQuery>,
+    ) -> Result<ArticlesResponse, Response> {
+        let query_string = serde_qs::to_string(&query).unwrap();
+        let url = format!("/api/articles?{}", query_string);
+        let response = self
+            .server
+            .simulate(
+                http::Request::get(url)
+                    .body(http_service::Body::empty())
                     .unwrap(),
             )
             .unwrap();
