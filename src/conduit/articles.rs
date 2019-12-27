@@ -1,13 +1,10 @@
-use crate::db;
 use crate::db::models::{Article, NewArticle, User};
 use crate::db::schema::articles;
-use diesel::pg::PgConnection;
+use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
 use serde::Deserialize;
 use std::str::FromStr;
-
-type Repo = db::Repo<PgConnection>;
 
 #[derive(Default, Deserialize, Debug)]
 pub struct ArticleQuery {

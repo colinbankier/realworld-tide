@@ -1,4 +1,5 @@
 use crate::db::schema::articles;
+use crate::db::schema::favorites;
 use crate::db::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
@@ -58,4 +59,11 @@ pub struct NewArticle {
     pub body: String,
     pub tag_list: Vec<String>,
     pub user_id: Uuid,
+}
+
+#[derive(Insertable, Deserialize, Debug, Clone)]
+#[table_name = "favorites"]
+pub struct NewFavorite {
+    pub user_id: Uuid,
+    pub article_id: i32,
 }

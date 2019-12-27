@@ -1,13 +1,10 @@
-use crate::db;
 use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
+use crate::Repo;
 
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error;
 use uuid::Uuid;
-
-type Repo = db::Repo<PgConnection>;
 
 pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     repo.run(move |conn| {
