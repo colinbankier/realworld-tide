@@ -4,6 +4,7 @@ use helpers::test_db::get_test_repo;
 use helpers::{create_article, create_user, create_users};
 
 use realworld_tide::conduit::favorites;
+use realworld_tide::db::models::{Article, User};
 
 #[test]
 fn you_cannot_favorite_an_article_which_does_not_exist() {
@@ -42,10 +43,15 @@ fn favorites_works() {
 
     let n_fans = 10;
     let fans = create_users(&repo, n_fans);
+
+    let is_favorite = |fan: &User, article: &Article| {
+        favorites::is_favorite(&repo, fan.id, vec![article.id]).unwrap()[&article.id]
+    };
+
     for fan in &fans {
-        assert!(!favorites::is_favorite(&repo, fan.id, vec![article.id]).unwrap()[&article.id]);
+        assert!(!is_favorite(fan, &article));
         favorites::favorite(&repo, fan.id, article.id).expect("Failed to fav article");
-        assert!(favorites::is_favorite(&repo, fan.id, vec![article.id]).unwrap()[&article.id]);
+        assert!(is_favorite(fan, &article));
     }
 
     assert_eq!(
