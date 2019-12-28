@@ -10,6 +10,7 @@ use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
 use realworld_tide::conduit::articles::ArticleQuery;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
+use realworld_tide::web::profiles::responses::ProfileResponse;
 use realworld_tide::web::users::update::UpdateUserRequest;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -231,6 +232,66 @@ impl TestApp {
         token: &str,
     ) -> Result<ArticleResponse, Response> {
         let url = format!("/api/articles/{}/favorite", slug);
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::delete(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn get_profile(
+        &mut self,
+        username: &str,
+        token: Option<&str>,
+    ) -> Result<ProfileResponse, Response> {
+        let url = format!("/api/profiles/{}", username);
+        let request = match token {
+            Some(token) => {
+                let auth_header = format!("token: {}", token);
+                http::Request::get(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap()
+            }
+            None => http::Request::get(url)
+                .body(http_service::Body::empty())
+                .unwrap(),
+        };
+        let response = self.server.simulate(request).unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn follow_profile(
+        &mut self,
+        username: &str,
+        token: &str,
+    ) -> Result<ProfileResponse, Response> {
+        let url = format!("/api/profiles/{}/follow", username);
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::post(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn unfollow_profile(
+        &mut self,
+        username: &str,
+        token: &str,
+    ) -> Result<ProfileResponse, Response> {
+        let url = format!("/api/profiles/{}/follow", username);
         let auth_header = format!("token: {}", token);
         let response = self
             .server

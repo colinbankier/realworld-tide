@@ -20,6 +20,13 @@ table! {
 }
 
 table! {
+    followers (followed_id, follower_id) {
+        followed_id -> Uuid,
+        follower_id -> Uuid,
+    }
+}
+
+table! {
     users (id) {
         id -> Uuid,
         username -> Varchar,
@@ -36,4 +43,4 @@ joinable!(articles -> users (user_id));
 joinable!(favorites -> articles (article_id));
 joinable!(favorites -> users (user_id));
 
-allow_tables_to_appear_in_same_query!(articles, favorites, users,);
+allow_tables_to_appear_in_same_query!(articles, favorites, followers, users,);

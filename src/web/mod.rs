@@ -1,5 +1,6 @@
 pub mod app;
 pub mod articles;
+pub mod profiles;
 pub mod users;
 
 use http::status::StatusCode;

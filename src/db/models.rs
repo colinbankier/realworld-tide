@@ -1,5 +1,6 @@
 use crate::db::schema::articles;
 use crate::db::schema::favorites;
+use crate::db::schema::followers;
 use crate::db::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::{AsChangeset, Insertable, Queryable};
@@ -74,4 +75,11 @@ pub struct UpdateArticle {
 pub struct NewFavorite {
     pub user_id: Uuid,
     pub article_id: i32,
+}
+
+#[derive(Insertable, Deserialize, Debug, Clone)]
+#[table_name = "followers"]
+pub struct NewFollower {
+    pub followed_id: Uuid,
+    pub follower_id: Uuid,
 }

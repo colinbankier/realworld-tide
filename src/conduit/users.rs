@@ -20,6 +20,11 @@ pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, Error> {
     repo.run(move |conn| users.find(user_id).first(&conn))
 }
 
+pub fn find_by_username(repo: &Repo, username_value: String) -> Result<User, Error> {
+    use crate::db::schema::users::dsl::*;
+    repo.run(move |conn| users.filter(username.eq(username_value)).first(&conn))
+}
+
 pub fn find_by_email_password(
     repo: &Repo,
     user_email: String,
