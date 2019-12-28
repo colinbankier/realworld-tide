@@ -28,7 +28,7 @@ impl Default for FeedQuery {
 
 pub async fn feed(cx: Request<Repo>) -> tide::Result<Response> {
     // This can be avoided once https://github.com/http-rs/tide/pull/384 gets merged
-    let query = cx.query::<FeedQuery>().unwrap_or(FeedQuery::default());
+    let query = cx.query::<FeedQuery>().unwrap_or_default();
 
     let user_id = cx
         .get_claims()
