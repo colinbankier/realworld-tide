@@ -39,6 +39,8 @@ pub fn add_routes(mut app: Server<Repo>) -> Server<Repo> {
         api.at("/profiles/:username/follow")
             .post(|req| async move { result_to_response(web::profiles::follow(req).await) })
             .delete(|req| async move { result_to_response(web::profiles::unfollow(req).await) });
+        api.at("/tags")
+            .get(|req| async move { result_to_response(web::articles::tags(req).await) });
         api.at("/articles")
             .get(|req| async move { result_to_response(web::articles::list_articles(req).await) })
             .post(
