@@ -10,6 +10,7 @@ use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
 use realworld_tide::conduit::articles::ArticleQuery;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
+use realworld_tide::web::comments::responses::{CommentResponse, CommentsResponse};
 use realworld_tide::web::profiles::responses::ProfileResponse;
 use realworld_tide::web::users::update::UpdateUserRequest;
 use serde::de::DeserializeOwned;
@@ -303,6 +304,73 @@ impl TestApp {
             )
             .unwrap();
         response_json_if_success(response).await
+    }
+
+    pub async fn get_comments(
+        &mut self,
+        slug: &str,
+        token: Option<&str>,
+    ) -> Result<CommentsResponse, Response> {
+        let url = format!("/api/articles/{}/comments", slug);
+        let request = match token {
+            Some(token) => {
+                let auth_header = format!("token: {}", token);
+                http::Request::get(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap()
+            }
+            None => http::Request::get(url)
+                .body(http_service::Body::empty())
+                .unwrap(),
+        };
+        let response = self.server.simulate(request).unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn create_comment(
+        &mut self,
+        slug: &str,
+        comment: &realworld_tide::web::comments::create::Request,
+        token: &str,
+    ) -> Result<CommentResponse, Response> {
+        let url = format!("/api/articles/{}/comments", slug);
+        let auth_header = format!("token: {}", token);
+        let body = serde_json::to_string(comment).unwrap();
+        let response = self
+            .server
+            .simulate(
+                http::Request::post(url)
+                    .header("Authorization", auth_header)
+                    .body(body.into_bytes().into())
+                    .unwrap(),
+            )
+            .unwrap();
+        response_json_if_success(response).await
+    }
+
+    pub async fn delete_comment(
+        &mut self,
+        slug: &str,
+        comment_id: &u64,
+        token: &str,
+    ) -> Result<(), Response> {
+        let url = format!("/api/articles/{}/comments/{}", slug, comment_id);
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::delete(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err(response)
+        }
     }
 }
 

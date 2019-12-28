@@ -13,6 +13,17 @@ table! {
 }
 
 table! {
+    comments (id) {
+        id -> Int8,
+        author_id -> Uuid,
+        article_id -> Int4,
+        body -> Text,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+table! {
     favorites (user_id, article_id) {
         user_id -> Uuid,
         article_id -> Int4,
@@ -40,7 +51,9 @@ table! {
 }
 
 joinable!(articles -> users (user_id));
+joinable!(comments -> articles (article_id));
+joinable!(comments -> users (author_id));
 joinable!(favorites -> articles (article_id));
 joinable!(favorites -> users (user_id));
 
-allow_tables_to_appear_in_same_query!(articles, favorites, followers, users,);
+allow_tables_to_appear_in_same_query!(articles, comments, favorites, followers, users,);

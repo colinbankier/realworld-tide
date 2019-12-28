@@ -1,4 +1,5 @@
 use crate::db::schema::articles;
+use crate::db::schema::comments;
 use crate::db::schema::favorites;
 use crate::db::schema::followers;
 use crate::db::schema::users;
@@ -82,4 +83,22 @@ pub struct NewFavorite {
 pub struct NewFollower {
     pub followed_id: Uuid,
     pub follower_id: Uuid,
+}
+
+#[derive(Insertable, Deserialize, Debug, Clone)]
+#[table_name = "comments"]
+pub struct NewComment {
+    pub author_id: Uuid,
+    pub article_id: i32,
+    pub body: String,
+}
+
+#[derive(Queryable, Deserialize, Debug, Clone)]
+pub struct Comment {
+    pub id: i64,
+    pub author_id: Uuid,
+    pub article_id: i32,
+    pub body: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
