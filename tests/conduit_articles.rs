@@ -44,6 +44,24 @@ fn insert_and_retrieve_article() {
 }
 
 #[test]
+fn delete_article() {
+    let repo = get_test_repo();
+    let n_articles = 5;
+    let users = create_users(&repo, n_articles);
+    let articles = create_articles(&repo, users);
+
+    let slug = articles[0].slug.clone();
+    articles::delete(&repo, slug.clone()).expect("Failed to delete article");
+
+    let results = articles::find(&repo, Default::default()).expect("Failed to get articles");
+    assert_eq!(results.len() as i32, n_articles - 1);
+
+    // The deleted article can't be fetched anymore
+    let result = articles::find_one(&repo, &slug);
+    assert!(result.is_err());
+}
+
+#[test]
 fn update_article() {
     let repo = get_test_repo();
 

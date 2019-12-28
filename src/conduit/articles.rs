@@ -43,6 +43,18 @@ pub fn update(
     })
 }
 
+pub fn delete(repo: &Repo, slug_value: String) -> Result<(), Error> {
+    use crate::db::schema::articles::dsl::{articles, slug};
+
+    let to_be_deleted = articles.filter(slug.eq(slug_value));
+    repo.run(move |conn| {
+        diesel::delete(to_be_deleted)
+            .execute(&conn)
+            // Discard the number of deleted rows
+            .map(|_| ())
+    })
+}
+
 pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, i64)>, Error> {
     use crate::db::schema::articles::dsl::*;
     use crate::db::schema::users::dsl::{username, users};
