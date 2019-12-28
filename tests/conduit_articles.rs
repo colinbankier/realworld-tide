@@ -8,6 +8,7 @@ use fake::fake;
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::users;
 use realworld_tide::db::models::{NewArticle, UpdateArticle};
+use std::collections::HashSet;
 
 #[test]
 fn list_articles() {
@@ -93,4 +94,51 @@ fn you_cannot_update_an_article_that_does_not_exist() {
     };
     let result = articles::update(&repo, update.clone(), slug.to_string());
     assert!(result.is_err());
+}
+
+#[test]
+fn no_tags_if_there_are_no_articles() {
+    let repo = get_test_repo();
+
+    let result = articles::tags(&repo).unwrap();
+    assert_eq!(0, result.len());
+}
+
+#[test]
+fn no_tags_if_there_are_only_articles_without_tags() {
+    let repo = get_test_repo();
+
+    let user = create_user(&repo);
+
+    let article = NewArticle {
+        title: "My article".into(),
+        slug: "my-slug".into(),
+        description: "My article description".into(),
+        body: "ohoh".into(),
+        tag_list: vec![],
+        user_id: user.id,
+    };
+    articles::insert(&repo, article).unwrap();
+
+    let result = articles::tags(&repo).unwrap();
+    assert!(result.is_empty());
+}
+
+#[test]
+fn tags_works() {
+    let repo = get_test_repo();
+
+    let n_articles = 10;
+    let users = create_users(&repo, n_articles);
+    let articles = create_articles(&repo, users);
+
+    let expected_tags: HashSet<String> = articles
+        .into_iter()
+        .map(|a| a.tag_list.into_iter())
+        .flatten()
+        .collect();
+
+    let tags = articles::tags(&repo).unwrap();
+
+    assert_eq!(expected_tags, tags);
 }

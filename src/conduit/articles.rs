@@ -4,7 +4,10 @@ use crate::db::schema::articles;
 use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
+use diesel::sql_query;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::iter::FromIterator;
 use std::str::FromStr;
 
 #[derive(Default, Serialize, Deserialize, Debug)]
@@ -93,4 +96,25 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User, i64), E
     })?;
     let n_fav = n_favorites(&repo, article.id)?;
     Ok((article, user, n_fav))
+}
+
+/// Fetching ALL tags seems like a really bad idea in a proper application.
+pub fn tags(repo: &Repo) -> Result<HashSet<String>, Error> {
+    use diesel::pg::types::sql_types::Array;
+    use diesel::sql_types::Text;
+
+    #[derive(QueryableByName)]
+    pub struct Tags {
+        #[sql_type = "Array<Text>"]
+        pub tags: Vec<String>,
+    }
+
+    let query = sql_query("SELECT array_agg(DISTINCT tag) as tags FROM (SELECT 1, unnest(tag_list) FROM articles) AS t(id, tag) GROUP BY id");
+    let mut result: Vec<Tags> = repo.run(move |conn| query.load(&conn))?;
+    // This is not actually an array: it's either a single element of empty
+    let tags = match result.pop() {
+        Some(tags) => HashSet::from_iter(tags.tags.into_iter()),
+        None => HashSet::new(),
+    };
+    Ok(tags)
 }
