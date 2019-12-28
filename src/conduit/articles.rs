@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::str::FromStr;
+use uuid::Uuid;
 
 #[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ArticleQuery {
@@ -96,6 +97,33 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User, i64), E
     })?;
     let n_fav = n_favorites(&repo, article.id)?;
     Ok((article, user, n_fav))
+}
+
+pub fn feed(
+    repo: &Repo,
+    user_id_value: Uuid,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<(Article, User, i64)>, Error> {
+    use crate::db::schema::articles::dsl::{articles, created_at, user_id};
+    use crate::db::schema::followers::dsl::{followed_id, follower_id, followers};
+    use crate::db::schema::users::dsl::{id, users};
+
+    let results: Vec<(Article, User)> = repo.run(move |conn| {
+        followers
+            .filter(follower_id.eq(user_id_value))
+            .inner_join(users.on(id.eq(followed_id)))
+            .inner_join(articles.on(user_id.eq(id)))
+            .select((articles::all_columns(), users::all_columns()))
+            .order(created_at.desc())
+            .limit(limit)
+            .offset(offset)
+            .get_results(&conn)
+    })?;
+    results
+        .into_iter()
+        .map(|(article, user)| n_favorites(&repo, article.id).map(|n_fav| (article, user, n_fav)))
+        .collect::<Result<Vec<_>, _>>()
 }
 
 /// Fetching ALL tags seems like a really bad idea in a proper application.

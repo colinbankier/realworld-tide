@@ -46,6 +46,8 @@ pub fn add_routes(mut app: Server<Repo>) -> Server<Repo> {
             .post(
                 |req| async move { result_to_response(web::articles::insert_article(req).await) },
             );
+        api.at("/articles/feed")
+            .get(|req| async move { result_to_response(web::articles::feed(req).await) });
         api.at("/articles/:slug")
             .get(|req| async move { result_to_response(web::articles::get_article(req).await) })
             .put(|req| async move { result_to_response(web::articles::update_article(req).await) })
