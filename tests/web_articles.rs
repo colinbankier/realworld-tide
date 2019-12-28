@@ -156,3 +156,23 @@ fn should_update_article() {
         assert_eq!(update.article.body, updated_article.article.body.into());
     })
 }
+
+#[test]
+fn should_delete_article() {
+    task::block_on(async move {
+        let mut server = TestApp::new();
+        let user = create_user(&server.repository);
+        let token = encode_token(user.id);
+        let article = create_article(&server.repository, user.clone());
+
+        server
+            .get_article(&article.slug, Some(&token))
+            .await
+            .unwrap();
+
+        server.delete_article(&article.slug, &token).await.unwrap();
+
+        let result = server.get_article(&article.slug, Some(&token)).await;
+        assert!(result.is_err());
+    })
+}

@@ -41,7 +41,10 @@ pub fn add_routes(mut app: Server<Repo>) -> Server<Repo> {
             );
         api.at("/articles/:slug")
             .get(|req| async move { result_to_response(web::articles::get_article(req).await) })
-            .put(|req| async move { result_to_response(web::articles::update_article(req).await) });
+            .put(|req| async move { result_to_response(web::articles::update_article(req).await) })
+            .delete(
+                |req| async move { result_to_response(web::articles::delete_article(req).await) },
+            );
         api.at("/articles/:slug/favorite")
             .post(|req| async move { result_to_response(web::articles::favorite(req).await) })
             .delete(|req| async move { result_to_response(web::articles::unfavorite(req).await) });

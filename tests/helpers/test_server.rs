@@ -187,6 +187,25 @@ impl TestApp {
         response_json_if_success(response).await
     }
 
+    pub async fn delete_article(&mut self, slug: &str, token: &str) -> Result<(), Response> {
+        let url = format!("/api/articles/{}", slug);
+        let auth_header = format!("token: {}", token);
+        let response = self
+            .server
+            .simulate(
+                http::Request::delete(url)
+                    .header("Authorization", auth_header)
+                    .body(http_service::Body::empty())
+                    .unwrap(),
+            )
+            .unwrap();
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err(response)
+        }
+    }
+
     pub async fn favorite_article(
         &mut self,
         slug: &str,
