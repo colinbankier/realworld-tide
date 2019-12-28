@@ -9,7 +9,7 @@ use async_std::task;
 use realworld_tide::auth::encode_token;
 
 #[test]
-fn register_and_login() {
+fn profiles_api() {
     task::block_on(async move {
         let mut server = TestApp::new();
         let users = create_users(&server.repository, 2);
