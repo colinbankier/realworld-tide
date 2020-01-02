@@ -1,18 +1,17 @@
-use crate::db;
-use crate::models::{Article, NewArticle};
-use diesel::pg::PgConnection;
+use crate::conduit::favorites::n_favorites;
+use crate::db::models::{Article, NewArticle, UpdateArticle, User};
+use crate::db::schema::articles;
+use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
-use serde::Deserialize;
+use diesel::sql_query;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::iter::FromIterator;
 use std::str::FromStr;
+use uuid::Uuid;
 
-use crate::schema::articles;
-
-type Repo = db::Repo<PgConnection>;
-
-// joinable!(articles -> users (user_id));
-
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct ArticleQuery {
     pub author: Option<String>,
     pub favorited: Option<String>,
@@ -26,24 +25,48 @@ impl FromStr for ArticleQuery {
     }
 }
 
-#[allow(dead_code)]
-pub async fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
+pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
         diesel::insert_into(articles::table)
             .values(&article)
             .get_result(&conn)
     })
-    .await
 }
 
-pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Error> {
-    use crate::schema::articles::dsl::*;
-    use crate::schema::users::dsl::{username, users};
+pub fn update(
+    repo: &Repo,
+    article_update: UpdateArticle,
+    slug_value: String,
+) -> Result<Article, Error> {
+    use crate::db::schema::articles::dsl::{articles, slug};
 
     repo.run(move |conn| {
-        let q = users
-            .inner_join(articles)
-            .select(articles::all_columns())
+        diesel::update(articles.filter(slug.eq(slug_value)))
+            .set(&article_update)
+            .get_result(&conn)
+    })
+}
+
+pub fn delete(repo: &Repo, slug_value: String) -> Result<(), Error> {
+    use crate::db::schema::articles::dsl::{articles, slug};
+
+    let to_be_deleted = articles.filter(slug.eq(slug_value));
+    repo.run(move |conn| {
+        diesel::delete(to_be_deleted)
+            .execute(&conn)
+            // Discard the number of deleted rows
+            .map(|_| ())
+    })
+}
+
+pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, i64)>, Error> {
+    use crate::db::schema::articles::dsl::*;
+    use crate::db::schema::users::dsl::{username, users};
+
+    let results: Vec<(Article, User)> = repo.run(move |conn| {
+        let q = articles
+            .inner_join(users)
+            .select((articles::all_columns(), users::all_columns()))
             .into_boxed();
 
         let q = if let Some(a) = query.author {
@@ -53,72 +76,73 @@ pub async fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<Article>, Erro
         };
 
         q.load(&conn)
-    })
-    .await
+    })?;
+    results
+        .into_iter()
+        .map(|(article, user)| n_favorites(&repo, article.id).map(|n_fav| (article, user, n_fav)))
+        .collect::<Result<Vec<_>, _>>()
 }
 
-pub async fn find_one(repo: &Repo, slug_value: &str) -> Result<Article, Error> {
-    use crate::schema::articles::dsl::{articles, slug};
-    use crate::schema::users::dsl::users;
+pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User, i64), Error> {
+    use crate::db::schema::articles::dsl::{articles, slug};
+    use crate::db::schema::users::dsl::users;
 
     let slug_value = slug_value.to_owned();
-    repo.run(move |conn| {
+    let (article, user): (Article, User) = repo.run(move |conn| {
         articles
             .filter(slug.eq(slug_value))
             .inner_join(users)
-            .select(articles::all_columns())
+            .select((articles::all_columns(), users::all_columns()))
             .first(&conn)
-    })
-    .await
+    })?;
+    let n_fav = n_favorites(&repo, article.id)?;
+    Ok((article, user, n_fav))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::conduit::users;
-    use crate::models::{NewArticle, NewUser};
-    use crate::test_helpers::test_server::get_repo;
+pub fn feed(
+    repo: &Repo,
+    user_id_value: Uuid,
+    limit: i64,
+    offset: i64,
+) -> Result<Vec<(Article, User, i64)>, Error> {
+    use crate::db::schema::articles::dsl::{articles, created_at, user_id};
+    use crate::db::schema::followers::dsl::{followed_id, follower_id, followers};
+    use crate::db::schema::users::dsl::{id, users};
 
-    use futures_executor::ThreadPool;
-    // use tokio_async_await_test::async_test;
+    let results: Vec<(Article, User)> = repo.run(move |conn| {
+        followers
+            .filter(follower_id.eq(user_id_value))
+            .inner_join(users.on(id.eq(followed_id)))
+            .inner_join(articles.on(user_id.eq(id)))
+            .select((articles::all_columns(), users::all_columns()))
+            .order(created_at.desc())
+            .limit(limit)
+            .offset(offset)
+            .get_results(&conn)
+    })?;
+    results
+        .into_iter()
+        .map(|(article, user)| n_favorites(&repo, article.id).map(|n_fav| (article, user, n_fav)))
+        .collect::<Result<Vec<_>, _>>()
+}
 
-    // #[async_test]
-    // async fn test_list_articles() {
-    //     let repo = Repo::new();
+/// Fetching ALL tags seems like a really bad idea in a proper application.
+pub fn tags(repo: &Repo) -> Result<HashSet<String>, Error> {
+    use diesel::pg::types::sql_types::Array;
+    use diesel::sql_types::Text;
 
-    //     let users =  create_users(&repo, 5).await ;
-    //     let _articles =  create_articles(&repo, users);
-    //     let results =
-    //         find(repo.clone(), Default::default()).await.expect("Failed to get articles");
-
-    //     assert_eq!(results.len(), 5);
-    // }
-
-    #[test]
-    fn insert_and_retrieve_article() {
-        let runtime = ThreadPool::new().unwrap();
-        runtime.spawn_ok(async move {
-            let repo = get_repo();
-            let slug = "my_slug".to_string();
-
-            let user = NewUser {
-                username: "my_user".into(),
-                email: "my_email@hotmail.com".into(),
-                password: "somepass".into(),
-            };
-            let user = users::insert(&repo, user).await.unwrap();
-
-            let article = NewArticle {
-                title: "My article".into(),
-                slug: slug.clone(),
-                description: "My article description".into(),
-                body: "ohoh".into(),
-                user_id: user.id,
-            };
-            let expected_article = insert(&repo, article).await.unwrap();
-
-            let retrieved_article = find_one(&repo, &slug).await.unwrap();
-            assert_eq!(expected_article, retrieved_article);
-        })
+    #[derive(QueryableByName)]
+    pub struct Tags {
+        #[sql_type = "Array<Text>"]
+        pub tags: Vec<String>,
     }
+
+    let query = sql_query("SELECT array_agg(DISTINCT tag) as tags FROM (SELECT 1, unnest(tag_list) FROM articles) AS t(id, tag) GROUP BY id");
+    let mut result: Vec<Tags> = repo.run(move |conn| query.load(&conn))?;
+    // This is not actually an array: it's either a single element of empty
+    let tags = match result.pop() {
+        Some(tags) => HashSet::from_iter(tags.tags.into_iter()),
+        None => HashSet::new(),
+    };
+    Ok(tags)
 }

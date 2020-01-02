@@ -92,7 +92,7 @@ If you want to run the "realworld" Postman tests, just execute
 ```bash
 git clone https://github.com/gothinkster/realworld
 cd realworld/api
-APIURL=http://localhost:8181/api ./run-api-tests.sh
+APIURL=http://localhost:5000/api ./run-api-tests.sh
 ```
 
 ## Configuration

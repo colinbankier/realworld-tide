@@ -17,7 +17,9 @@ export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${
 diesel database reset
 
 # Run tests
-APP_ENVIRONMENT=test cargo test
+# We use a single thread to avoid interaction between integration tests that are using
+# shared resources (i.e. the database)
+APP_ENVIRONMENT=test cargo test -- --test-threads 1
 
 # Reset DB
 diesel database reset
