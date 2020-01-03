@@ -1,13 +1,11 @@
 use super::errors::{FindError, InternalError};
 use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
+use crate::Repo;
 use bcrypt::BcryptResult;
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel::result::Error as DieselError;
 use uuid::Uuid;
-
-type Repo = crate::db::Repo<PgConnection>;
 
 pub fn insert(repo: &Repo, mut user: NewUser) -> Result<User, InternalError> {
     user.password = hash(user.password)?;
