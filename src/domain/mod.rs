@@ -92,7 +92,7 @@ pub enum PublishArticleError {
 impl From<GetUserError> for PublishArticleError {
     fn from(e: GetUserError) -> Self {
         match e {
-            GetUserError::NotFound { user_id, source: _ } => PublishArticleError::AuthorNotFound {
+            GetUserError::NotFound { user_id, .. } => PublishArticleError::AuthorNotFound {
                 author_id: user_id,
                 source: e,
             },
