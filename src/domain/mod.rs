@@ -72,6 +72,17 @@ pub trait ArticleRepository {
     fn publish(&self, draft: ArticleDraft) -> Article;
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum GetUserError {
+    #[error("There is no user with id {user_id:?}.")]
+    NotFound {
+        user_id: Uuid,
+        source: diesel::result::Error,
+    },
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}
+
 pub trait UsersRepository {
-    fn get_by_id(&self, user_id: Uuid) -> User;
+    fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
 }

@@ -19,7 +19,7 @@ pub struct NewUserRequest {
     pub password: String,
 }
 
-pub async fn register(mut cx: Request<Repo>) -> tide::Result<Response> {
+pub async fn register(mut cx: Request<Repo>) -> Result<Response, Response> {
     let registration: RegistrationRequest = cx
         .body_json()
         .await

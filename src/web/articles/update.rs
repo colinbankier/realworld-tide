@@ -5,9 +5,8 @@ use crate::middleware::ContextExt;
 use crate::web::articles::responses::{Article, ArticleResponse};
 use crate::web::diesel_error;
 use crate::Repo;
-use http::status::StatusCode;
 use serde::{Deserialize, Serialize};
-use tide::{Response, ResultExt};
+use tide::Response;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -23,13 +22,13 @@ pub struct UpdateArticleRequest {
     pub body: Option<String>,
 }
 
-pub async fn update_article(mut cx: tide::Request<Repo>) -> tide::Result<Response> {
+pub async fn update_article(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
     let request: Request = cx
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
-    let slug: String = cx.param("slug").client_err()?;
-    let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let slug: String = cx.param("slug").map_err(|_| Response::new(401))?;
+    let auth = cx.get_claims().map_err(|_| Response::new(401))?;
     let repo = cx.state();
 
     let article_update = UpdateArticle {
@@ -39,7 +38,7 @@ pub async fn update_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
     };
     let updated_article =
         articles::update(repo, article_update, slug).map_err(|e| diesel_error(&e))?;
-    let author = users::find(&repo, updated_article.user_id).map_err(|e| diesel_error(&e))?;
+    let author = users::find(&repo, updated_article.user_id)?;
     let n_fav = n_favorites(&repo, updated_article.id).map_err(|e| diesel_error(&e))?;
     let is_fav =
         is_favorite(&repo, auth.user_id(), updated_article.id).map_err(|e| diesel_error(&e))?;

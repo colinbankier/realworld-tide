@@ -4,15 +4,14 @@ use crate::middleware::ContextExt;
 use crate::web::articles::responses::{Article, ArticleResponse};
 use crate::web::diesel_error;
 use crate::Repo;
-use http::status::StatusCode;
-use tide::{Error, Request, Response, ResultExt};
+use tide::{Request, Response, ResultExt};
 use uuid::Uuid;
 
 pub async fn get_article(cx: Request<Repo>) -> tide::Result<Response> {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
     let (article, author, n_favorites) = articles::find_one(repo, &slug).map_err(|e| match e {
-        diesel::NotFound => Error::from(StatusCode::NOT_FOUND),
+        diesel::NotFound => Response::new(404),
         e => diesel_error(&e),
     })?;
 

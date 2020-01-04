@@ -1,6 +1,6 @@
 use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
-use crate::Repo;
+use crate::{domain, Repo};
 
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -15,9 +15,13 @@ pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     })
 }
 
-pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, Error> {
+pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, domain::GetUserError> {
     use crate::db::schema::users::dsl::*;
-    repo.run(move |conn| users.find(user_id).first(&conn))
+    let result = repo.run(move |conn| users.find(user_id).first(&conn));
+    result.map_err(|e| match e {
+        e @ Error::NotFound => domain::GetUserError::NotFound { user_id, source: e },
+        e => domain::GetUserError::DatabaseError(e),
+    })
 }
 
 pub fn find_by_username(repo: &Repo, username_value: String) -> Result<User, Error> {

@@ -4,9 +4,8 @@ use crate::middleware::ContextExt;
 use crate::web::comments::responses::{Comment, CommentResponse};
 use crate::web::diesel_error;
 use crate::Repo;
-use http::status::StatusCode;
 use serde::{Deserialize, Serialize};
-use tide::{Response, ResultExt};
+use tide::Response;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -20,19 +19,16 @@ pub struct NewCommentRequest {
     pub body: String,
 }
 
-pub async fn create(mut cx: tide::Request<Repo>) -> tide::Result<Response> {
+pub async fn create(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
     let new_comment: Request = cx
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
-    let author_id = cx
-        .get_claims()
-        .map_err(|_| StatusCode::UNAUTHORIZED)?
-        .user_id();
-    let slug: String = cx.param("slug").client_err()?;
+    let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
+    let slug: String = cx.param("slug").map_err(|_| Response::new(401))?;
     let repo = cx.state();
 
-    let author = users::find(repo, author_id).map_err(|e| diesel_error(&e))?;
+    let author = users::find(repo, author_id)?;
     let (article, _, _) = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
 
     let new_comment = NewComment {

@@ -4,13 +4,25 @@ pub mod comments;
 pub mod profiles;
 pub mod users;
 
-use http::status::StatusCode;
 use log::error;
-use tide::Error;
+use tide::Response;
 
+use crate::domain::GetUserError;
 pub use app::get_app;
 
-pub fn diesel_error(e: &diesel::result::Error) -> Error {
+pub fn diesel_error(e: &diesel::result::Error) -> Response {
     error!("{}", e);
-    Error::from(StatusCode::INTERNAL_SERVER_ERROR)
+    Response::new(500)
+}
+
+impl From<GetUserError> for Response {
+    fn from(e: GetUserError) -> Response {
+        match &e {
+            GetUserError::NotFound {
+                user_id: _,
+                source: _,
+            } => Response::new(404).body_string(e.to_string()),
+            _ => Response::new(500),
+        }
+    }
 }
