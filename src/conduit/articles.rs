@@ -1,9 +1,10 @@
 use crate::conduit::favorites::n_favorites;
 use crate::db::models::{Article, NewArticle, UpdateArticle, User};
 use crate::db::schema::articles;
+use crate::domain::PublishArticleError;
 use crate::Repo;
 use diesel::prelude::*;
-use diesel::result::Error;
+use diesel::result::{DatabaseErrorKind, Error};
 use diesel::sql_query;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -25,11 +26,22 @@ impl FromStr for ArticleQuery {
     }
 }
 
-pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
+pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, PublishArticleError> {
     repo.run(move |conn| {
-        diesel::insert_into(articles::table)
+        let result = diesel::insert_into(articles::table)
             .values(&article)
-            .get_result(&conn)
+            .get_result(&conn);
+
+        result.map_err(|e| match e {
+            Error::DatabaseError(kind, _) => match kind {
+                DatabaseErrorKind::UniqueViolation => PublishArticleError::DuplicatedSlug {
+                    slug: article.slug,
+                    source: e,
+                },
+                _ => PublishArticleError::DatabaseError(e),
+            },
+            e => PublishArticleError::DatabaseError(e),
+        })
     })
 }
 

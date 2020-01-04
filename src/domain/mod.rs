@@ -79,6 +79,12 @@ pub enum PublishArticleError {
         #[source]
         source: GetUserError,
     },
+    #[error("There is already an article using {slug:?} as slug. Change title!")]
+    DuplicatedSlug {
+        slug: String,
+        #[source]
+        source: diesel::result::Error,
+    },
     #[error("Something went wrong.")]
     DatabaseError(#[from] diesel::result::Error),
 }

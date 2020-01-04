@@ -1,5 +1,6 @@
 mod helpers;
 
+use crate::helpers::create_user;
 use helpers::generate;
 use helpers::generate::With;
 use helpers::test_db::get_test_repo;
@@ -23,6 +24,31 @@ fn cannot_publish_an_article_if_the_author_does_not_exist() {
             author_id,
             source: _,
         } => assert_eq!(expected_author_id, author_id),
+        _ => panic!("Unexpected error"),
+    }
+}
+
+#[test]
+fn slugs_must_be_unique() {
+    let repo = get_test_repo();
+    let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
+
+    let author = create_user(&repository.0);
+    // Two article drafts, with identical title => identical slug
+    let first_draft = generate::article_draft(With::Value(author.id));
+    let second_draft = first_draft.clone();
+    let expected_slug = first_draft.slug();
+
+    let result = first_draft.publish(&repository);
+    assert!(result.is_ok());
+
+    // Publishing the second draft fails
+    let result = second_draft.publish(&repository);
+    assert!(result.is_err());
+    println!("{:?}", result);
+    // With the appropriate error variant
+    match result.unwrap_err() {
+        PublishArticleError::DuplicatedSlug { slug, source: _ } => assert_eq!(expected_slug, slug),
         _ => panic!("Unexpected error"),
     }
 }
