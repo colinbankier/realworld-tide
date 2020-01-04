@@ -3,6 +3,7 @@ use crate::db::schema::comments;
 use crate::db::schema::favorites;
 use crate::db::schema::followers;
 use crate::db::schema::users;
+use crate::domain::ArticleDraft;
 use chrono::{DateTime, Utc};
 use diesel::{AsChangeset, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
@@ -54,13 +55,26 @@ pub struct Article {
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "articles"]
-pub struct NewArticle {
-    pub title: String,
+pub struct NewArticle<'a> {
+    pub title: &'a str,
     pub slug: String,
-    pub description: String,
-    pub body: String,
+    pub description: &'a str,
+    pub body: &'a str,
     pub tag_list: Vec<String>,
     pub user_id: Uuid,
+}
+
+impl<'a> From<&'a ArticleDraft> for NewArticle<'a> {
+    fn from(draft: &'a ArticleDraft) -> Self {
+        Self {
+            title: draft.content().title(),
+            slug: draft.slug(),
+            description: draft.content().description(),
+            body: draft.content().body(),
+            tag_list: draft.content().tag_list().to_owned(),
+            user_id: draft.author_id().to_owned(),
+        }
+    }
 }
 
 #[derive(AsChangeset, Deserialize, Debug, Clone)]

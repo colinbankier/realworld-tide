@@ -1,4 +1,6 @@
 use crate::db::models;
+use crate::domain;
+use crate::domain::Profile;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -30,6 +32,29 @@ pub struct Article {
     pub tag_list: Vec<String>,
 }
 
+impl From<domain::Article> for Article {
+    fn from(a: domain::Article) -> Self {
+        Self {
+            title: a.content().title().to_owned(),
+            slug: a.slug().to_owned(),
+            description: a.content().description().to_owned(),
+            body: a.content().body().to_owned(),
+            tag_list: a.content().tag_list().to_owned(),
+            favorited: false,
+            favorites_count: *a.favorites_count(),
+            created_at: a.metadata().created_at().to_owned(),
+            updated_at: a.metadata().created_at().to_owned(),
+            author: a.author().to_owned().into(),
+        }
+    }
+}
+
+impl From<domain::Article> for ArticleResponse {
+    fn from(a: domain::Article) -> Self {
+        Self { article: a.into() }
+    }
+}
+
 impl Article {
     pub fn new(a: models::Article, u: models::User, n_fav: i64, favorited: bool) -> Self {
         Self {
@@ -57,6 +82,16 @@ pub struct Author {
     pub username: String,
     pub bio: Option<String>,
     pub image: Option<String>,
+}
+
+impl From<domain::Profile> for Author {
+    fn from(p: Profile) -> Self {
+        Self {
+            username: p.username().to_owned(),
+            bio: p.bio().to_owned(),
+            image: p.image().to_owned(),
+        }
+    }
 }
 
 impl ArticlesResponse {

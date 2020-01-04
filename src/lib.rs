@@ -7,6 +7,7 @@ pub mod auth;
 pub mod conduit;
 pub mod configuration;
 pub mod db;
+pub mod domain;
 pub mod middleware;
 pub mod web;
 

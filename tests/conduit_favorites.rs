@@ -22,7 +22,7 @@ fn you_can_favorite_an_article_twice_but_it_only_counts_for_one() {
     let repo = get_test_repo();
 
     let user = create_user(&repo);
-    let article = create_article(&repo, user.clone());
+    let article = create_article(&repo, &user);
 
     let result = favorites::favorite(&repo, user.id, article.id);
     assert!(result.is_ok());
@@ -39,7 +39,7 @@ fn you_can_favorite_an_article_which_you_never_favorited() {
     let repo = get_test_repo();
 
     let user = create_user(&repo);
-    let article = create_article(&repo, user.clone());
+    let article = create_article(&repo, &user);
 
     let result = favorites::unfavorite(&repo, user.id, article.id);
     assert!(result.is_ok());
@@ -50,7 +50,7 @@ fn favorites_works() {
     let repo = get_test_repo();
 
     let author = create_user(&repo);
-    let article = create_article(&repo, author);
+    let article = create_article(&repo, &author);
 
     let n_fans = 10;
     let fans = create_users(&repo, n_fans);

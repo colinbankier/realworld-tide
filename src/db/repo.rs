@@ -34,11 +34,7 @@ where
 
     pub fn run<F, R>(&self, f: F) -> R
     where
-        F: FnOnce(PooledConnection<ConnectionManager<T>>) -> R
-            + Send
-            + std::marker::Unpin
-            + 'static,
-        T: Send + 'static,
+        F: FnOnce(PooledConnection<ConnectionManager<T>>) -> R,
     {
         f(self.connection_pool.get().unwrap())
     }

@@ -67,7 +67,7 @@ fn update_article() {
     let repo = get_test_repo();
 
     let user = create_user(&repo);
-    let article = create_article(&repo, user.clone());
+    let article = create_article(&repo, &user);
 
     let update = UpdateArticle {
         title: Some(fake!(Lorem.sentence(4, 10)).to_string()),

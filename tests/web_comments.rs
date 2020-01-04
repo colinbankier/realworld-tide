@@ -15,7 +15,7 @@ fn comments_api() {
     task::block_on(async move {
         let mut server = TestApp::new();
         let user = create_user(&server.repository);
-        let article = create_article(&server.repository, user.clone());
+        let article = create_article(&server.repository, &user);
         let token = encode_token(user.id);
 
         let request = realworld_tide::web::comments::create::Request {
@@ -83,7 +83,7 @@ fn you_cannot_delete_a_comment_which_you_did_not_write() {
         let mut users = create_users(&server.repository, 2);
         let article_author = users.pop().unwrap();
         let comment_author = users.pop().unwrap();
-        let article = create_article(&server.repository, article_author.clone());
+        let article = create_article(&server.repository, &article_author);
 
         // comment_author write a comment
         let token = encode_token(comment_author.id);
