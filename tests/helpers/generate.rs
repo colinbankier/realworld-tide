@@ -4,6 +4,11 @@ use realworld_tide::db::models::NewUser;
 use realworld_tide::domain;
 use uuid::Uuid;
 
+pub enum With<T> {
+    Value(T),
+    Random,
+}
+
 pub fn article_content() -> domain::ArticleContent {
     domain::ArticleContent::new(
         fake!(Lorem.sentence(4, 10)).to_string(),
@@ -13,8 +18,12 @@ pub fn article_content() -> domain::ArticleContent {
     )
 }
 
-pub fn article_draft(author_id: Option<Uuid>) -> domain::ArticleDraft {
-    domain::ArticleDraft::new(article_content(), author_id.unwrap_or(Uuid::new_v4()))
+pub fn article_draft(author_id: With<Uuid>) -> domain::ArticleDraft {
+    let author_id = match author_id {
+        With::Value(id) => id,
+        With::Random => Uuid::new_v4(),
+    };
+    domain::ArticleDraft::new(article_content(), author_id)
 }
 
 pub fn new_user() -> NewUser {

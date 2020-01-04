@@ -3,6 +3,7 @@
 mod helpers;
 
 use helpers::generate;
+use helpers::generate::With;
 use helpers::test_server::TestApp;
 use helpers::{create_article, create_articles, create_user, create_users};
 
@@ -102,7 +103,7 @@ fn should_create_article() {
         let author = users::insert(&server.repository, user).expect("Failed to create user");
         let token = encode_token(author.id.to_owned());
 
-        let article = generate::article_draft(author.id.into());
+        let article = generate::article_draft(With::Value(author.id));
         let new_article_request = realworld_tide::web::articles::insert::Request {
             article: NewArticleRequest {
                 title: article.content().title().clone(),
