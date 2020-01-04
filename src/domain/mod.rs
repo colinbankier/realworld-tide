@@ -184,22 +184,6 @@ impl From<GetUserError> for DatabaseError {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum FavoriteError {
-    #[error("The article was already a favorite for the user.")]
-    AlreadyAFavorite,
-    #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum UnfavoriteError {
-    #[error("The article was not a favorite for the user.")]
-    NotAFavoriteBefore,
-    #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
-}
-
 impl From<GetUserError> for PublishArticleError {
     fn from(e: GetUserError) -> Self {
         match e {
