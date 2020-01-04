@@ -36,6 +36,7 @@ impl Comment {
                 username: a.username,
                 bio: a.bio,
                 image: a.image,
+                following: false,
             },
         }
     }

@@ -1,12 +1,10 @@
 mod helpers;
 
-use helpers::generate::new_user;
 use helpers::test_db::get_test_repo;
 use helpers::{create_article, create_articles, create_user, create_users};
 
 use fake::fake;
 use realworld_tide::conduit::articles;
-use realworld_tide::conduit::users;
 use realworld_tide::db::models::{NewArticle, UpdateArticle};
 use std::collections::HashSet;
 
@@ -19,29 +17,6 @@ fn list_articles() {
     let results = articles::find(&repo, Default::default()).expect("Failed to get articles");
 
     assert_eq!(results.len(), 5);
-}
-
-#[test]
-fn insert_and_retrieve_article() {
-    let repo = get_test_repo();
-    let slug = "my_slug".to_string();
-
-    let user = new_user();
-    let user = users::insert(&repo, user).unwrap();
-
-    let article = NewArticle {
-        title: "My article".into(),
-        slug: slug.clone(),
-        description: "My article description".into(),
-        body: "ohoh".into(),
-        tag_list: vec!["a tag!".to_string()],
-        user_id: user.id,
-    };
-    let expected_article = articles::insert(&repo, article).unwrap();
-
-    let (retrieved_article, retrieved_user, _) = articles::find_one(&repo, &slug).unwrap();
-    assert_eq!(expected_article, retrieved_article);
-    assert_eq!(user, retrieved_user);
 }
 
 #[test]
@@ -76,10 +51,13 @@ fn update_article() {
     };
     articles::update(&repo, update.clone(), article.slug.clone()).unwrap();
 
-    let (updated_article, _, _) = articles::find_one(&repo, &article.slug).unwrap();
-    assert_eq!(update.title, updated_article.title.into());
-    assert_eq!(update.description, updated_article.description.into());
-    assert_eq!(update.body, updated_article.body.into());
+    let updated_article = articles::find_one(&repo, &article.slug).unwrap();
+    assert_eq!(update.title, updated_article.content.title.into());
+    assert_eq!(
+        update.description,
+        updated_article.content.description.into()
+    );
+    assert_eq!(update.body, updated_article.content.body.into());
 }
 
 #[test]

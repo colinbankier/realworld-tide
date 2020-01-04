@@ -1,6 +1,7 @@
 use crate::conduit::favorites::n_favorites;
 use crate::db::models::{Article, NewArticle, UpdateArticle, User};
 use crate::db::schema::articles;
+use crate::domain;
 use crate::domain::PublishArticleError;
 use crate::Repo;
 use diesel::prelude::*;
@@ -91,15 +92,17 @@ pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, i64)
     })?;
     results
         .into_iter()
-        .map(|(article, user)| n_favorites(&repo, article.id).map(|n_fav| (article, user, n_fav)))
+        .map(|(article, user)| {
+            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav))
+        })
         .collect::<Result<Vec<_>, _>>()
 }
 
-pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User, i64), Error> {
+pub fn find_one(repo: &Repo, slug_value: &str) -> Result<domain::Article, Error> {
     use crate::db::schema::articles::dsl::{articles, slug};
     use crate::db::schema::users::dsl::users;
 
-    let slug_value = slug_value.to_owned();
+    //    let slug_value = slug_value.to_owned();
     let (article, user): (Article, User) = repo.run(move |conn| {
         articles
             .filter(slug.eq(slug_value))
@@ -107,8 +110,8 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<(Article, User, i64), E
             .select((articles::all_columns(), users::all_columns()))
             .first(&conn)
     })?;
-    let n_fav = n_favorites(&repo, article.id)?;
-    Ok((article, user, n_fav))
+    let n_fav = n_favorites(&repo, &article.slug)?;
+    Ok((article, user, n_fav as u64).into())
 }
 
 pub fn feed(
@@ -134,7 +137,9 @@ pub fn feed(
     })?;
     results
         .into_iter()
-        .map(|(article, user)| n_favorites(&repo, article.id).map(|n_fav| (article, user, n_fav)))
+        .map(|(article, user)| {
+            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav))
+        })
         .collect::<Result<Vec<_>, _>>()
 }
 

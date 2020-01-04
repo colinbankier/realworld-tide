@@ -1,7 +1,6 @@
 CREATE TABLE articles (
-    id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
+    slug VARCHAR(255) PRIMARY KEY,
     description VARCHAR(1024) NOT NULL,
     body TEXT NOT NULL,
     tag_list TEXT[] NOT NULL,

@@ -7,7 +7,7 @@ pub mod users;
 use log::error;
 use tide::Response;
 
-use crate::domain::{GetUserError, PublishArticleError};
+use crate::domain::{DatabaseError, GetArticleError, GetUserError, PublishArticleError};
 pub use app::get_app;
 
 pub fn diesel_error(e: &diesel::result::Error) -> Response {
@@ -21,6 +21,23 @@ impl From<GetUserError> for Response {
             GetUserError::NotFound { .. } => Response::new(404).body_string(e.to_string()),
             _ => Response::new(500),
         }
+    }
+}
+
+impl From<GetArticleError> for Response {
+    fn from(e: GetArticleError) -> Response {
+        match &e {
+            GetArticleError::ArticleNotFound { .. } => {
+                Response::new(404).body_string(e.to_string())
+            }
+            _ => Response::new(500),
+        }
+    }
+}
+
+impl From<DatabaseError> for Response {
+    fn from(_: DatabaseError) -> Response {
+        Response::new(500)
     }
 }
 

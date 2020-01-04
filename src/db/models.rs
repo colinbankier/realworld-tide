@@ -42,7 +42,6 @@ pub struct UpdateUser {
 
 #[derive(Queryable, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Article {
-    pub id: i32,
     pub title: String,
     pub slug: String,
     pub description: String,
@@ -67,12 +66,12 @@ pub struct NewArticle<'a> {
 impl<'a> From<&'a ArticleDraft> for NewArticle<'a> {
     fn from(draft: &'a ArticleDraft) -> Self {
         Self {
-            title: draft.content().title(),
+            title: &draft.content.title,
             slug: draft.slug(),
-            description: draft.content().description(),
-            body: draft.content().body(),
-            tag_list: draft.content().tag_list().to_owned(),
-            user_id: draft.author_id().to_owned(),
+            description: &draft.content.description,
+            body: &draft.content.body,
+            tag_list: draft.content.tag_list.to_owned(),
+            user_id: draft.author_id.to_owned(),
         }
     }
 }
@@ -89,7 +88,7 @@ pub struct UpdateArticle {
 #[table_name = "favorites"]
 pub struct NewFavorite {
     pub user_id: Uuid,
-    pub article_id: i32,
+    pub article_id: String,
 }
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
@@ -103,7 +102,7 @@ pub struct NewFollower {
 #[table_name = "comments"]
 pub struct NewComment {
     pub author_id: Uuid,
-    pub article_id: i32,
+    pub article_id: String,
     pub body: String,
 }
 
@@ -111,7 +110,7 @@ pub struct NewComment {
 pub struct Comment {
     pub id: i64,
     pub author_id: Uuid,
-    pub article_id: i32,
+    pub article_id: String,
     pub body: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

@@ -35,22 +35,45 @@ pub struct Article {
 impl From<domain::Article> for Article {
     fn from(a: domain::Article) -> Self {
         Self {
-            title: a.content().title().to_owned(),
-            slug: a.slug().to_owned(),
-            description: a.content().description().to_owned(),
-            body: a.content().body().to_owned(),
-            tag_list: a.content().tag_list().to_owned(),
+            title: a.content.title,
+            slug: a.slug,
+            description: a.content.description,
+            body: a.content.body,
+            tag_list: a.content.tag_list,
             favorited: false,
-            favorites_count: *a.favorites_count(),
-            created_at: a.metadata().created_at().to_owned(),
-            updated_at: a.metadata().created_at().to_owned(),
-            author: a.author().to_owned().into(),
+            favorites_count: a.favorites_count,
+            created_at: a.metadata.created_at,
+            updated_at: a.metadata.updated_at,
+            author: a.author.into(),
+        }
+    }
+}
+
+impl From<domain::ArticleView> for Article {
+    fn from(a: domain::ArticleView) -> Self {
+        Self {
+            title: a.content.title,
+            slug: a.slug,
+            description: a.content.description,
+            body: a.content.body,
+            tag_list: a.content.tag_list,
+            favorited: a.favorited,
+            favorites_count: a.favorites_count,
+            created_at: a.metadata.created_at,
+            updated_at: a.metadata.updated_at,
+            author: a.author.into(),
         }
     }
 }
 
 impl From<domain::Article> for ArticleResponse {
     fn from(a: domain::Article) -> Self {
+        Self { article: a.into() }
+    }
+}
+
+impl From<domain::ArticleView> for ArticleResponse {
+    fn from(a: domain::ArticleView) -> Self {
         Self { article: a.into() }
     }
 }
@@ -71,6 +94,7 @@ impl Article {
                 username: u.username,
                 bio: u.bio,
                 image: u.image,
+                following: false,
             },
         }
     }
@@ -82,14 +106,27 @@ pub struct Author {
     pub username: String,
     pub bio: Option<String>,
     pub image: Option<String>,
+    pub following: bool,
 }
 
 impl From<domain::Profile> for Author {
     fn from(p: Profile) -> Self {
         Self {
-            username: p.username().to_owned(),
-            bio: p.bio().to_owned(),
-            image: p.image().to_owned(),
+            following: false,
+            username: p.username,
+            bio: p.bio,
+            image: p.image,
+        }
+    }
+}
+
+impl From<domain::ProfileView> for Author {
+    fn from(p: domain::ProfileView) -> Self {
+        Self {
+            username: p.profile.username,
+            bio: p.profile.bio,
+            image: p.profile.image,
+            following: p.following,
         }
     }
 }

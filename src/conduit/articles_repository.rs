@@ -1,4 +1,4 @@
-use crate::conduit::{articles, users};
+use crate::conduit::{articles, favorites, followers, users};
 use crate::db::models::{Article, NewArticle};
 use crate::db::Repo;
 use crate::domain;
@@ -13,19 +13,53 @@ impl<'a> domain::ArticleRepository for Repository<'a> {
         &self,
         draft: domain::ArticleDraft,
     ) -> Result<domain::Article, domain::PublishArticleError> {
-        let user = self.get_by_id(draft.author_id().to_owned())?;
+        let user = self.get_by_id(draft.author_id.to_owned())?;
 
         let result: Article = articles::insert(&self.0, NewArticle::from(&draft))?;
 
         let metadata = domain::ArticleMetadata::new(result.created_at, result.updated_at);
-        let article = domain::Article::new(
-            draft.content().to_owned(),
-            draft.slug(),
-            user.profile().to_owned(),
-            metadata,
-            0,
-        );
+        let slug = draft.slug();
+        let article = domain::Article::new(draft.content, slug, user.profile, metadata, 0);
         Ok(article)
+    }
+
+    fn get_by_slug(&self, slug: &str) -> Result<domain::Article, domain::GetArticleError> {
+        Ok(articles::find_one(&self.0, &slug)?)
+    }
+
+    fn get_article_view(
+        &self,
+        viewer: &domain::User,
+        article: domain::Article,
+    ) -> Result<domain::ArticleView, domain::GetArticleError> {
+        let author_view = self.get_view(viewer, &article.author.username).unwrap();
+        let is_favorite = favorites::is_favorite(&self.0, viewer.id, &article.slug)?;
+        let article_view = domain::ArticleView {
+            content: article.content,
+            slug: article.slug,
+            author: author_view,
+            metadata: article.metadata,
+            favorited: is_favorite,
+            favorites_count: article.favorites_count,
+            viewer: viewer.id,
+        };
+        Ok(article_view)
+    }
+
+    fn favorite(
+        &self,
+        article: &domain::Article,
+        user: &domain::User,
+    ) -> Result<domain::FavoriteOutcome, domain::DatabaseError> {
+        favorites::favorite(&self.0, user.id, &article.slug)
+    }
+
+    fn unfavorite(
+        &self,
+        article: &domain::Article,
+        user: &domain::User,
+    ) -> Result<domain::UnfavoriteOutcome, domain::DatabaseError> {
+        favorites::unfavorite(&self.0, user.id, &article.slug)
     }
 }
 
@@ -34,5 +68,24 @@ impl<'a> domain::UsersRepository for Repository<'a> {
         let u = users::find(&self.0, user_id)?;
         let profile = domain::Profile::new(u.username, u.bio, u.image);
         Ok(domain::User::new(u.id, u.email, profile))
+    }
+
+    fn get_view(
+        &self,
+        viewer: &domain::User,
+        username: &str,
+    ) -> Result<domain::ProfileView, GetUserError> {
+        let viewed_user = users::find_by_username(&self.0, username)?;
+        let following = followers::is_following(&self.0, viewer.id, viewed_user.id)?;
+        let view = domain::ProfileView {
+            profile: domain::Profile {
+                username: viewed_user.username,
+                bio: viewed_user.bio,
+                image: viewed_user.image,
+            },
+            following,
+            viewer: viewer.id,
+        };
+        Ok(view)
     }
 }

@@ -29,11 +29,11 @@ pub async fn create(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
     let repo = cx.state();
 
     let author = users::find(repo, author_id)?;
-    let (article, _, _) = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
+    let article = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
 
     let new_comment = NewComment {
         author_id: author.id,
-        article_id: article.id,
+        article_id: article.slug,
         body: new_comment.comment.body,
     };
 

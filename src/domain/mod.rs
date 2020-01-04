@@ -1,23 +1,20 @@
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
-use getset::Getters;
 use itertools::Itertools;
 use uuid::Uuid;
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct ArticleContent {
-    title: String,
-    description: String,
-    body: String,
-    tag_list: Vec<String>,
+    pub title: String,
+    pub description: String,
+    pub body: String,
+    pub tag_list: Vec<String>,
 }
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct ArticleDraft {
-    content: ArticleContent,
-    author_id: Uuid,
+    pub content: ArticleContent,
+    pub author_id: Uuid,
 }
 
 impl ArticleDraft {
@@ -38,37 +35,109 @@ impl ArticleDraft {
     }
 }
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct Article {
-    content: ArticleContent,
-    slug: String,
-    author: Profile,
-    metadata: ArticleMetadata,
-    favorites_count: u64,
+    pub content: ArticleContent,
+    pub slug: String,
+    pub author: Profile,
+    pub metadata: ArticleMetadata,
+    pub favorites_count: u64,
 }
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
+pub struct ArticleView {
+    pub content: ArticleContent,
+    pub slug: String,
+    pub author: ProfileView,
+    pub metadata: ArticleMetadata,
+    pub favorited: bool,
+    pub favorites_count: u64,
+    // The user owning this view of an article
+    pub viewer: Uuid,
+}
+
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct ArticleMetadata {
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct Profile {
-    username: String,
-    bio: Option<String>,
-    image: Option<String>,
+    pub username: String,
+    pub bio: Option<String>,
+    pub image: Option<String>,
 }
 
-#[derive(Getters, Clone, Constructor, Debug)]
-#[get = "pub"]
+#[derive(Clone, Constructor, Debug, PartialEq)]
+pub struct ProfileView {
+    pub profile: Profile,
+    pub following: bool,
+    // The user owning this view of a profile
+    pub viewer: Uuid,
+}
+
+#[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct User {
-    id: Uuid,
-    email: String,
-    profile: Profile,
+    pub id: Uuid,
+    pub email: String,
+    pub profile: Profile,
+}
+
+impl User {
+    pub fn favorite(
+        &self,
+        article: Article,
+        repository: &(impl ArticleRepository + UsersRepository),
+    ) -> Result<ArticleView, DatabaseError> {
+        let n_favorites = match repository.favorite(&article, self)? {
+            FavoriteOutcome::NewFavorite => article.favorites_count + 1,
+            FavoriteOutcome::AlreadyAFavorite => article.favorites_count,
+        };
+        let article_view = ArticleView {
+            content: article.content,
+            slug: article.slug,
+            author: repository.get_view(self, &article.author.username)?,
+            metadata: article.metadata,
+            favorited: true,
+            favorites_count: n_favorites,
+            viewer: self.id.to_owned(),
+        };
+        Ok(article_view)
+    }
+
+    pub fn unfavorite(
+        &self,
+        article: Article,
+        repository: &(impl ArticleRepository + UsersRepository),
+    ) -> Result<ArticleView, DatabaseError> {
+        let n_favorites = match repository.unfavorite(&article, self)? {
+            UnfavoriteOutcome::WasAFavorite => article.favorites_count - 1,
+            UnfavoriteOutcome::WasNotAFavorite => article.favorites_count,
+        };
+        let article_view = ArticleView {
+            content: article.content,
+            slug: article.slug,
+            author: repository.get_view(self, &article.author.username)?,
+            metadata: article.metadata,
+            favorited: false,
+            favorites_count: n_favorites,
+            viewer: self.id.to_owned(),
+        };
+        Ok(article_view)
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum GetArticleError {
+    #[error("There is no article with {slug:?} as slug.")]
+    ArticleNotFound {
+        slug: String,
+        #[source]
+        source: diesel::result::Error,
+    },
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -89,6 +158,48 @@ pub enum PublishArticleError {
     DatabaseError(#[from] diesel::result::Error),
 }
 
+pub enum FavoriteOutcome {
+    NewFavorite,
+    AlreadyAFavorite,
+}
+
+pub enum UnfavoriteOutcome {
+    WasAFavorite,
+    WasNotAFavorite,
+}
+
+#[derive(thiserror::Error, Debug)]
+#[error("Something went wrong.")]
+pub struct DatabaseError {
+    #[from]
+    source: diesel::result::Error,
+}
+
+impl From<GetUserError> for DatabaseError {
+    fn from(e: GetUserError) -> Self {
+        match e {
+            GetUserError::NotFound { source, .. } => DatabaseError { source },
+            GetUserError::DatabaseError(e) => DatabaseError { source: e },
+        }
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum FavoriteError {
+    #[error("The article was already a favorite for the user.")]
+    AlreadyAFavorite,
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum UnfavoriteError {
+    #[error("The article was not a favorite for the user.")]
+    NotAFavoriteBefore,
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}
+
 impl From<GetUserError> for PublishArticleError {
     fn from(e: GetUserError) -> Self {
         match e {
@@ -103,6 +214,18 @@ impl From<GetUserError> for PublishArticleError {
 
 pub trait ArticleRepository {
     fn publish(&self, draft: ArticleDraft) -> Result<Article, PublishArticleError>;
+    fn get_by_slug(&self, slug: &str) -> Result<Article, GetArticleError>;
+    fn get_article_view(
+        &self,
+        viewer: &User,
+        article: Article,
+    ) -> Result<ArticleView, GetArticleError>;
+    fn favorite(&self, article: &Article, user: &User) -> Result<FavoriteOutcome, DatabaseError>;
+    fn unfavorite(
+        &self,
+        article: &Article,
+        user: &User,
+    ) -> Result<UnfavoriteOutcome, DatabaseError>;
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -118,4 +241,5 @@ pub enum GetUserError {
 
 pub trait UsersRepository {
     fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
+    fn get_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
 }

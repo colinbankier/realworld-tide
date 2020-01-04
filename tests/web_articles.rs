@@ -106,10 +106,10 @@ fn should_create_article() {
         let article = generate::article_draft(With::Value(author.id));
         let new_article_request = realworld_tide::web::articles::insert::Request {
             article: NewArticleRequest {
-                title: article.content().title().clone(),
-                description: article.content().description().clone(),
-                body: article.content().body().clone(),
-                tag_list: article.content().tag_list().clone(),
+                title: article.content.title.clone(),
+                description: article.content.description.clone(),
+                body: article.content.body.clone(),
+                tag_list: article.content.tag_list.clone(),
             },
         };
         server
@@ -126,12 +126,9 @@ fn should_create_article() {
 
         assert_eq!(articles.len(), 1);
         let retrieved_article = articles[0].clone();
-        assert_eq!(&retrieved_article.title, article.content().title());
-        assert_eq!(
-            &retrieved_article.description,
-            article.content().description()
-        );
-        assert_eq!(&retrieved_article.body, article.content().body());
+        assert_eq!(retrieved_article.title, article.content.title);
+        assert_eq!(retrieved_article.description, article.content.description);
+        assert_eq!(retrieved_article.body, article.content.body);
         assert_ne!(retrieved_article.slug, "");
     })
 }

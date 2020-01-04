@@ -4,7 +4,7 @@ use crate::helpers::create_user;
 use helpers::generate;
 use helpers::generate::With;
 use helpers::test_db::get_test_repo;
-use realworld_tide::domain::PublishArticleError;
+use realworld_tide::domain::{ArticleRepository, PublishArticleError};
 
 #[test]
 fn cannot_publish_an_article_if_the_author_does_not_exist() {
@@ -12,7 +12,7 @@ fn cannot_publish_an_article_if_the_author_does_not_exist() {
     let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
 
     let draft = generate::article_draft(With::Random);
-    let expected_author_id = draft.author_id().to_owned();
+    let expected_author_id = draft.author_id.to_owned();
 
     let result = draft.publish(&repository);
     // Publish fails
@@ -51,4 +51,17 @@ fn slugs_must_be_unique() {
         PublishArticleError::DuplicatedSlug { slug, source: _ } => assert_eq!(expected_slug, slug),
         _ => panic!("Unexpected error"),
     }
+}
+
+#[test]
+fn insert_and_retrieve_article() {
+    let repo = get_test_repo();
+    let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
+
+    let author = create_user(&repository.0);
+    let draft = generate::article_draft(With::Value(author.id));
+
+    let expected_article = draft.publish(&repository).unwrap();
+    let retrieved_article = repository.get_by_slug(&expected_article.slug).unwrap();
+    assert_eq!(expected_article, retrieved_article);
 }

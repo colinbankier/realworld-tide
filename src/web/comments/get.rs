@@ -11,9 +11,9 @@ pub async fn get(cx: tide::Request<Repo>) -> tide::Result<Response> {
     let slug: String = cx.param("slug").client_err()?;
     let repo = cx.state();
 
-    let (article, _, _) = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
+    let article = articles::find_one(&repo, &slug).map_err(|e| diesel_error(&e))?;
 
-    let results = comments::get_comments(repo, article.id).map_err(|e| diesel_error(&e))?;
+    let results = comments::get_comments(repo, &article.slug).map_err(|e| diesel_error(&e))?;
     let response = CommentsResponse {
         comments: results
             .into_iter()

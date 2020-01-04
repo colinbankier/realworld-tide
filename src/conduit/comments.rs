@@ -31,13 +31,13 @@ pub fn delete_comment(repo: &Repo, comment_id: i64) -> Result<(), Error> {
     })
 }
 
-pub fn get_comments(repo: &Repo, article_id_value: i32) -> Result<Vec<(Comment, User)>, Error> {
+pub fn get_comments(repo: &Repo, article_slug: &str) -> Result<Vec<(Comment, User)>, Error> {
     use crate::db::schema::comments::dsl::{article_id, comments};
     use crate::db::schema::users::dsl::users;
 
     repo.run(move |conn| {
         let q = comments
-            .filter(article_id.eq(article_id_value))
+            .filter(article_id.eq(article_slug))
             .inner_join(users)
             .select((comments::all_columns(), users::all_columns()))
             .into_boxed();

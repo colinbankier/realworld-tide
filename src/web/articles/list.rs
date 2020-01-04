@@ -23,13 +23,16 @@ pub async fn list_articles(cx: Request<Repo>) -> tide::Result<Response> {
     let result_with_fav: Vec<(Article, User, i64, bool)> = match user_id {
         // If we are logged in, check for each article if the user marked it as favorite
         Some(user_id) => {
-            let article_ids = result.iter().map(|(a, _, _)| a.id.to_owned()).collect_vec();
+            let article_ids = result
+                .iter()
+                .map(|(a, _, _)| a.slug.to_owned())
+                .collect_vec();
             let favs = favorites::are_favorite(&repo, user_id, article_ids)
                 .map_err(|e| diesel_error(&e))?;
             result
                 .into_iter()
                 .map(|(a, u, fav_count)| {
-                    let favorited = favs[&a.id];
+                    let favorited = favs[&a.slug];
                     (a, u, fav_count, favorited)
                 })
                 .collect()

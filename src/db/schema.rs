@@ -1,6 +1,5 @@
 table! {
-    articles (id) {
-        id -> Int4,
+    articles (slug) {
         title -> Varchar,
         slug -> Varchar,
         description -> Varchar,
@@ -16,7 +15,7 @@ table! {
     comments (id) {
         id -> Int8,
         author_id -> Uuid,
-        article_id -> Int4,
+        article_id -> Varchar,
         body -> Text,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
@@ -26,7 +25,7 @@ table! {
 table! {
     favorites (user_id, article_id) {
         user_id -> Uuid,
-        article_id -> Int4,
+        article_id -> Varchar,
     }
 }
 

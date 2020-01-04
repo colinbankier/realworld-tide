@@ -24,7 +24,7 @@ pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, domain::GetUserError> {
     })
 }
 
-pub fn find_by_username(repo: &Repo, username_value: String) -> Result<User, Error> {
+pub fn find_by_username(repo: &Repo, username_value: &str) -> Result<User, Error> {
     use crate::db::schema::users::dsl::*;
     repo.run(move |conn| users.filter(username.eq(username_value)).first(&conn))
 }

@@ -1,46 +1,57 @@
 use crate::db::models::NewFavorite;
 use crate::db::schema::favorites;
+use crate::domain;
+use crate::domain::{FavoriteOutcome, UnfavoriteOutcome};
 use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub fn favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<(), Error> {
+pub fn favorite(
+    repo: &Repo,
+    user_id: Uuid,
+    article_slug: &str,
+) -> Result<FavoriteOutcome, domain::DatabaseError> {
     let row = NewFavorite {
         user_id,
-        article_id,
+        article_id: article_slug.to_owned(),
     };
-    repo.run(move |conn| {
+    let n_inserted: usize = repo.run(move |conn| {
         diesel::insert_into(favorites::table)
             .values(&row)
             // If it already exists, ignore it and don't return an error
             .on_conflict_do_nothing()
             .execute(&conn)
-            // Discard the number of inserted rows
-            .map(|_| ())
-    })
+    })?;
+    let outcome = if n_inserted == 0 {
+        FavoriteOutcome::AlreadyAFavorite
+    } else {
+        FavoriteOutcome::NewFavorite
+    };
+    Ok(outcome)
 }
 
-pub fn unfavorite(repo: &Repo, user_id_value: Uuid, article_id_value: i32) -> Result<(), Error> {
+pub fn unfavorite(
+    repo: &Repo,
+    user_id_value: Uuid,
+    article_slug: &str,
+) -> Result<UnfavoriteOutcome, domain::DatabaseError> {
     use crate::db::schema::favorites::dsl::{article_id, favorites, user_id};
 
-    let to_be_deleted = favorites.filter(
-        article_id
-            .eq(article_id_value)
-            .and(user_id.eq(user_id_value)),
-    );
-    repo.run(move |conn| {
-        diesel::delete(to_be_deleted)
-            .execute(&conn)
-            // Discard the number of deleted rows
-            .map(|_| ())
-    })
+    let delete = favorites.filter(article_id.eq(article_slug).and(user_id.eq(user_id_value)));
+    let n_deleted: usize = repo.run(move |conn| diesel::delete(delete).execute(&conn))?;
+    let outcome = if n_deleted == 0 {
+        UnfavoriteOutcome::WasNotAFavorite
+    } else {
+        UnfavoriteOutcome::WasAFavorite
+    };
+    Ok(outcome)
 }
 
 /// Given a user and an article, return if the user has marked it as favorite.
-pub fn is_favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<bool, Error> {
-    Ok(are_favorite(repo, user_id, vec![article_id])?[&article_id])
+pub fn is_favorite(repo: &Repo, user_id: Uuid, article_slug: &str) -> Result<bool, Error> {
+    Ok(are_favorite(repo, user_id, vec![article_slug.to_owned()])?[article_slug])
 }
 
 /// Given a user and a list of articles, return for each of them if the user has
@@ -48,35 +59,35 @@ pub fn is_favorite(repo: &Repo, user_id: Uuid, article_id: i32) -> Result<bool, 
 pub fn are_favorite(
     repo: &Repo,
     user_id_value: Uuid,
-    article_ids: Vec<i32>,
-) -> Result<HashMap<i32, bool>, Error> {
+    article_slugs: Vec<String>,
+) -> Result<HashMap<String, bool>, Error> {
     use crate::db::schema::favorites::dsl::{article_id, favorites, user_id};
 
     let filter = article_id
-        .eq_any(article_ids.clone())
+        .eq_any(article_slugs.clone())
         .and(user_id.eq(user_id_value));
-    let favorite_articles_ids: Vec<i32> = repo.run(move |conn| {
+    let favorite_articles_ids: Vec<String> = repo.run(move |conn| {
         favorites
             .filter(filter)
             .select(article_id)
             .get_results(&conn)
     })?;
 
-    let mut results = HashMap::with_capacity(article_ids.len());
-    for id in &article_ids {
-        results.insert(id.to_owned(), favorite_articles_ids.contains(id));
+    let mut results = HashMap::with_capacity(article_slugs.len());
+    for slug in &article_slugs {
+        results.insert(slug.to_owned(), favorite_articles_ids.contains(slug));
     }
     Ok(results)
 }
 
 /// Return the number of users who have marked a specific article as favorited.
-pub fn n_favorites(repo: &Repo, article_id_value: i32) -> Result<i64, Error> {
+pub fn n_favorites(repo: &Repo, article_slug: &str) -> Result<i64, Error> {
     use crate::db::schema::favorites::dsl::{article_id, favorites, user_id};
     use diesel::dsl::count;
 
     repo.run(move |conn| {
         favorites
-            .filter(article_id.eq(article_id_value))
+            .filter(article_id.eq(article_slug))
             .select(count(user_id))
             .get_result(&conn)
     })
