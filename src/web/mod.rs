@@ -34,6 +34,9 @@ impl From<PublishArticleError> for Response {
                 author_id: _,
                 source: _,
             } => Response::new(404).body_string(e.to_string()),
+            PublishArticleError::DuplicatedSlug { slug: _, source: _ } => {
+                Response::new(400).body_string(e.to_string())
+            }
             _ => Response::new(500),
         }
     }
