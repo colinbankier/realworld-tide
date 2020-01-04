@@ -9,17 +9,23 @@ use uuid::Uuid;
 pub struct Repository<'a>(pub &'a Repo<PgConnection>);
 
 impl<'a> domain::ArticleRepository for Repository<'a> {
-    fn publish(&self, draft: domain::ArticleDraft) -> domain::Article {
-        let result: Article = articles::insert(&self.0, NewArticle::from(&draft)).unwrap();
+    fn publish(
+        &self,
+        draft: domain::ArticleDraft,
+    ) -> Result<domain::Article, domain::PublishArticleError> {
+        let user = self.get_by_id(draft.author_id().to_owned())?;
+
+        let result: Article = articles::insert(&self.0, NewArticle::from(&draft))?;
+
         let metadata = domain::ArticleMetadata::new(result.created_at, result.updated_at);
-        let user = self.get_by_id(draft.author_id().to_owned()).unwrap();
-        domain::Article::new(
+        let article = domain::Article::new(
             draft.content().to_owned(),
             draft.slug(),
             user.profile().to_owned(),
             metadata,
             0,
-        )
+        );
+        Ok(article)
     }
 }
 

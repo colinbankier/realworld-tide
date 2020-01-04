@@ -4,7 +4,7 @@ use getset::Getters;
 use itertools::Itertools;
 use uuid::Uuid;
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct ArticleContent {
     title: String,
@@ -13,7 +13,7 @@ pub struct ArticleContent {
     tag_list: Vec<String>,
 }
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct ArticleDraft {
     content: ArticleContent,
@@ -30,12 +30,15 @@ impl ArticleDraft {
             .join("-")
     }
 
-    pub fn publish(self, repository: &impl ArticleRepository) -> Article {
+    pub fn publish(
+        self,
+        repository: &impl ArticleRepository,
+    ) -> Result<Article, PublishArticleError> {
         repository.publish(self)
     }
 }
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct Article {
     content: ArticleContent,
@@ -45,14 +48,14 @@ pub struct Article {
     favorites_count: u64,
 }
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct ArticleMetadata {
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct Profile {
     username: String,
@@ -60,7 +63,7 @@ pub struct Profile {
     image: Option<String>,
 }
 
-#[derive(Getters, Clone, Constructor)]
+#[derive(Getters, Clone, Constructor, Debug)]
 #[get = "pub"]
 pub struct User {
     id: Uuid,
@@ -68,8 +71,32 @@ pub struct User {
     profile: Profile,
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum PublishArticleError {
+    #[error("There is no author with user id {author_id:?}.")]
+    AuthorNotFound {
+        author_id: Uuid,
+        #[source]
+        source: GetUserError,
+    },
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}
+
+impl From<GetUserError> for PublishArticleError {
+    fn from(e: GetUserError) -> Self {
+        match e {
+            GetUserError::NotFound { user_id, source: _ } => PublishArticleError::AuthorNotFound {
+                author_id: user_id,
+                source: e,
+            },
+            e => e.into(),
+        }
+    }
+}
+
 pub trait ArticleRepository {
-    fn publish(&self, draft: ArticleDraft) -> Article;
+    fn publish(&self, draft: ArticleDraft) -> Result<Article, PublishArticleError>;
 }
 
 #[derive(thiserror::Error, Debug)]
