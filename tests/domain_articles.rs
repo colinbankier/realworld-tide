@@ -1,18 +1,20 @@
 mod helpers;
 
-use crate::helpers::create_user;
+use crate::helpers::generate::With;
+use crate::helpers::{create_article2, create_user, create_user2};
+use fake::fake;
 use helpers::generate;
 use helpers::test_db::get_test_repo;
+use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::domain::repositories::{ArticleRepository, UsersRepository};
-use realworld_tide::domain::PublishArticleError;
+use realworld_tide::domain::{ArticleUpdate, PublishArticleError};
 
 #[test]
 fn slugs_must_be_unique() {
     let repo = get_test_repo();
-    let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
+    let repository = Repository(&repo);
 
-    let author = create_user(&repository.0);
-    let author = repository.get_by_id(author.id).unwrap();
+    let author = create_user2(&repository.0);
     let first_draft = generate::article_content();
     let second_draft = first_draft.clone();
     // Two article drafts, with identical title => identical slug
@@ -46,4 +48,27 @@ fn insert_and_retrieve_article() {
     let expected_article = author.publish(draft, &repository).unwrap();
     let retrieved_article = repository.get_by_slug(&expected_article.slug).unwrap();
     assert_eq!(expected_article, retrieved_article);
+}
+
+#[test]
+fn update_and_retrieve_article() {
+    let repo = get_test_repo();
+    let repository = Repository(&repo);
+
+    let author = create_user2(&repo);
+    let article = create_article2(&repo, With::Value(&author));
+
+    let update = ArticleUpdate {
+        title: Some(fake!(Lorem.sentence(4, 10)).to_string()),
+        description: Some(fake!(Lorem.paragraph(3, 10)).to_string()),
+        body: Some(fake!(Lorem.paragraph(10, 5)).to_string()),
+    };
+    let updated_article = author.update(article, update.clone(), &repository).unwrap();
+
+    assert_eq!(update.title, updated_article.content.title.into());
+    assert_eq!(
+        update.description,
+        updated_article.content.description.into()
+    );
+    assert_eq!(update.body, updated_article.content.body.into());
 }

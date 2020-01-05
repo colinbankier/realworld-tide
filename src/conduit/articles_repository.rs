@@ -50,6 +50,15 @@ impl<'a> ArticleRepository for Repository<'a> {
         Ok(articles::delete(&self.0, &article.slug)?)
     }
 
+    fn update_article(
+        &self,
+        article: domain::Article,
+        update: domain::ArticleUpdate,
+    ) -> Result<domain::Article, DatabaseError> {
+        articles::update(&self.0, (&update).into(), &article.slug)?;
+        Ok(self.get_by_slug(&article.slug)?)
+    }
+
     fn favorite(
         &self,
         article: &domain::Article,

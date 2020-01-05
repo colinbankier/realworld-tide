@@ -8,7 +8,7 @@ use log::error;
 use tide::Response;
 
 use crate::domain::{
-    DatabaseError, DeleteArticleError, GetArticleError, GetUserError, PublishArticleError,
+    ChangeArticleError, DatabaseError, GetArticleError, GetUserError, PublishArticleError,
 };
 pub use app::get_app;
 
@@ -57,14 +57,14 @@ impl From<PublishArticleError> for Response {
     }
 }
 
-impl From<DeleteArticleError> for Response {
-    fn from(e: DeleteArticleError) -> Response {
+impl From<ChangeArticleError> for Response {
+    fn from(e: ChangeArticleError) -> Response {
         match &e {
-            DeleteArticleError::ArticleNotFound { .. } => {
+            ChangeArticleError::ArticleNotFound { .. } => {
                 Response::new(404).body_string(e.to_string())
             }
-            DeleteArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
-            DeleteArticleError::DatabaseError(_) => Response::new(500),
+            ChangeArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
+            ChangeArticleError::DatabaseError(_) => Response::new(500),
         }
     }
 }

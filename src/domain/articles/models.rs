@@ -48,3 +48,10 @@ pub struct ArticleView {
     // The user owning this view of an article
     pub viewer: Uuid,
 }
+
+#[derive(Clone, Constructor, Debug, PartialEq)]
+pub struct ArticleUpdate {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub body: Option<String>,
+}

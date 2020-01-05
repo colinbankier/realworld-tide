@@ -14,7 +14,7 @@ pub enum GetArticleError {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum DeleteArticleError {
+pub enum ChangeArticleError {
     #[error("There is no article with {slug:?} as slug.")]
     ArticleNotFound {
         slug: String,

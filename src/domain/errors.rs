@@ -1,4 +1,4 @@
-use crate::domain::GetUserError;
+use crate::domain::{GetArticleError, GetUserError};
 
 #[derive(thiserror::Error, Debug)]
 #[error("Something went wrong.")]
@@ -12,6 +12,15 @@ impl From<GetUserError> for DatabaseError {
         match e {
             GetUserError::NotFound { source, .. } => DatabaseError { source },
             GetUserError::DatabaseError(e) => DatabaseError { source: e },
+        }
+    }
+}
+
+impl From<GetArticleError> for DatabaseError {
+    fn from(e: GetArticleError) -> Self {
+        match e {
+            GetArticleError::ArticleNotFound { source, .. } => DatabaseError { source },
+            GetArticleError::DatabaseError(e) => DatabaseError { source: e },
         }
     }
 }

@@ -49,7 +49,7 @@ pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, PublishArticl
 pub fn update(
     repo: &Repo,
     article_update: UpdateArticle,
-    slug_value: String,
+    slug_value: &str,
 ) -> Result<Article, Error> {
     use crate::db::schema::articles::dsl::{articles, slug};
 

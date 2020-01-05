@@ -1,6 +1,7 @@
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::domain::{
-    Article, ArticleContent, ArticleView, DatabaseError, DeleteArticleError, PublishArticleError,
+    Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, DatabaseError,
+    PublishArticleError,
 };
 use derive_more::Constructor;
 use uuid::Uuid;
@@ -28,14 +29,30 @@ impl User {
         repository.publish(draft, &self)
     }
 
+    pub fn update(
+        &self,
+        article: Article,
+        update: ArticleUpdate,
+        repository: &impl ArticleRepository,
+    ) -> Result<Article, ChangeArticleError> {
+        if article.author.username != self.profile.username {
+            return Err(ChangeArticleError::Forbidden {
+                slug: article.slug,
+                user_id: self.id,
+            });
+        }
+        let updated_article = repository.update_article(article, update)?;
+        Ok(updated_article)
+    }
+
     pub fn delete(
         &self,
         article: Article,
         repository: &impl ArticleRepository,
-    ) -> Result<(), DeleteArticleError> {
+    ) -> Result<(), ChangeArticleError> {
         // You can only delete your own articles
         if article.author.username != self.profile.username {
-            return Err(DeleteArticleError::Forbidden {
+            return Err(ChangeArticleError::Forbidden {
                 slug: article.slug,
                 user_id: self.id,
             });
