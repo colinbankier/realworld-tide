@@ -3,7 +3,6 @@
 mod helpers;
 
 use helpers::generate;
-use helpers::generate::With;
 use helpers::test_server::TestApp;
 use helpers::{create_article, create_articles, create_user, create_users};
 
@@ -103,13 +102,13 @@ fn should_create_article() {
         let author = users::insert(&server.repository, user).expect("Failed to create user");
         let token = encode_token(author.id.to_owned());
 
-        let article = generate::article_draft(With::Value(author.id));
+        let article = generate::article_content();
         let new_article_request = realworld_tide::web::articles::insert::Request {
             article: NewArticleRequest {
-                title: article.content.title.clone(),
-                description: article.content.description.clone(),
-                body: article.content.body.clone(),
-                tag_list: article.content.tag_list.clone(),
+                title: article.title.clone(),
+                description: article.description.clone(),
+                body: article.body.clone(),
+                tag_list: article.tag_list.clone(),
             },
         };
         server
@@ -126,9 +125,9 @@ fn should_create_article() {
 
         assert_eq!(articles.len(), 1);
         let retrieved_article = articles[0].clone();
-        assert_eq!(retrieved_article.title, article.content.title);
-        assert_eq!(retrieved_article.description, article.content.description);
-        assert_eq!(retrieved_article.body, article.content.body);
+        assert_eq!(retrieved_article.title, article.title);
+        assert_eq!(retrieved_article.description, article.description);
+        assert_eq!(retrieved_article.body, article.body);
         assert_ne!(retrieved_article.slug, "");
     })
 }

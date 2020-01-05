@@ -26,6 +26,8 @@ pub fn create_articles(repo: &Repo<PgConnection>, users: Vec<User>) -> Vec<Artic
 }
 
 pub fn create_article(repo: &Repo<PgConnection>, user: &User) -> Article {
-    let draft = generate::article_draft(generate::With::Value(user.id));
-    articles::insert(repo, NewArticle::from(&draft)).expect("Failed to create articles")
+    let draft = generate::article_content();
+    let author: User = user.to_owned();
+    articles::insert(repo, NewArticle::from((&draft, &author.into())))
+        .expect("Failed to create articles")
 }

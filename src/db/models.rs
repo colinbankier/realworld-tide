@@ -3,7 +3,7 @@ use crate::db::schema::comments;
 use crate::db::schema::favorites;
 use crate::db::schema::followers;
 use crate::db::schema::users;
-use crate::domain::ArticleDraft;
+use crate::domain;
 use chrono::{DateTime, Utc};
 use diesel::{AsChangeset, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
@@ -63,15 +63,16 @@ pub struct NewArticle<'a> {
     pub user_id: Uuid,
 }
 
-impl<'a> From<&'a ArticleDraft> for NewArticle<'a> {
-    fn from(draft: &'a ArticleDraft) -> Self {
+impl<'a> From<(&'a domain::ArticleContent, &'a domain::User)> for NewArticle<'a> {
+    fn from(x: (&'a domain::ArticleContent, &'a domain::User)) -> Self {
+        let (draft, author) = x;
         Self {
-            title: &draft.content.title,
+            title: &draft.title,
             slug: draft.slug(),
-            description: &draft.content.description,
-            body: &draft.content.body,
-            tag_list: draft.content.tag_list.to_owned(),
-            user_id: draft.author_id.to_owned(),
+            description: &draft.description,
+            body: &draft.body,
+            tag_list: draft.tag_list.to_owned(),
+            user_id: author.id.to_owned(),
         }
     }
 }

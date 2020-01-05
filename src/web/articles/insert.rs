@@ -1,3 +1,4 @@
+use crate::domain::repositories::UsersRepository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
 use crate::{domain, Repo};
@@ -19,22 +20,22 @@ pub struct NewArticleRequest {
     pub tag_list: Vec<String>,
 }
 
-impl Into<domain::ArticleContent> for NewArticleRequest {
-    fn into(self) -> domain::ArticleContent {
-        domain::ArticleContent::new(self.title, self.description, self.body, self.tag_list)
+impl From<NewArticleRequest> for domain::ArticleContent {
+    fn from(a: NewArticleRequest) -> domain::ArticleContent {
+        domain::ArticleContent::new(a.title, a.description, a.body, a.tag_list)
     }
 }
 
 pub async fn insert_article(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
-    let new_article: Request = cx
+    let request: Request = cx
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let article_draft = domain::ArticleDraft::new(new_article.article.into(), author_id);
-    let published_article = article_draft.publish(&repository)?;
+    let author = repository.get_by_id(author_id)?;
+    let published_article = author.publish(request.article.into(), &repository)?;
 
     Ok(Response::new(200)
         .body_json(&ArticleResponse::from(published_article))

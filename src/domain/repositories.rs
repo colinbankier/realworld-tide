@@ -1,11 +1,12 @@
 use crate::domain::{
-    Article, ArticleDraft, ArticleView, DatabaseError, FavoriteOutcome, GetArticleError,
+    Article, ArticleContent, ArticleView, DatabaseError, FavoriteOutcome, GetArticleError,
     GetUserError, ProfileView, PublishArticleError, UnfavoriteOutcome, User,
 };
 use uuid::Uuid;
 
 pub trait ArticleRepository {
-    fn publish(&self, draft: ArticleDraft) -> Result<Article, PublishArticleError>;
+    fn publish(&self, draft: ArticleContent, author: &User)
+        -> Result<Article, PublishArticleError>;
     fn get_by_slug(&self, slug: &str) -> Result<Article, GetArticleError>;
     fn get_article_view(
         &self,

@@ -18,14 +18,6 @@ pub fn article_content() -> domain::ArticleContent {
     )
 }
 
-pub fn article_draft(author_id: With<Uuid>) -> domain::ArticleDraft {
-    let author_id = match author_id {
-        With::Value(id) => id,
-        With::Random => Uuid::new_v4(),
-    };
-    domain::ArticleDraft::new(article_content(), author_id)
-}
-
 pub fn new_user() -> NewUser {
     let user_id = Uuid::new_v4();
     NewUser {

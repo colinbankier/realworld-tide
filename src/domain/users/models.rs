@@ -1,5 +1,7 @@
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
-use crate::domain::{Article, ArticleView, DatabaseError, DeleteArticleError};
+use crate::domain::{
+    Article, ArticleContent, ArticleView, DatabaseError, DeleteArticleError, PublishArticleError,
+};
 use derive_more::Constructor;
 use uuid::Uuid;
 
@@ -18,6 +20,14 @@ pub struct User {
 }
 
 impl User {
+    pub fn publish(
+        &self,
+        draft: ArticleContent,
+        repository: &impl ArticleRepository,
+    ) -> Result<Article, PublishArticleError> {
+        repository.publish(draft, &self)
+    }
+
     pub fn delete(
         &self,
         article: Article,

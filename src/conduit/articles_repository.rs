@@ -12,15 +12,14 @@ pub struct Repository<'a>(pub &'a Repo<PgConnection>);
 impl<'a> ArticleRepository for Repository<'a> {
     fn publish(
         &self,
-        draft: domain::ArticleDraft,
+        draft: domain::ArticleContent,
+        author: &domain::User,
     ) -> Result<domain::Article, domain::PublishArticleError> {
-        let user = self.get_by_id(draft.author_id.to_owned())?;
-
-        let result: Article = articles::insert(&self.0, NewArticle::from(&draft))?;
+        let result: Article = articles::insert(&self.0, NewArticle::from((&draft, author)))?;
 
         let metadata = domain::ArticleMetadata::new(result.created_at, result.updated_at);
         let slug = draft.slug();
-        let article = domain::Article::new(draft.content, slug, user.profile, metadata, 0);
+        let article = domain::Article::new(draft, slug, author.profile.clone(), metadata, 0);
         Ok(article)
     }
 

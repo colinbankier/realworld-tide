@@ -1,5 +1,4 @@
-use crate::domain::repositories::ArticleRepository;
-use crate::domain::{Profile, ProfileView, PublishArticleError};
+use crate::domain::{Profile, ProfileView};
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use itertools::Itertools;
@@ -13,27 +12,13 @@ pub struct ArticleContent {
     pub tag_list: Vec<String>,
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
-pub struct ArticleDraft {
-    pub content: ArticleContent,
-    pub author_id: Uuid,
-}
-
-impl ArticleDraft {
+impl ArticleContent {
     /// Convert a title into a url-safe slug
     pub fn slug(&self) -> String {
-        self.content
-            .title
+        self.title
             .to_ascii_lowercase()
             .split_ascii_whitespace()
             .join("-")
-    }
-
-    pub fn publish(
-        self,
-        repository: &impl ArticleRepository,
-    ) -> Result<Article, PublishArticleError> {
-        repository.publish(self)
     }
 }
 
