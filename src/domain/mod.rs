@@ -1,7 +1,10 @@
+use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use itertools::Itertools;
 use uuid::Uuid;
+
+pub mod repositories;
 
 #[derive(Clone, Constructor, Debug, PartialEq)]
 pub struct ArticleContent {
@@ -196,22 +199,6 @@ impl From<GetUserError> for PublishArticleError {
     }
 }
 
-pub trait ArticleRepository {
-    fn publish(&self, draft: ArticleDraft) -> Result<Article, PublishArticleError>;
-    fn get_by_slug(&self, slug: &str) -> Result<Article, GetArticleError>;
-    fn get_article_view(
-        &self,
-        viewer: &User,
-        article: Article,
-    ) -> Result<ArticleView, GetArticleError>;
-    fn favorite(&self, article: &Article, user: &User) -> Result<FavoriteOutcome, DatabaseError>;
-    fn unfavorite(
-        &self,
-        article: &Article,
-        user: &User,
-    ) -> Result<UnfavoriteOutcome, DatabaseError>;
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum GetUserError {
     #[error("There is no user with id {user_id:?}.")]
@@ -221,9 +208,4 @@ pub enum GetUserError {
     },
     #[error("Something went wrong.")]
     DatabaseError(#[from] diesel::result::Error),
-}
-
-pub trait UsersRepository {
-    fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
-    fn get_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
 }

@@ -1,4 +1,4 @@
-use crate::domain::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
 use crate::Repo;
