@@ -46,7 +46,7 @@ fn slugs_must_be_unique() {
     // Publishing the second draft fails
     let result = second_draft.publish(&repository);
     assert!(result.is_err());
-    println!("{:?}", result);
+
     // With the appropriate error variant
     match result.unwrap_err() {
         PublishArticleError::DuplicatedSlug { slug, source: _ } => assert_eq!(expected_slug, slug),
