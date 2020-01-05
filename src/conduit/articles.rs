@@ -60,12 +60,11 @@ pub fn update(
     })
 }
 
-pub fn delete(repo: &Repo, slug_value: String) -> Result<(), Error> {
+pub fn delete(repo: &Repo, slug_value: &str) -> Result<(), Error> {
     use crate::db::schema::articles::dsl::{articles, slug};
 
-    let to_be_deleted = articles.filter(slug.eq(slug_value));
     repo.run(move |conn| {
-        diesel::delete(to_be_deleted)
+        diesel::delete(articles.filter(slug.eq(slug_value)))
             .execute(&conn)
             // Discard the number of deleted rows
             .map(|_| ())

@@ -1,4 +1,4 @@
-use crate::domain::GetUserError;
+use crate::domain::{DatabaseError, GetUserError};
 use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug)]
@@ -11,6 +11,20 @@ pub enum GetArticleError {
     },
     #[error("Something went wrong.")]
     DatabaseError(#[from] diesel::result::Error),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum DeleteArticleError {
+    #[error("There is no article with {slug:?} as slug.")]
+    ArticleNotFound {
+        slug: String,
+        #[source]
+        source: diesel::result::Error,
+    },
+    #[error("User {user_id:?} is not the author of the article (slug: {slug:?}).")]
+    Forbidden { user_id: Uuid, slug: String },
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] DatabaseError),
 }
 
 #[derive(thiserror::Error, Debug)]

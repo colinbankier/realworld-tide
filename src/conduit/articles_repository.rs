@@ -3,7 +3,7 @@ use crate::db::models::{Article, NewArticle};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
-use crate::domain::GetUserError;
+use crate::domain::{DatabaseError, GetUserError};
 use diesel::PgConnection;
 use uuid::Uuid;
 
@@ -45,6 +45,10 @@ impl<'a> ArticleRepository for Repository<'a> {
             viewer: viewer.id,
         };
         Ok(article_view)
+    }
+
+    fn delete_article(&self, article: &domain::Article) -> Result<(), DatabaseError> {
+        Ok(articles::delete(&self.0, &article.slug)?)
     }
 
     fn favorite(

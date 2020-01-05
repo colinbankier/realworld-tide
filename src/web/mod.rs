@@ -7,7 +7,9 @@ pub mod users;
 use log::error;
 use tide::Response;
 
-use crate::domain::{DatabaseError, GetArticleError, GetUserError, PublishArticleError};
+use crate::domain::{
+    DatabaseError, DeleteArticleError, GetArticleError, GetUserError, PublishArticleError,
+};
 pub use app::get_app;
 
 pub fn diesel_error(e: &diesel::result::Error) -> Response {
@@ -19,7 +21,7 @@ impl From<GetUserError> for Response {
     fn from(e: GetUserError) -> Response {
         match &e {
             GetUserError::NotFound { .. } => Response::new(404).body_string(e.to_string()),
-            _ => Response::new(500),
+            GetUserError::DatabaseError(_) => Response::new(500),
         }
     }
 }
@@ -30,7 +32,7 @@ impl From<GetArticleError> for Response {
             GetArticleError::ArticleNotFound { .. } => {
                 Response::new(404).body_string(e.to_string())
             }
-            _ => Response::new(500),
+            GetArticleError::DatabaseError(_) => Response::new(500),
         }
     }
 }
@@ -50,7 +52,19 @@ impl From<PublishArticleError> for Response {
             PublishArticleError::DuplicatedSlug { .. } => {
                 Response::new(400).body_string(e.to_string())
             }
-            _ => Response::new(500),
+            PublishArticleError::DatabaseError(_) => Response::new(500),
+        }
+    }
+}
+
+impl From<DeleteArticleError> for Response {
+    fn from(e: DeleteArticleError) -> Response {
+        match &e {
+            DeleteArticleError::ArticleNotFound { .. } => {
+                Response::new(404).body_string(e.to_string())
+            }
+            DeleteArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
+            DeleteArticleError::DatabaseError(_) => Response::new(500),
         }
     }
 }

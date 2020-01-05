@@ -1,5 +1,5 @@
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
-use crate::domain::{Article, ArticleView, DatabaseError};
+use crate::domain::{Article, ArticleView, DatabaseError, DeleteArticleError};
 use derive_more::Constructor;
 use uuid::Uuid;
 
@@ -18,6 +18,21 @@ pub struct User {
 }
 
 impl User {
+    pub fn delete(
+        &self,
+        article: Article,
+        repository: &impl ArticleRepository,
+    ) -> Result<(), DeleteArticleError> {
+        // You can only delete your own articles
+        if article.author.username != self.profile.username {
+            return Err(DeleteArticleError::Forbidden {
+                slug: article.slug,
+                user_id: self.id,
+            });
+        }
+        Ok(repository.delete_article(&article)?)
+    }
+
     pub fn favorite(
         &self,
         article: Article,

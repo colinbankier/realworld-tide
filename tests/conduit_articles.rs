@@ -27,7 +27,7 @@ fn delete_article() {
     let articles = create_articles(&repo, users);
 
     let slug = articles[0].slug.clone();
-    articles::delete(&repo, slug.clone()).expect("Failed to delete article");
+    articles::delete(&repo, &slug).expect("Failed to delete article");
 
     let results = articles::find(&repo, Default::default()).expect("Failed to get articles");
     assert_eq!(results.len() as i32, n_articles - 1);

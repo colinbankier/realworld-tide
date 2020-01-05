@@ -12,6 +12,7 @@ pub trait ArticleRepository {
         viewer: &User,
         article: Article,
     ) -> Result<ArticleView, GetArticleError>;
+    fn delete_article(&self, article: &Article) -> Result<(), DatabaseError>;
     fn favorite(&self, article: &Article, user: &User) -> Result<FavoriteOutcome, DatabaseError>;
     fn unfavorite(
         &self,

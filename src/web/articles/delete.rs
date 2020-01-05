@@ -1,18 +1,18 @@
-use crate::conduit::articles;
+use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::middleware::ContextExt;
-use crate::web::diesel_error;
 use crate::Repo;
-use http::status::StatusCode;
-use tide::{Response, ResultExt};
+use tide::Response;
 
-pub async fn delete_article(cx: tide::Request<Repo>) -> tide::Result<Response> {
-    let slug: String = cx.param("slug").client_err()?;
+pub async fn delete_article(cx: tide::Request<Repo>) -> Result<Response, Response> {
+    let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
+    let repository = crate::conduit::articles_repository::Repository(cx.state());
 
     // They have to be authenticated to perform deletions
-    cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
 
-    let repo = cx.state();
+    let user = repository.get_by_id(user_id)?;
+    let article = repository.get_by_slug(&slug)?;
+    user.delete(article, &repository)?;
 
-    articles::delete(repo, slug).map_err(|e| diesel_error(&e))?;
     Ok(Response::new(200))
 }
