@@ -4,7 +4,8 @@ use crate::helpers::create_user;
 use helpers::generate;
 use helpers::generate::With;
 use helpers::test_db::get_test_repo;
-use realworld_tide::domain::{ArticleRepository, PublishArticleError};
+use realworld_tide::domain::repositories::ArticleRepository;
+use realworld_tide::domain::PublishArticleError;
 
 #[test]
 fn cannot_publish_an_article_if_the_author_does_not_exist() {
