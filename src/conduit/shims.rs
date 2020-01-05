@@ -7,7 +7,7 @@ impl From<(Article, User, u64)> for domain::Article {
         let metadata = domain::ArticleMetadata::new(a.created_at, a.updated_at);
         let content = domain::ArticleContent::new(a.title, a.description, a.body, a.tag_list);
         let user: domain::User = u.into();
-        domain::Article::new(content, a.slug, user.profile.to_owned(), metadata, n_fav)
+        domain::Article::new(content, a.slug, user.profile, metadata, n_fav)
     }
 }
 
