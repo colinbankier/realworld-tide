@@ -2,7 +2,7 @@ use crate::conduit::{articles, users};
 use crate::db::models::NewArticle;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::{Article, ArticleResponse};
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use http::status::StatusCode;
 use itertools::Itertools;
@@ -32,7 +32,7 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
     let auth = cx.get_claims().map_err(|_| StatusCode::UNAUTHORIZED)?;
     let repo = cx.state();
 
-    let user = users::find(repo, auth.user_id()).map_err(|e| diesel_error(&e))?;
+    let user = users::find(repo, auth.user_id()).map_err(|e| internal_error(&e))?;
     let new_article = NewArticle {
         description: new_article.article.description,
         slug: get_slug(new_article.article.title.clone()),
@@ -42,7 +42,7 @@ pub async fn insert_article(mut cx: tide::Request<Repo>) -> tide::Result<Respons
         user_id: user.id,
     };
 
-    let article = articles::insert(repo, new_article).map_err(|e| diesel_error(&e))?;
+    let article = articles::insert(repo, new_article).map_err(|e| internal_error(&e))?;
     let response = ArticleResponse {
         article: Article::new(article, user, 0, false),
     };

@@ -1,7 +1,8 @@
 use super::responses::UserResponse;
+use crate::conduit::errors::FindError;
 use crate::conduit::users;
 use crate::db::models::*;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use serde::Deserialize;
 
@@ -34,7 +35,7 @@ pub async fn login(mut cx: Request<Repo>) -> tide::Result<Response> {
         Ok(user) => Ok(Response::new(200)
             .body_json(&UserResponse::new(user))
             .unwrap()),
-        Err(diesel::result::Error::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
-        Err(e) => Err(diesel_error(&e)),
+        Err(FindError::NotFound) => Err(StatusCode::UNAUTHORIZED.into()),
+        Err(FindError::Internal(e)) => Err(internal_error(&e)),
     }
 }

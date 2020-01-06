@@ -1,5 +1,5 @@
 use crate::conduit::articles;
-use crate::web::diesel_error;
+use crate::web::internal_error;
 use crate::Repo;
 use serde::{Deserialize, Serialize};
 use tide::{Request, Response};
@@ -11,7 +11,7 @@ pub struct TagsResponse {
 
 pub async fn tags(cx: Request<Repo>) -> tide::Result<Response> {
     let repo = cx.state();
-    let tags = articles::tags(repo).map_err(|e| diesel_error(&e))?;
+    let tags = articles::tags(repo).map_err(|e| internal_error(&e))?;
 
     let response = TagsResponse {
         tags: tags.into_iter().collect(),
