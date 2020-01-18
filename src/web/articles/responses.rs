@@ -79,7 +79,7 @@ impl From<domain::ArticleView> for ArticleResponse {
 }
 
 impl Article {
-    pub fn new(a: models::Article, u: models::User, n_fav: i64, favorited: bool) -> Self {
+    pub fn new(a: models::Article, u: models::User, n_fav: u64, favorited: bool) -> Self {
         Self {
             title: a.title,
             slug: a.slug,
@@ -132,12 +132,34 @@ impl From<domain::ProfileView> for Author {
 }
 
 impl ArticlesResponse {
-    pub fn new(results: Vec<(models::Article, models::User, i64, bool)>) -> Self {
+    pub fn new(results: Vec<(models::Article, models::User, u64, bool)>) -> Self {
         let articles_count = results.len() as u64;
         let articles = results
             .into_iter()
             .map(|(a, u, n_fav, favorited)| Article::new(a, u, n_fav, favorited))
             .collect();
+        Self {
+            articles,
+            articles_count,
+        }
+    }
+}
+
+impl From<Vec<domain::ArticleView>> for ArticlesResponse {
+    fn from(articles: Vec<domain::ArticleView>) -> Self {
+        let articles_count = articles.len() as u64;
+        let articles = articles.into_iter().map(|a| Article::from(a)).collect();
+        Self {
+            articles,
+            articles_count,
+        }
+    }
+}
+
+impl From<Vec<domain::Article>> for ArticlesResponse {
+    fn from(articles: Vec<domain::Article>) -> Self {
+        let articles_count = articles.len() as u64;
+        let articles = articles.into_iter().map(|a| Article::from(a)).collect();
         Self {
             articles,
             articles_count,

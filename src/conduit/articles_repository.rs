@@ -46,6 +46,45 @@ impl<'a> ArticleRepository for Repository<'a> {
         Ok(article_view)
     }
 
+    fn get_articles_views(
+        &self,
+        viewer: &domain::User,
+        articles: Vec<domain::Article>,
+    ) -> Result<Vec<domain::ArticleView>, DatabaseError> {
+        let slugs: Vec<String> = articles.iter().map(|a| a.slug.to_owned()).collect();
+        let slugs: Vec<&str> = slugs.iter().map(|slug| slug.as_str()).collect();
+
+        let favs = favorites::are_favorite(&self.0, viewer.id, slugs)?;
+        articles
+            .into_iter()
+            .map(|a| {
+                let favorited = favs[a.slug.as_str()];
+                let author_view = self.get_view(viewer, &a.author.username)?;
+                let article_view = domain::ArticleView {
+                    content: a.content,
+                    slug: a.slug,
+                    author: author_view,
+                    metadata: a.metadata,
+                    favorited,
+                    favorites_count: a.favorites_count,
+                    viewer: viewer.id,
+                };
+                Ok(article_view)
+            })
+            .collect()
+    }
+
+    fn find_articles(
+        &self,
+        query: domain::ArticleQuery,
+    ) -> Result<Vec<domain::Article>, DatabaseError> {
+        let result: Vec<domain::Article> = articles::find(&self.0, query)?
+            .into_iter()
+            .map(|a| a.into())
+            .collect();
+        Ok(result)
+    }
+
     fn delete_article(&self, article: &domain::Article) -> Result<(), DatabaseError> {
         Ok(articles::delete(&self.0, &article.slug)?)
     }

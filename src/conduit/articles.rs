@@ -2,23 +2,16 @@ use crate::conduit::favorites::n_favorites;
 use crate::db::models::{Article, NewArticle, UpdateArticle, User};
 use crate::db::schema::articles;
 use crate::domain;
+use crate::domain::ArticleQuery;
 use crate::domain::PublishArticleError;
 use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error};
 use diesel::sql_query;
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::str::FromStr;
 use uuid::Uuid;
-
-#[derive(Default, Serialize, Deserialize, Debug)]
-pub struct ArticleQuery {
-    pub author: Option<String>,
-    pub favorited: Option<String>,
-    pub tag: Option<String>,
-}
 
 impl FromStr for ArticleQuery {
     type Err = String;
@@ -71,7 +64,7 @@ pub fn delete(repo: &Repo, slug_value: &str) -> Result<(), Error> {
     })
 }
 
-pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, i64)>, Error> {
+pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, u64)>, Error> {
     use crate::db::schema::articles::dsl::*;
     use crate::db::schema::users::dsl::{username, users};
 
@@ -92,7 +85,7 @@ pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, i64)
     results
         .into_iter()
         .map(|(article, user)| {
-            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav))
+            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav as u64))
         })
         .collect::<Result<Vec<_>, _>>()
 }

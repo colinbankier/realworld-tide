@@ -42,13 +42,14 @@ pub async fn feed(cx: Request<Repo>) -> tide::Result<Response> {
         .iter()
         .map(|(a, _, _)| a.slug.to_owned())
         .collect_vec();
+    let article_ids = article_ids.iter().map(|slug| slug.as_str()).collect_vec();
     let favs =
         favorites::are_favorite(&repo, user_id, article_ids).map_err(|e| diesel_error(&e))?;
     let result_with_fav = result
         .into_iter()
         .map(|(a, u, fav_count)| {
-            let favorited = favs[&a.slug];
-            (a, u, fav_count, favorited)
+            let favorited = favs[&a.slug.as_str()];
+            (a, u, fav_count as u64, favorited)
         })
         .collect();
 

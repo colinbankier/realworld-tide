@@ -1,6 +1,7 @@
 use crate::domain::{
-    Article, ArticleContent, ArticleUpdate, ArticleView, DatabaseError, FavoriteOutcome,
-    GetArticleError, GetUserError, ProfileView, PublishArticleError, UnfavoriteOutcome, User,
+    Article, ArticleContent, ArticleQuery, ArticleUpdate, ArticleView, DatabaseError,
+    FavoriteOutcome, GetArticleError, GetUserError, ProfileView, PublishArticleError,
+    UnfavoriteOutcome, User,
 };
 use uuid::Uuid;
 
@@ -13,6 +14,12 @@ pub trait ArticleRepository {
         viewer: &User,
         article: Article,
     ) -> Result<ArticleView, GetArticleError>;
+    fn get_articles_views(
+        &self,
+        viewer: &User,
+        articles: Vec<Article>,
+    ) -> Result<Vec<ArticleView>, DatabaseError>;
+    fn find_articles(&self, query: ArticleQuery) -> Result<Vec<Article>, DatabaseError>;
     fn delete_article(&self, article: &Article) -> Result<(), DatabaseError>;
     fn update_article(
         &self,

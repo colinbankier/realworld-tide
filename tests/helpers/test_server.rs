@@ -8,7 +8,7 @@ use async_std::io::prelude::ReadExt;
 use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
-use realworld_tide::conduit::articles::ArticleQuery;
+use realworld_tide::domain::articles::ArticleQuery;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
 use realworld_tide::web::comments::responses::{CommentResponse, CommentsResponse};
 use realworld_tide::web::profiles::responses::ProfileResponse;

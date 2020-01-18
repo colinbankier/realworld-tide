@@ -2,6 +2,7 @@ use crate::domain::{Profile, ProfileView};
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Clone, Constructor, Debug, PartialEq)]
@@ -54,4 +55,11 @@ pub struct ArticleUpdate {
     pub title: Option<String>,
     pub description: Option<String>,
     pub body: Option<String>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ArticleQuery {
+    pub author: Option<String>,
+    pub favorited: Option<String>,
+    pub tag: Option<String>,
 }

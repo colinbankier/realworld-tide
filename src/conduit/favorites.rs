@@ -51,20 +51,20 @@ pub fn unfavorite(
 
 /// Given a user and an article, return if the user has marked it as favorite.
 pub fn is_favorite(repo: &Repo, user_id: Uuid, article_slug: &str) -> Result<bool, Error> {
-    Ok(are_favorite(repo, user_id, vec![article_slug.to_owned()])?[article_slug])
+    Ok(are_favorite(repo, user_id, vec![article_slug])?[article_slug])
 }
 
 /// Given a user and a list of articles, return for each of them if the user has
 /// marked them as favorite.
-pub fn are_favorite(
-    repo: &Repo,
+pub fn are_favorite<'a>(
+    repo: &'a Repo,
     user_id_value: Uuid,
-    article_slugs: Vec<String>,
-) -> Result<HashMap<String, bool>, Error> {
+    article_slugs: Vec<&'a str>,
+) -> Result<HashMap<&'a str, bool>, Error> {
     use crate::db::schema::favorites::dsl::{article_id, favorites, user_id};
 
     let filter = article_id
-        .eq_any(article_slugs.clone())
+        .eq_any(&article_slugs)
         .and(user_id.eq(user_id_value));
     let favorite_articles_ids: Vec<String> = repo.run(move |conn| {
         favorites
@@ -73,9 +73,9 @@ pub fn are_favorite(
             .get_results(&conn)
     })?;
 
-    let mut results = HashMap::with_capacity(article_slugs.len());
-    for slug in &article_slugs {
-        results.insert(slug.to_owned(), favorite_articles_ids.contains(slug));
+    let mut results = HashMap::new();
+    for slug in article_slugs {
+        results.insert(slug, favorite_articles_ids.contains(&slug.to_string()));
     }
     Ok(results)
 }
