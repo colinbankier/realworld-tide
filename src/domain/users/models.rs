@@ -101,6 +101,14 @@ impl User {
         };
         Ok(article_view)
     }
+
+    pub fn feed(
+        &self,
+        query: FeedQuery,
+        repository: &impl ArticleRepository,
+    ) -> Result<Vec<ArticleView>, DatabaseError> {
+        Ok(repository.feed(&self, query)?)
+    }
 }
 
 pub enum FavoriteOutcome {
@@ -119,4 +127,10 @@ pub struct ProfileView {
     pub following: bool,
     // The user owning this view of a profile
     pub viewer: Uuid,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FeedQuery {
+    pub limit: u64,
+    pub offset: u64,
 }

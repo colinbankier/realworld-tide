@@ -109,12 +109,15 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<domain::Article, Error>
 pub fn feed(
     repo: &Repo,
     user_id_value: Uuid,
-    limit: i64,
-    offset: i64,
-) -> Result<Vec<(Article, User, i64)>, Error> {
+    limit: u64,
+    offset: u64,
+) -> Result<Vec<(Article, User, u64)>, Error> {
     use crate::db::schema::articles::dsl::{articles, created_at, user_id};
     use crate::db::schema::followers::dsl::{followed_id, follower_id, followers};
     use crate::db::schema::users::dsl::{id, users};
+
+    let limit = limit as i64;
+    let offset = offset as i64;
 
     let results: Vec<(Article, User)> = repo.run(move |conn| {
         followers
@@ -130,7 +133,7 @@ pub fn feed(
     results
         .into_iter()
         .map(|(article, user)| {
-            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav))
+            n_favorites(&repo, &article.slug).map(|n_fav| (article, user, n_fav as u64))
         })
         .collect::<Result<Vec<_>, _>>()
 }

@@ -85,6 +85,19 @@ impl<'a> ArticleRepository for Repository<'a> {
         Ok(result)
     }
 
+    fn feed(
+        &self,
+        user: &domain::User,
+        query: domain::FeedQuery,
+    ) -> Result<Vec<domain::ArticleView>, DatabaseError> {
+        let articles: Vec<domain::Article> =
+            articles::feed(&self.0, user.id, query.limit, query.offset)?
+                .into_iter()
+                .map(|a| a.into())
+                .collect();
+        Ok(self.get_articles_views(user, articles)?)
+    }
+
     fn delete_article(&self, article: &domain::Article) -> Result<(), DatabaseError> {
         Ok(articles::delete(&self.0, &article.slug)?)
     }
