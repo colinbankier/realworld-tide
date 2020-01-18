@@ -10,21 +10,10 @@ pub struct ArticlesResponse {
     pub articles_count: u64,
 }
 
-impl From<Vec<domain::ArticleView>> for ArticlesResponse {
-    fn from(articles: Vec<domain::ArticleView>) -> Self {
+impl<T: Into<Article>> From<Vec<T>> for ArticlesResponse {
+    fn from(articles: Vec<T>) -> Self {
         let articles_count = articles.len() as u64;
-        let articles = articles.into_iter().map(|a| Article::from(a)).collect();
-        Self {
-            articles,
-            articles_count,
-        }
-    }
-}
-
-impl From<Vec<domain::Article>> for ArticlesResponse {
-    fn from(articles: Vec<domain::Article>) -> Self {
-        let articles_count = articles.len() as u64;
-        let articles = articles.into_iter().map(|a| Article::from(a)).collect();
+        let articles = articles.into_iter().map(|a| a.into()).collect();
         Self {
             articles,
             articles_count,
@@ -38,14 +27,8 @@ pub struct ArticleResponse {
     pub article: Article,
 }
 
-impl From<domain::Article> for ArticleResponse {
-    fn from(a: domain::Article) -> Self {
-        Self { article: a.into() }
-    }
-}
-
-impl From<domain::ArticleView> for ArticleResponse {
-    fn from(a: domain::ArticleView) -> Self {
+impl<T: Into<Article>> From<T> for ArticleResponse {
+    fn from(a: T) -> Self {
         Self { article: a.into() }
     }
 }
