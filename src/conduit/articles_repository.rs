@@ -1,5 +1,5 @@
-use crate::conduit::{articles, favorites, followers, users};
-use crate::db::models::{Article, NewArticle};
+use crate::conduit::{articles, comments, favorites, followers, users};
+use crate::db::models::{Article, NewArticle, NewComment};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
@@ -100,6 +100,33 @@ impl<'a> ArticleRepository for Repository<'a> {
 
     fn delete_article(&self, article: &domain::Article) -> Result<(), DatabaseError> {
         Ok(articles::delete(&self.0, &article.slug)?)
+    }
+
+    fn comment_article(
+        &self,
+        user: &domain::User,
+        article: &domain::Article,
+        comment: domain::CommentContent,
+    ) -> Result<domain::Comment, DatabaseError> {
+        let new_comment = NewComment {
+            body: &comment.0,
+            article_id: &article.slug,
+            author_id: user.id,
+        };
+        let raw_comment = comments::create_comment(&self.0, new_comment)?;
+        let author_view = domain::ProfileView {
+            profile: user.profile.clone(),
+            following: true,
+            viewer: user.id,
+        };
+        let comment = domain::Comment {
+            id: raw_comment.id as u64,
+            author: author_view,
+            body: raw_comment.body,
+            created_at: raw_comment.created_at,
+            updated_at: raw_comment.updated_at,
+        };
+        Ok(comment)
     }
 
     fn update_article(

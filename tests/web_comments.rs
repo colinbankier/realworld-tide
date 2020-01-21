@@ -31,6 +31,8 @@ fn comments_api() {
         assert_eq!(first_comment.comment.author.username, user.username);
         assert_eq!(first_comment.comment.author.bio, user.bio);
         assert_eq!(first_comment.comment.author.image, user.image);
+        // A user follows themselves, by definition
+        assert_eq!(first_comment.comment.author.following, true);
 
         // A user can create more than one comment for the same article
         let request = realworld_tide::web::comments::create::Request {

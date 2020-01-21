@@ -1,4 +1,5 @@
 use crate::db::models;
+use crate::domain;
 use crate::web::articles::responses::Author;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -38,6 +39,18 @@ impl Comment {
                 image: a.image,
                 following: false,
             },
+        }
+    }
+}
+
+impl From<domain::Comment> for Comment {
+    fn from(c: domain::Comment) -> Self {
+        Self {
+            id: c.id,
+            body: c.body,
+            created_at: c.created_at,
+            updated_at: c.updated_at,
+            author: c.author.into(),
         }
     }
 }

@@ -2,17 +2,23 @@ use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
 use crate::{domain, Repo};
 
+use crate::conduit::followers::follow;
 use diesel::prelude::*;
 use diesel::result::Error;
 use uuid::Uuid;
 
 pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
-    repo.run(move |conn| {
+    let new_user: User = repo.run(move |conn| {
         // TODO: store password not in plain text, later
         diesel::insert_into(users::table)
             .values(&user)
             .get_result(&conn)
-    })
+    })?;
+
+    // Invariant: a user always follows themselves
+    follow(repo, new_user.id, new_user.id)?;
+
+    Ok(new_user)
 }
 
 pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, domain::GetUserError> {

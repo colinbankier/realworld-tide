@@ -1,7 +1,7 @@
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::domain::{
-    Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, DatabaseError,
-    PublishArticleError,
+    Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, Comment,
+    CommentContent, DatabaseError, PublishArticleError,
 };
 use derive_more::Constructor;
 use uuid::Uuid;
@@ -58,6 +58,15 @@ impl User {
             });
         }
         Ok(repository.delete_article(&article)?)
+    }
+
+    pub fn comment(
+        &self,
+        article: &Article,
+        comment: CommentContent,
+        repository: &impl ArticleRepository,
+    ) -> Result<Comment, ChangeArticleError> {
+        Ok(repository.comment_article(&self, &article, comment)?)
     }
 
     pub fn favorite(

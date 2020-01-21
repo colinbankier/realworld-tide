@@ -86,10 +86,10 @@ pub struct NewFollower {
 
 #[derive(Insertable, Deserialize, Debug, Clone)]
 #[table_name = "comments"]
-pub struct NewComment {
+pub struct NewComment<'a> {
     pub author_id: Uuid,
-    pub article_id: String,
-    pub body: String,
+    pub article_id: &'a str,
+    pub body: &'a str,
 }
 
 #[derive(Queryable, Deserialize, Debug, Clone)]
