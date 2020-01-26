@@ -1,13 +1,15 @@
 use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
-use crate::Repo;
+use crate::Context;
 use tide::{Request, Response};
 use uuid::Uuid;
 
-pub async fn get_article(cx: Request<Repo>) -> Result<Response, Response> {
+pub async fn get_article<R: 'static + Repository + Sync + Send>(
+    cx: Request<Context<R>>,
+) -> Result<Response, Response> {
     let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let article = repository.get_article_by_slug(&slug)?;
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();

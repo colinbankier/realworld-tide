@@ -1,14 +1,16 @@
 use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::profiles::responses::ProfileResponse;
-use crate::Repo;
+use crate::Context;
 use tide::{Request, Response};
 use uuid::Uuid;
 
-pub async fn get_profile(cx: Request<Repo>) -> Result<Response, Response> {
+pub async fn get_profile<R: 'static + Repository + Sync + Send>(
+    cx: Request<Context<R>>,
+) -> Result<Response, Response> {
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let profile_username: String = cx.param("username").map_err(|_| Response::new(400))?;
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let response: ProfileResponse = match user_id {
         Some(user_id) => {

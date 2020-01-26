@@ -5,11 +5,12 @@ use crate::domain;
 use crate::domain::{DatabaseError, DeleteCommentError, GetUserError};
 use diesel::result::Error;
 use diesel::PgConnection;
+use std::collections::HashSet;
 use uuid::Uuid;
 
-pub struct Repository<'a>(pub &'a Repo<PgConnection>);
+pub struct Repository(pub Repo<PgConnection>);
 
-impl<'a> domain::repositories::Repository for Repository<'a> {
+impl domain::repositories::Repository for Repository {
     fn publish_article(
         &self,
         draft: domain::ArticleContent,
@@ -257,5 +258,9 @@ impl<'a> domain::repositories::Repository for Repository<'a> {
             follower.id,
             unfollowed_user.id,
         )?)
+    }
+
+    fn get_tags(&self) -> Result<HashSet<String>, DatabaseError> {
+        Ok(articles::tags(&self.0)?)
     }
 }

@@ -4,6 +4,7 @@ use crate::domain::{
     LoginError, Profile, ProfileView, PublishArticleError, SignUp, SignUpError, UnfavoriteOutcome,
     User, UserUpdate,
 };
+use std::collections::HashSet;
 use uuid::Uuid;
 
 pub trait Repository {
@@ -58,4 +59,5 @@ pub trait Repository {
     fn get_profile_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
     fn follow(&self, follower: &User, to_be_followed: &Profile) -> Result<(), DatabaseError>;
     fn unfollow(&self, follower: &User, to_be_unfollowed: &Profile) -> Result<(), DatabaseError>;
+    fn get_tags(&self) -> Result<HashSet<String>, DatabaseError>;
 }

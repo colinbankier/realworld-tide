@@ -2,11 +2,13 @@ use crate::domain::articles::ArticleQuery;
 use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
-use crate::Repo;
+use crate::Context;
 use tide::{Request, Response};
 use uuid::Uuid;
 
-pub async fn list_articles(cx: Request<Repo>) -> Result<Response, Response> {
+pub async fn list_articles<R: 'static + Repository + Sync + Send>(
+    cx: Request<Context<R>>,
+) -> Result<Response, Response> {
     // This can be avoided once https://github.com/http-rs/tide/pull/384 gets merged
     let query = cx.query::<ArticleQuery>().unwrap_or(ArticleQuery {
         author: None,
@@ -14,7 +16,7 @@ pub async fn list_articles(cx: Request<Repo>) -> Result<Response, Response> {
         tag: None,
     });
 
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let articles = repository.find_articles(query)?;

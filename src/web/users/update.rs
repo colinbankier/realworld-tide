@@ -1,6 +1,6 @@
 use crate::domain;
 use crate::middleware::ContextExt;
-use crate::Repo;
+use crate::Context;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::encode_token;
@@ -34,17 +34,19 @@ impl From<UpdateUserRequest> for domain::UserUpdate {
     }
 }
 
-pub async fn update_user(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
+pub async fn update_user<R: 'static + Repository + Sync + Send>(
+    mut cx: tide::Request<Context<R>>,
+) -> Result<Response, Response> {
     let update_params = cx
         .body_json::<Request>()
         .await
         .map_err(|_| Response::new(400))?
         .user;
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let user = repository.get_user_by_id(user_id)?;
-    let updated_user = user.update(update_params.into(), &repository)?;
+    let updated_user = user.update(update_params.into(), repository)?;
     let token = encode_token(updated_user.id);
 
     let response = UserResponse::from((updated_user, token));

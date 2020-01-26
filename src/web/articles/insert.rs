@@ -1,7 +1,7 @@
 use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
-use crate::{domain, Repo};
+use crate::{domain, Context};
 use serde::{Deserialize, Serialize};
 use tide::Response;
 
@@ -31,16 +31,18 @@ impl From<NewArticleRequest> for domain::ArticleContent {
     }
 }
 
-pub async fn insert_article(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
+pub async fn insert_article<R: 'static + Repository + Sync + Send>(
+    mut cx: tide::Request<Context<R>>,
+) -> Result<Response, Response> {
     let request: Request = cx
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let author = repository.get_user_by_id(author_id)?;
-    let published_article = author.publish(request.article.into(), &repository)?;
+    let published_article = author.publish(request.article.into(), repository)?;
 
     Ok(Response::new(200)
         .body_json(&ArticleResponse::from(published_article))

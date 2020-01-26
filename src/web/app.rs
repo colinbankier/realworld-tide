@@ -1,5 +1,6 @@
+use crate::domain::repositories::Repository;
 use crate::web;
-use crate::Repo;
+use crate::Context;
 use tide::{IntoResponse, Response, Server};
 
 pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> Response {
@@ -18,14 +19,15 @@ pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> 
     }
 }
 
-pub fn get_app(repository: Repo) -> Server<Repo> {
-    let mut app = Server::with_state(repository);
+pub fn get_app<R: Repository + Send + Sync>(repository: R) -> Server<Context<R>> {
+    let context = Context { repository };
+    let mut app = Server::with_state(context);
     app = add_middleware(app);
     app = add_routes(app);
     app
 }
 
-pub fn add_routes(mut app: Server<Repo>) -> Server<Repo> {
+pub fn add_routes<R: Repository + Send + Sync>(mut app: Server<Context<R>>) -> Server<Context<R>> {
     app.at("/api").nest(|api| {
         api.at("/user")
             .get(|req| async move { result_to_response(web::users::get_current_user(req).await) })
@@ -66,7 +68,7 @@ pub fn add_routes(mut app: Server<Repo>) -> Server<Repo> {
     app
 }
 
-pub fn add_middleware(mut app: Server<Repo>) -> Server<Repo> {
+pub fn add_middleware<State: 'static + Sync + Send>(mut app: Server<State>) -> Server<State> {
     app.middleware(tide::middleware::RequestLogger::new());
     app.middleware(crate::middleware::JwtMiddleware::new());
     app

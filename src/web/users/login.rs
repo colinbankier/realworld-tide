@@ -1,5 +1,5 @@
 use super::responses::UserResponse;
-use crate::Repo;
+use crate::Context;
 use serde::Deserialize;
 
 use crate::auth::encode_token;
@@ -17,13 +17,15 @@ pub struct AuthUser {
     password: String,
 }
 
-pub async fn login(mut cx: Request<Repo>) -> Result<Response, Response> {
+pub async fn login<R: 'static + Repository + Sync + Send>(
+    mut cx: Request<Context<R>>,
+) -> Result<Response, Response> {
     let user = cx
         .body_json::<AuthRequest>()
         .await
         .map_err(|_| Response::new(400))?
         .user;
-    let repository = crate::conduit::articles_repository::Repository(cx.state());
+    let repository = &cx.state().repository;
 
     let logged_in_user = repository.get_user_by_email_and_password(&user.email, &user.password)?;
     let token = encode_token(logged_in_user.id);
