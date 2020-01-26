@@ -22,12 +22,12 @@ pub struct User {
 
 #[derive(Serialize, Deserialize, Debug, AsChangeset, Default, Clone)]
 #[table_name = "users"]
-pub struct UpdateUser {
-    pub email: Option<String>,
-    pub username: Option<String>,
-    pub password: Option<String>,
-    pub image: Option<String>,
-    pub bio: Option<String>,
+pub struct UpdateUser<'a> {
+    pub email: Option<&'a str>,
+    pub username: Option<&'a str>,
+    pub password: Option<&'a str>,
+    pub image: Option<&'a str>,
+    pub bio: Option<&'a str>,
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, PartialEq)]

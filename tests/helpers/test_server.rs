@@ -12,7 +12,6 @@ use realworld_tide::domain::SignUp;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
 use realworld_tide::web::comments::responses::{CommentResponse, CommentsResponse};
 use realworld_tide::web::profiles::responses::ProfileResponse;
-use realworld_tide::web::users::update::UpdateUserRequest;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use tide::server::Service;
@@ -99,7 +98,7 @@ impl TestApp {
 
     pub async fn update_user_details(
         &mut self,
-        details: &UpdateUserRequest,
+        details: &realworld_tide::web::users::update::Request,
         token: &String,
     ) -> Result<UserResponse, Response> {
         let response = self

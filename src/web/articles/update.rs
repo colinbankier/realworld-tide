@@ -41,7 +41,7 @@ pub async fn update_article(mut cx: tide::Request<Repo>) -> Result<Response, Res
 
     let article = repository.get_by_slug(&slug)?;
     let user = repository.get_by_id(user_id)?;
-    let updated_article = user.update(article, request.into(), &repository)?;
+    let updated_article = user.update_article(article, request.into(), &repository)?;
 
     let response: ArticleResponse = repository.get_article_view(&user, updated_article)?.into();
     Ok(Response::new(200).body_json(&response).unwrap())

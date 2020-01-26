@@ -1,5 +1,5 @@
 use crate::conduit::{articles, comments, favorites, followers, users};
-use crate::db::models::{Article, NewArticle, NewComment, NewUser};
+use crate::db::models::{Article, NewArticle, NewComment, NewUser, UpdateUser};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
@@ -184,6 +184,16 @@ impl<'a> UsersRepository for Repository<'a> {
             id: Uuid::new_v4(),
         };
         Ok(users::insert(&self.0, new_user)?.into())
+    }
+
+    fn update(
+        &self,
+        user: domain::User,
+        update: domain::UserUpdate,
+    ) -> Result<domain::User, DatabaseError> {
+        let update = UpdateUser::from(&update);
+        let updated = users::update(&self.0, user.id, update)?;
+        Ok(domain::User::from(updated))
     }
 
     fn get_by_id(&self, user_id: Uuid) -> Result<domain::User, GetUserError> {

@@ -1,16 +1,10 @@
 use super::responses::UserResponse;
-use crate::db::models::*;
 use crate::Repo;
 use serde::Deserialize;
 
 use crate::auth::encode_token;
 use crate::domain::repositories::UsersRepository;
 use tide::{Request, Response};
-
-#[derive(Deserialize, Debug)]
-pub struct UpdateUserRequest {
-    user: UpdateUser,
-}
 
 #[derive(Deserialize)]
 pub struct AuthRequest {

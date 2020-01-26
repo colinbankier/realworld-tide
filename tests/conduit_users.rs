@@ -32,10 +32,13 @@ fn test_update_user() {
     // Create a new user
     let user = create_user(&repo);
 
+    let bio = fake!(Lorem.paragraph(3, 5)).to_string();
+    let image = fake!(Internet.domain_suffix).to_string();
+    let email = fake!(Internet.free_email).to_string();
     let new_details = UpdateUser {
-        bio: Some(fake!(Lorem.paragraph(3, 5)).to_string()),
-        image: Some(fake!(Internet.domain_suffix).to_string()),
-        email: Some(fake!(Internet.free_email).to_string()),
+        bio: Some(&bio),
+        image: Some(&image),
+        email: Some(&email),
         ..Default::default()
     };
 
@@ -45,5 +48,7 @@ fn test_update_user() {
 
     // Check the user is updated in the database.
     let updated_user = users::find(&repo, user.id).expect("Failed to fetch user");
-    assert_eq!(updated_user.bio, new_details.bio);
+    assert_eq!(updated_user.bio, Some(bio));
+    assert_eq!(updated_user.image, Some(image));
+    assert_eq!(updated_user.email, email);
 }

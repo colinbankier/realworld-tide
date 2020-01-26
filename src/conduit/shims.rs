@@ -1,4 +1,4 @@
-use crate::db::models::{Article, Comment, NewArticle, UpdateArticle, User};
+use crate::db::models::{Article, Comment, NewArticle, UpdateArticle, UpdateUser, User};
 use crate::domain;
 
 impl From<(Article, User, u64)> for domain::Article {
@@ -90,6 +90,18 @@ impl<'a> From<&'a domain::ArticleUpdate> for UpdateArticle<'a> {
             title: update.title.as_deref(),
             description: update.description.as_deref(),
             body: update.body.as_deref(),
+        }
+    }
+}
+
+impl<'a> From<&'a domain::UserUpdate> for UpdateUser<'a> {
+    fn from(u: &'a domain::UserUpdate) -> Self {
+        Self {
+            email: u.email.as_deref(),
+            username: u.username.as_deref(),
+            password: u.password.as_deref(),
+            image: u.image.as_deref(),
+            bio: u.bio.as_deref(),
         }
     }
 }

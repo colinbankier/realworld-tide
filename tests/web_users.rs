@@ -6,7 +6,6 @@ use helpers::generate;
 use helpers::test_server::TestApp;
 
 use async_std::task;
-use realworld_tide::db::models::UpdateUser;
 use realworld_tide::web::users::responses::UserResponse;
 use realworld_tide::web::users::update::UpdateUserRequest;
 
@@ -47,8 +46,8 @@ fn update_and_retrieve_user_details() {
         assert_eq!(stored_user.user.bio, None);
         assert_eq!(stored_user.user.image, None);
 
-        let new_details = UpdateUserRequest {
-            user: UpdateUser {
+        let new_details = realworld_tide::web::users::update::Request {
+            user: UpdateUserRequest {
                 bio: Some("I like to code.".to_string()),
                 image: Some(
                     "https://www.rust-lang.org/static/images/rust-logo-blk.svg".to_string(),

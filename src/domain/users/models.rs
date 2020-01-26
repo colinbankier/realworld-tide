@@ -26,6 +26,15 @@ pub struct User {
     pub profile: Profile,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct UserUpdate {
+    pub email: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub image: Option<String>,
+    pub bio: Option<String>,
+}
+
 impl User {
     pub fn publish(
         &self,
@@ -35,7 +44,7 @@ impl User {
         repository.publish(draft, &self)
     }
 
-    pub fn update(
+    pub fn update_article(
         &self,
         article: Article,
         update: ArticleUpdate,
@@ -49,6 +58,14 @@ impl User {
         }
         let updated_article = repository.update_article(article, update)?;
         Ok(updated_article)
+    }
+
+    pub fn update(
+        self,
+        update: UserUpdate,
+        repository: &impl UsersRepository,
+    ) -> Result<Self, DatabaseError> {
+        Ok(repository.update(self, update)?)
     }
 
     pub fn delete(

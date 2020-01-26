@@ -63,7 +63,9 @@ fn update_and_retrieve_article() {
         description: Some(fake!(Lorem.paragraph(3, 10)).to_string()),
         body: Some(fake!(Lorem.paragraph(10, 5)).to_string()),
     };
-    let updated_article = author.update(article, update.clone(), &repository).unwrap();
+    let updated_article = author
+        .update_article(article, update.clone(), &repository)
+        .unwrap();
 
     assert_eq!(update.title, updated_article.content.title.into());
     assert_eq!(
