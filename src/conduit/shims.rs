@@ -4,23 +4,55 @@ use crate::domain;
 impl From<(Article, User, u64)> for domain::Article {
     fn from(x: (Article, User, u64)) -> Self {
         let (a, u, n_fav) = x;
-        let metadata = domain::ArticleMetadata::new(a.created_at, a.updated_at);
-        let content = domain::ArticleContent::new(a.title, a.description, a.body, a.tag_list);
-        let user: domain::User = u.into();
-        domain::Article::new(content, a.slug, user.profile, metadata, n_fav)
+        let u: domain::User = u.into();
+        (a, u, n_fav).into()
+    }
+}
+
+impl From<(Article, domain::User, u64)> for domain::Article {
+    fn from(x: (Article, domain::User, u64)) -> Self {
+        let (a, u, n_fav) = x;
+        let metadata = domain::ArticleMetadata {
+            created_at: a.created_at,
+            updated_at: a.updated_at,
+        };
+        let content = domain::ArticleContent {
+            title: a.title,
+            description: a.description,
+            body: a.body,
+            tag_list: a.tag_list,
+        };
+        domain::Article {
+            content,
+            slug: a.slug,
+            author: u.profile,
+            metadata,
+            favorites_count: n_fav,
+        }
     }
 }
 
 impl From<User> for domain::User {
     fn from(u: User) -> Self {
-        let profile = domain::Profile::new(u.username, u.bio, u.image);
-        domain::User::new(u.id, u.email, profile)
+        domain::User {
+            id: u.id,
+            email: u.email,
+            profile: domain::Profile {
+                username: u.username,
+                bio: u.bio,
+                image: u.image,
+            },
+        }
     }
 }
 
 impl From<User> for domain::Profile {
     fn from(u: User) -> Self {
-        domain::Profile::new(u.username, u.bio, u.image)
+        domain::Profile {
+            username: u.username,
+            bio: u.bio,
+            image: u.image,
+        }
     }
 }
 

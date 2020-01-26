@@ -10,12 +10,12 @@ pub enum With<T> {
 }
 
 pub fn article_content() -> domain::ArticleContent {
-    domain::ArticleContent::new(
-        fake!(Lorem.sentence(4, 10)).to_string(),
-        fake!(Lorem.paragraph(3, 10)),
-        fake!(Lorem.paragraph(10, 5)),
-        vec![fake!(Lorem.word).to_string()],
-    )
+    domain::ArticleContent {
+        title: fake!(Lorem.sentence(4, 10)).to_string(),
+        description: fake!(Lorem.paragraph(3, 10)),
+        body: fake!(Lorem.paragraph(10, 5)),
+        tag_list: vec![fake!(Lorem.word).to_string()],
+    }
 }
 
 pub fn new_user() -> NewUser {

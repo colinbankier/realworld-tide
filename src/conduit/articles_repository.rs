@@ -17,10 +17,7 @@ impl<'a> ArticleRepository for Repository<'a> {
         author: &domain::User,
     ) -> Result<domain::Article, domain::PublishArticleError> {
         let result: Article = articles::insert(&self.0, NewArticle::from((&draft, author)))?;
-
-        let metadata = domain::ArticleMetadata::new(result.created_at, result.updated_at);
-        let slug = draft.slug();
-        let article = domain::Article::new(draft, slug, author.profile.clone(), metadata, 0);
+        let article = (result, author.to_owned(), 0).into();
         Ok(article)
     }
 

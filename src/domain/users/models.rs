@@ -3,17 +3,16 @@ use crate::domain::{
     Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, Comment,
     CommentContent, CommentView, DatabaseError, DeleteCommentError, PublishArticleError,
 };
-use derive_more::Constructor;
 use uuid::Uuid;
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Profile {
     pub username: String,
     pub bio: Option<String>,
     pub image: Option<String>,
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -187,7 +186,7 @@ pub enum UnfavoriteOutcome {
     WasNotAFavorite,
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ProfileView {
     pub profile: Profile,
     pub following: bool,

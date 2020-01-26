@@ -22,7 +22,12 @@ pub struct NewArticleRequest {
 
 impl From<NewArticleRequest> for domain::ArticleContent {
     fn from(a: NewArticleRequest) -> domain::ArticleContent {
-        domain::ArticleContent::new(a.title, a.description, a.body, a.tag_list)
+        domain::ArticleContent {
+            title: a.title,
+            description: a.description,
+            body: a.body,
+            tag_list: a.tag_list,
+        }
     }
 }
 

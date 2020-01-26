@@ -1,12 +1,11 @@
 use crate::domain::repositories::ArticleRepository;
 use crate::domain::{Comment, DatabaseError, Profile, ProfileView};
 use chrono::{DateTime, Utc};
-use derive_more::Constructor;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArticleContent {
     pub title: String,
     pub description: String,
@@ -24,7 +23,7 @@ impl ArticleContent {
     }
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Article {
     pub content: ArticleContent,
     pub slug: String,
@@ -42,13 +41,13 @@ impl Article {
     }
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArticleMetadata {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArticleView {
     pub content: ArticleContent,
     pub slug: String,
@@ -60,7 +59,7 @@ pub struct ArticleView {
     pub viewer: Uuid,
 }
 
-#[derive(Clone, Constructor, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArticleUpdate {
     pub title: Option<String>,
     pub description: Option<String>,
