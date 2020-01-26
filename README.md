@@ -2,34 +2,30 @@
 
 > ### Rust/Tide codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
+[Demo](https://github.com/gothinkster/realworld)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
-### [Demo](https://github.com/gothinkster/realworld)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
+# Overview
 
-### WIP - this repo is as yet incomplete and still being implemented
+This codebase was created to demonstrate a fully fledged backend application built with **Rust** and [**`tide`**](https://github.com/colinbankier/realworld-tide) including CRUD operations, authentication, routing, pagination, and more.
 
-This codebase was created to demonstrate a fully fledged fullstack application built with **Rust/Tide** including CRUD operations, authentication, routing, pagination, and more.
+This project attempts to achieve a clear separation between web, domain and persistence logic -
+loosely along the lines of the [ports and adapters architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)).  
+These three concerns live in separate crates - `web`, `domain` and `db`.  
+`tide` is used in the `web` crate while `diesel` is the main character of the `db` crate.  
+The fourth crate, `application`, glues the other three together and provides the runnable binary.
 
-This project attempts to achieve the following:
- - Separate domain logic from web logic. The `conduit` module contains domain logic and the `web` module has logic for dealing with http stuff and json request/response formats.
- - Async queries with diesel. Diesel doesn't directly support async, but we can still build an async application around it using `tokio_threadpool::blocking`. The `db` module provides a `Repo` abstraction to encapsulate this.
- - Parallel database tests. Tests use isolated test transactions so database tests can be run in parallel.
- - HTTP level integration tests for the web layer. The `test_helpers` module provides a `TestServer` to easily simulate http requests for tests.
+Each sub-crate has its own set of tests, with integration tests taking place in the `web` crate.
 
-The app will evolve as I experiment with nice ways to structure things. It's very minimal so far, but I intend to grow it to be a good reference for implementing an app in Tide.
+You can also exercise the application using Realworld's Postman collection: [https://github.com/gothinkster/realworld/tree/master/api](here).
 
-The integration tests in the web layer cover the features implemented so far, which does not yet cover all cases required for the realworld spec.
+For more information on how this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
-The realworld Postman collection can be used to drive the next set of features to be added (see [https://github.com/gothinkster/realworld/tree/master/api]). See steps below for how to run these.
+## Other frameworks
 
+If you want to get a taste of what it feels like to build a Realworld's implementation using another
+Rust's web framework, you can reuse the `domain` and `db` sub-crate. 
 
-We've gone to great lengths to adhere to the **Rust/Tide** community styleguides & best practices.
-
-For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
-
-
-# How it works
-
-> Describe the general architecture of your app here
+You just need to provide an alternative implementation of the `web` crate leveraging your framework of choice.
 
 # Getting started
 
