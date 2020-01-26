@@ -188,6 +188,19 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(domain::User::from(user))
     }
 
+    fn get_by_email_and_password(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> Result<domain::User, domain::LoginError> {
+        let result = users::find_by_email_password(&self.0, email, password);
+        let user = result.map_err(|e| match e {
+            Error::NotFound => domain::LoginError::NotFound,
+            e => domain::LoginError::DatabaseError(e),
+        })?;
+        Ok(domain::User::from(user))
+    }
+
     fn get_profile(&self, username: &str) -> Result<domain::Profile, GetUserError> {
         let user = users::find_by_username(&self.0, username)?;
         Ok(domain::Profile::from(user))

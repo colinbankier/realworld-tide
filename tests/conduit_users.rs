@@ -25,7 +25,7 @@ fn test_authenticate_user() {
     let user = users::insert(&repo, new_user).expect("Create user failed.");
 
     // Check the user is in the database.
-    let results = users::find_by_email_password(&repo, user.email, user.password);
+    let results = users::find_by_email_password(&repo, &user.email, &user.password);
     assert!(results.is_ok());
 }
 

@@ -33,8 +33,8 @@ pub fn find_by_username(repo: &Repo, username_value: &str) -> Result<User, Error
 
 pub fn find_by_email_password(
     repo: &Repo,
-    user_email: String,
-    user_password: String,
+    user_email: &str,
+    user_password: &str,
 ) -> Result<User, Error> {
     use crate::db::schema::users::dsl::*;
     repo.run(|conn| {

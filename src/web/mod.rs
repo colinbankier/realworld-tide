@@ -9,7 +9,7 @@ use tide::Response;
 
 use crate::domain::{
     ChangeArticleError, DatabaseError, DeleteCommentError, GetArticleError, GetUserError,
-    PublishArticleError,
+    LoginError, PublishArticleError,
 };
 pub use app::get_app;
 
@@ -23,6 +23,15 @@ impl From<GetUserError> for Response {
         match &e {
             GetUserError::NotFound { .. } => Response::new(404).body_string(e.to_string()),
             GetUserError::DatabaseError(_) => Response::new(500),
+        }
+    }
+}
+
+impl From<LoginError> for Response {
+    fn from(e: LoginError) -> Response {
+        match &e {
+            LoginError::NotFound => Response::new(401),
+            LoginError::DatabaseError(_) => Response::new(500),
         }
     }
 }

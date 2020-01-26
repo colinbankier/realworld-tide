@@ -31,9 +31,9 @@ impl UserResponse {
     }
 }
 
-impl From<domain::User> for UserResponse {
-    fn from(u: domain::User) -> Self {
-        let token = encode_token(u.id);
+impl From<(domain::User, String)> for UserResponse {
+    fn from(x: (domain::User, String)) -> Self {
+        let (u, token) = x;
         Self {
             user: User {
                 username: u.profile.username,

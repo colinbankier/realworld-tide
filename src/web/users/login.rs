@@ -1,10 +1,10 @@
 use super::responses::UserResponse;
-use crate::conduit::users;
 use crate::db::models::*;
-use crate::web::diesel_error;
 use crate::Repo;
 use serde::Deserialize;
 
+use crate::auth::encode_token;
+use crate::domain::repositories::UsersRepository;
 use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
@@ -24,16 +24,17 @@ pub struct AuthUser {
 }
 
 pub async fn login(mut cx: Request<Repo>) -> Result<Response, Response> {
-    let auth: AuthRequest = cx.body_json().await.map_err(|_| Response::new(400))?;
-    let repo = cx.state();
-    let user = auth.user;
-    let result = users::find_by_email_password(repo, user.email, user.password);
+    let user = cx
+        .body_json::<AuthRequest>()
+        .await
+        .map_err(|_| Response::new(400))?
+        .user;
+    let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    match result {
-        Ok(user) => Ok(Response::new(200)
-            .body_json(&UserResponse::new(user))
-            .unwrap()),
-        Err(diesel::result::Error::NotFound) => Err(Response::new(401)),
-        Err(e) => Err(diesel_error(&e)),
-    }
+    let logged_in_user = repository.get_by_email_and_password(&user.email, &user.password)?;
+    let token = encode_token(logged_in_user.id);
+
+    let response = UserResponse::from((logged_in_user, token));
+
+    Ok(Response::new(200).body_json(&response).unwrap())
 }

@@ -10,3 +10,11 @@ pub enum GetUserError {
     #[error("Something went wrong.")]
     DatabaseError(#[from] diesel::result::Error),
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum LoginError {
+    #[error("There is no user with the email and password you specified")]
+    NotFound,
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}
