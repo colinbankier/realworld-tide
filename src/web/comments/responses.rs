@@ -66,3 +66,10 @@ impl From<domain::CommentView> for Comment {
         }
     }
 }
+
+impl<T: Into<Comment>> From<Vec<T>> for CommentsResponse {
+    fn from(v: Vec<T>) -> Self {
+        let comments: Vec<Comment> = v.into_iter().map(|c| c.into()).collect();
+        Self { comments }
+    }
+}

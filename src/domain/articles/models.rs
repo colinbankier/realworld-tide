@@ -1,4 +1,5 @@
-use crate::domain::{Profile, ProfileView};
+use crate::domain::repositories::ArticleRepository;
+use crate::domain::{Comment, DatabaseError, Profile, ProfileView};
 use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use itertools::Itertools;
@@ -30,6 +31,15 @@ pub struct Article {
     pub author: Profile,
     pub metadata: ArticleMetadata,
     pub favorites_count: u64,
+}
+
+impl Article {
+    pub fn comments(
+        &self,
+        repository: &impl ArticleRepository,
+    ) -> Result<Vec<Comment>, DatabaseError> {
+        repository.get_comments(&self)
+    }
 }
 
 #[derive(Clone, Constructor, Debug, PartialEq)]

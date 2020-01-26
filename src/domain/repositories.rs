@@ -29,6 +29,7 @@ pub trait ArticleRepository {
         comment: CommentContent,
     ) -> Result<Comment, DatabaseError>;
     fn get_comment(&self, comment_id: u64) -> Result<Comment, DeleteCommentError>;
+    fn get_comments(&self, article: &Article) -> Result<Vec<Comment>, DatabaseError>;
     fn delete_comment(&self, comment_id: u64) -> Result<(), DeleteCommentError>;
     fn update_article(
         &self,

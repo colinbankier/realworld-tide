@@ -137,6 +137,17 @@ impl<'a> ArticleRepository for Repository<'a> {
         Ok(domain::Comment::from((comment, author)))
     }
 
+    fn get_comments(
+        &self,
+        article: &domain::Article,
+    ) -> Result<Vec<domain::Comment>, DatabaseError> {
+        let comments: Vec<_> = comments::get_comments(&self.0, &article.slug)?
+            .into_iter()
+            .map(|(c, u)| domain::Comment::from((c, u)))
+            .collect();
+        Ok(comments)
+    }
+
     fn delete_comment(&self, comment_id: u64) -> Result<(), DeleteCommentError> {
         Ok(comments::delete_comment(&self.0, comment_id)?)
     }
