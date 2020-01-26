@@ -13,11 +13,6 @@ use crate::domain::{
 };
 pub use app::get_app;
 
-pub fn diesel_error(e: &diesel::result::Error) -> Response {
-    error!("{}", e);
-    Response::new(500)
-}
-
 impl From<GetUserError> for Response {
     fn from(e: GetUserError) -> Response {
         match &e {
