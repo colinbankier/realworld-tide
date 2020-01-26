@@ -1,5 +1,5 @@
 use crate::domain::repositories::Repository;
-use crate::middleware::ContextExt;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 use tide::Response;
 

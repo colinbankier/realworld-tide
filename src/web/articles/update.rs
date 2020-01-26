@@ -1,7 +1,7 @@
 use crate::domain::repositories::Repository;
 use crate::domain::ArticleUpdate;
-use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 use serde::{Deserialize, Serialize};
 use tide::Response;

@@ -6,7 +6,7 @@ use helpers::create_users;
 use helpers::test_server::TestApp;
 
 use async_std::task;
-use realworld_tide::auth::encode_token;
+use realworld_tide::web::auth::encode_token;
 
 #[test]
 fn profiles_api() {

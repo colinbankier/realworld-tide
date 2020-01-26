@@ -1,10 +1,10 @@
 use crate::domain;
-use crate::middleware::ContextExt;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 use serde::{Deserialize, Serialize};
 
-use crate::auth::encode_token;
 use crate::domain::repositories::Repository;
+use crate::web::auth::encode_token;
 use crate::web::users::responses::UserResponse;
 use tide::Response;
 

@@ -70,6 +70,6 @@ pub fn add_routes<R: Repository + Send + Sync>(mut app: Server<Context<R>>) -> S
 
 pub fn add_middleware<State: 'static + Sync + Send>(mut app: Server<State>) -> Server<State> {
     app.middleware(tide::middleware::RequestLogger::new());
-    app.middleware(crate::middleware::JwtMiddleware::new());
+    app.middleware(crate::web::middleware::JwtMiddleware::new());
     app
 }

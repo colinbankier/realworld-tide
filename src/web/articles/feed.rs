@@ -1,6 +1,6 @@
 use crate::domain::repositories::Repository;
-use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 use serde;
 use serde::{Deserialize, Serialize};

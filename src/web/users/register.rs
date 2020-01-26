@@ -1,7 +1,7 @@
 use super::responses::UserResponse;
-use crate::auth::encode_token;
 use crate::domain::repositories::Repository;
 use crate::domain::SignUp;
+use crate::web::auth::encode_token;
 use crate::Context;
 use serde::Deserialize;
 use tide::{Request, Response};

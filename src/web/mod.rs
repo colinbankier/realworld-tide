@@ -1,10 +1,11 @@
 pub mod app;
 pub mod articles;
+pub mod auth;
 pub mod comments;
+pub mod middleware;
 pub mod profiles;
 pub mod users;
 
-use log::error;
 use tide::Response;
 
 use crate::domain::{

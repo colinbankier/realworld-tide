@@ -1,5 +1,5 @@
-use crate::auth::encode_token;
 use crate::domain;
+use crate::web::auth::encode_token;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]

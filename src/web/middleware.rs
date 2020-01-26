@@ -3,7 +3,7 @@ use http::status::StatusCode;
 use log::info;
 use tide::{Error, Middleware, Next, Request, Response};
 
-use crate::auth::{extract_claims, Claims};
+use crate::web::auth::{extract_claims, Claims};
 
 #[derive(Clone, Default, Debug)]
 pub struct JwtMiddleware {}

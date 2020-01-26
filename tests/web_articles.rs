@@ -8,10 +8,10 @@ use helpers::{create_article, create_articles, create_user, create_users};
 
 use async_std::task;
 use fake::fake;
-use realworld_tide::auth::encode_token;
 use realworld_tide::domain::articles::ArticleQuery;
 use realworld_tide::web::articles::insert::NewArticleRequest;
 use realworld_tide::web::articles::update::UpdateArticleRequest;
+use realworld_tide::web::auth::encode_token;
 
 #[test]
 fn should_list_articles() {

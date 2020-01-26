@@ -2,8 +2,8 @@ use super::responses::UserResponse;
 use crate::Context;
 use serde::Deserialize;
 
-use crate::auth::encode_token;
 use crate::domain::repositories::Repository;
+use crate::web::auth::encode_token;
 use tide::{Request, Response};
 
 #[derive(Deserialize)]

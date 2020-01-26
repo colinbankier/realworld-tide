@@ -1,4 +1,4 @@
-use crate::middleware::ContextExt;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 
 use crate::domain::repositories::Repository;

@@ -1,9 +1,9 @@
-use crate::middleware::ContextExt;
+use crate::web::middleware::ContextExt;
 use crate::Context;
 use log::info;
 
-use crate::auth::encode_token;
 use crate::domain::repositories::Repository;
+use crate::web::auth::encode_token;
 use crate::web::users::responses::UserResponse;
 use tide::{Request, Response};
 
