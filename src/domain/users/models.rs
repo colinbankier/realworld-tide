@@ -140,6 +140,34 @@ impl User {
         Ok(article_view)
     }
 
+    pub fn follow(
+        &self,
+        p: Profile,
+        repository: &impl UsersRepository,
+    ) -> Result<ProfileView, DatabaseError> {
+        repository.follow(self, &p)?;
+        let view = ProfileView {
+            profile: p,
+            following: true,
+            viewer: self.id.to_owned(),
+        };
+        Ok(view)
+    }
+
+    pub fn unfollow(
+        &self,
+        p: Profile,
+        repository: &impl UsersRepository,
+    ) -> Result<ProfileView, DatabaseError> {
+        repository.unfollow(self, &p)?;
+        let view = ProfileView {
+            profile: p,
+            following: false,
+            viewer: self.id.to_owned(),
+        };
+        Ok(view)
+    }
+
     pub fn feed(
         &self,
         query: FeedQuery,

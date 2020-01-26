@@ -14,19 +14,6 @@ pub struct Profile {
     pub following: bool,
 }
 
-impl ProfileResponse {
-    pub fn new(user: crate::db::models::User, following: bool) -> Self {
-        Self {
-            profile: Profile {
-                username: user.username,
-                bio: user.bio,
-                image: user.image,
-                following,
-            },
-        }
-    }
-}
-
 impl From<domain::Profile> for ProfileResponse {
     fn from(p: domain::Profile) -> Self {
         Self {

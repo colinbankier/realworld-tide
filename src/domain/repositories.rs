@@ -48,4 +48,6 @@ pub trait UsersRepository {
     fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
     fn get_profile(&self, username: &str) -> Result<Profile, GetUserError>;
     fn get_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
+    fn follow(&self, follower: &User, to_be_followed: &Profile) -> Result<(), DatabaseError>;
+    fn unfollow(&self, follower: &User, to_be_unfollowed: &Profile) -> Result<(), DatabaseError>;
 }

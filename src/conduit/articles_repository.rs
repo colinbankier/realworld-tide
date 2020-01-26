@@ -207,4 +207,26 @@ impl<'a> UsersRepository for Repository<'a> {
         };
         Ok(view)
     }
+
+    fn follow(
+        &self,
+        follower: &domain::User,
+        to_be_followed: &domain::Profile,
+    ) -> Result<(), DatabaseError> {
+        let followed_user = users::find_by_username(&self.0, &to_be_followed.username)?;
+        Ok(followers::follow(&self.0, follower.id, followed_user.id)?)
+    }
+
+    fn unfollow(
+        &self,
+        follower: &domain::User,
+        to_be_unfollowed: &domain::Profile,
+    ) -> Result<(), DatabaseError> {
+        let unfollowed_user = users::find_by_username(&self.0, &to_be_unfollowed.username)?;
+        Ok(followers::unfollow(
+            &self.0,
+            follower.id,
+            unfollowed_user.id,
+        )?)
+    }
 }
