@@ -17,8 +17,8 @@ use realworld_tide::web::articles::update::UpdateArticleRequest;
 fn should_list_articles() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let users = create_users(&server.repository, 5);
-        create_articles(&server.repository, users);
+        let users = create_users(&server.repository.0, 5);
+        create_articles(&server.repository.0, users);
         let articles = server.get_articles(None).await.unwrap().articles;
         assert_eq!(articles.len(), 5);
     })
@@ -30,10 +30,10 @@ fn favorite_count_is_updated_correctly() {
         let mut server = TestApp::new();
 
         let n_users = 5;
-        let users = create_users(&server.repository, n_users);
+        let users = create_users(&server.repository.0, n_users);
 
         let author = users[0].clone();
-        let slug = create_article(&server.repository, &author).slug;
+        let slug = create_article(&server.repository.0, &author).slug;
 
         let article = server.get_article(&slug, None).await.unwrap().article;
         assert_eq!(slug, article.slug);
@@ -73,8 +73,8 @@ fn favorite_count_is_updated_correctly() {
 fn should_get_articles_by_author() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let users = create_users(&server.repository, 5);
-        create_articles(&server.repository, users.clone());
+        let users = create_users(&server.repository.0, 5);
+        create_articles(&server.repository.0, users.clone());
 
         let author = users[0].clone();
         let query = ArticleQuery {
@@ -138,9 +138,9 @@ fn should_create_article() {
 fn should_update_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = create_user(&server.repository);
+        let user = create_user(&server.repository.0);
         let token = encode_token(user.id);
-        let article = create_article(&server.repository, &user);
+        let article = create_article(&server.repository.0, &user);
 
         let update = realworld_tide::web::articles::update::Request {
             article: UpdateArticleRequest {
@@ -163,9 +163,9 @@ fn should_update_article() {
 fn should_delete_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = create_user(&server.repository);
+        let user = create_user(&server.repository.0);
         let token = encode_token(user.id);
-        let article = create_article(&server.repository, &user);
+        let article = create_article(&server.repository.0, &user);
 
         server
             .get_article(&article.slug, Some(&token))

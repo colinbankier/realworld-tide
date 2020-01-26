@@ -12,7 +12,7 @@ use realworld_tide::auth::encode_token;
 fn profiles_api() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let users = create_users(&server.repository, 2);
+        let users = create_users(&server.repository.0, 2);
         let follower_user = users[0].clone();
         let followed_user = users[1].clone();
 

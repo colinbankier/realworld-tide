@@ -1,26 +1,26 @@
-use realworld_tide::db::Repo;
 use realworld_tide::web::get_app;
 use realworld_tide::web::users::responses::UserResponse;
 
 use crate::helpers::test_db::{clean_db, get_repo};
 use async_std::io::prelude::ReadExt;
-use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
+use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::domain::articles::ArticleQuery;
 use realworld_tide::domain::SignUp;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
 use realworld_tide::web::comments::responses::{CommentResponse, CommentsResponse};
 use realworld_tide::web::profiles::responses::ProfileResponse;
+use realworld_tide::Context;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use tide::server::Service;
 
-pub type TestServer = TestBackend<Service<Repo<PgConnection>>>;
+pub type TestServer = TestBackend<Service<Context<Repository>>>;
 
 pub struct TestApp {
     pub server: TestServer,
-    pub repository: Repo<PgConnection>,
+    pub repository: Repository,
 }
 
 impl TestApp {

@@ -2,12 +2,13 @@ use diesel::connection::SimpleConnection;
 use diesel::PgConnection;
 use log::error;
 use r2d2::{CustomizeConnection, Pool};
+use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::configuration::Settings;
 use realworld_tide::db::Repo;
 
-pub fn get_repo() -> Repo<PgConnection> {
+pub fn get_repo() -> Repository {
     let settings = Settings::new().expect("Failed to load configuration");
-    Repo::new(&settings.database.connection_string())
+    Repository(Repo::new(&settings.database.connection_string()))
 }
 
 /// The returned repository executes all queries in a SQL transaction,
@@ -24,8 +25,8 @@ pub fn get_test_repo() -> Repo<PgConnection> {
 }
 
 /// Delete all rows in all the tables in the database.
-pub fn clean_db(repo: &Repo<PgConnection>) {
-    repo.run(move |conn| {
+pub fn clean_db(repo: &Repository) {
+    repo.0.run(move |conn| {
         conn.batch_execute("DELETE FROM users; DELETE FROM articles;")
             .expect("Failed to clean database")
     });

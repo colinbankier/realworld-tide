@@ -19,7 +19,7 @@ pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     (0..num_users).map(|_| create_user(repo)).collect()
 }
 
-pub fn create_users2(repo: &Repo<PgConnection>, num_users: i32) -> Vec<domain::User> {
+pub fn create_users2(repo: &Repository, num_users: i32) -> Vec<domain::User> {
     (0..num_users).map(|_| create_user2(repo)).collect()
 }
 
@@ -34,10 +34,8 @@ pub fn create_user(repo: &Repo<PgConnection>) -> User {
     users::insert(&repo, new_user).expect("Failed to create user")
 }
 
-pub fn create_user2(repo: &Repo<PgConnection>) -> domain::User {
-    let repository = Repository(&repo);
-    repository
-        .sign_up(generate::new_user())
+pub fn create_user2(repo: &Repository) -> domain::User {
+    repo.sign_up(generate::new_user())
         .expect("Failed to create user")
         .into()
 }
@@ -56,12 +54,11 @@ pub fn create_article(repo: &Repo<PgConnection>, user: &User) -> Article {
         .expect("Failed to create articles")
 }
 
-pub fn create_article2(repo: &Repo<PgConnection>, author: With<&domain::User>) -> domain::Article {
+pub fn create_article2(repo: &Repository, author: With<&domain::User>) -> domain::Article {
     let author = match author {
-        With::Random => create_user2(&repo),
+        With::Random => create_user2(repo),
         With::Value(user) => user.to_owned(),
     };
     let draft = generate::article_content();
-    let repository = Repository(&repo);
-    author.publish(draft, &repository).unwrap()
+    author.publish(draft, repo).unwrap()
 }

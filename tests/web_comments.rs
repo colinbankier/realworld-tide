@@ -14,8 +14,8 @@ use realworld_tide::web::comments::create::NewCommentRequest;
 fn comments_api() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = create_user(&server.repository);
-        let article = create_article(&server.repository, &user);
+        let user = create_user(&server.repository.0);
+        let article = create_article(&server.repository.0, &user);
         let token = encode_token(user.id);
 
         let request = realworld_tide::web::comments::create::Request {
@@ -82,10 +82,10 @@ fn comments_api() {
 fn you_cannot_delete_a_comment_which_you_did_not_write() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let mut users = create_users(&server.repository, 2);
+        let mut users = create_users(&server.repository.0, 2);
         let article_author = users.pop().unwrap();
         let comment_author = users.pop().unwrap();
-        let article = create_article(&server.repository, &article_author);
+        let article = create_article(&server.repository.0, &article_author);
 
         // comment_author write a comment
         let token = encode_token(comment_author.id);

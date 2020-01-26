@@ -12,9 +12,9 @@ use realworld_tide::domain::{ArticleUpdate, PublishArticleError};
 #[test]
 fn slugs_must_be_unique() {
     let repo = get_test_repo();
-    let repository = Repository(&repo);
+    let repository = Repository(repo);
 
-    let author = create_user2(&repository.0);
+    let author = create_user2(&repository);
     let first_draft = generate::article_content();
     let second_draft = first_draft.clone();
     // Two article drafts, with identical title => identical slug
@@ -39,7 +39,7 @@ fn slugs_must_be_unique() {
 #[test]
 fn insert_and_retrieve_article() {
     let repo = get_test_repo();
-    let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
+    let repository = realworld_tide::conduit::articles_repository::Repository(repo);
 
     let author = create_user(&repository.0);
     let author = repository.get_user_by_id(author.id).unwrap();
@@ -55,10 +55,10 @@ fn insert_and_retrieve_article() {
 #[test]
 fn update_and_retrieve_article() {
     let repo = get_test_repo();
-    let repository = Repository(&repo);
+    let repository = Repository(repo);
 
-    let author = create_user2(&repo);
-    let article = create_article2(&repo, With::Value(&author));
+    let author = create_user2(&repository);
+    let article = create_article2(&repository, With::Value(&author));
 
     let update = ArticleUpdate {
         title: Some(fake!(Lorem.sentence(4, 10)).to_string()),
