@@ -3,8 +3,8 @@ mod helpers;
 use fake::fake;
 use helpers::create_user;
 use helpers::test_db::get_test_repo;
-use realworld_tide::conduit::users;
 use realworld_tide::db::models::UpdateUser;
+use realworld_tide::db::queries::users;
 
 #[test]
 fn test_create_user() {

@@ -4,7 +4,6 @@ extern crate diesel;
 use crate::domain::repositories::Repository;
 use diesel::PgConnection;
 
-pub mod conduit;
 pub mod configuration;
 pub mod db;
 pub mod domain;

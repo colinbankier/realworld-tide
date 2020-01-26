@@ -2,7 +2,7 @@ use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
 use crate::Repo;
 
-use crate::conduit::followers::follow;
+use crate::db::queries::followers::follow;
 use diesel::prelude::*;
 use diesel::result::Error;
 use uuid::Uuid;

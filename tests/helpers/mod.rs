@@ -6,11 +6,9 @@ pub mod test_server;
 
 use crate::helpers::generate::With;
 use diesel::PgConnection;
-use realworld_tide::conduit::articles;
-use realworld_tide::conduit::articles_repository::Repository;
-use realworld_tide::conduit::users;
 use realworld_tide::db::models::{Article, NewArticle, NewUser, User};
-use realworld_tide::db::Repo;
+use realworld_tide::db::queries::{articles, users};
+use realworld_tide::db::{Repo, Repository};
 use realworld_tide::domain;
 use realworld_tide::domain::repositories::Repository as RepositoryTrait;
 use uuid::Uuid;

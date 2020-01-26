@@ -3,7 +3,7 @@ mod helpers;
 use helpers::test_db::get_test_repo;
 use helpers::{create_article, create_user, create_users};
 
-use realworld_tide::conduit::favorites;
+use realworld_tide::db::queries::favorites;
 
 #[test]
 fn you_cannot_favorite_an_article_which_does_not_exist() {

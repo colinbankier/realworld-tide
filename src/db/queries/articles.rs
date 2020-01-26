@@ -1,5 +1,5 @@
-use crate::conduit::favorites::n_favorites;
 use crate::db::models::{Article, NewArticle, UpdateArticle, User};
+use crate::db::queries::favorites::n_favorites;
 use crate::db::schema::articles;
 use crate::domain;
 use crate::domain::ArticleQuery;

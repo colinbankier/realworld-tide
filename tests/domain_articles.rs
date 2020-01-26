@@ -5,7 +5,7 @@ use crate::helpers::{create_article2, create_user, create_user2};
 use fake::fake;
 use helpers::generate;
 use helpers::test_db::get_test_repo;
-use realworld_tide::conduit::articles_repository::Repository;
+use realworld_tide::db::Repository;
 use realworld_tide::domain::repositories::Repository as RepositoryTrait;
 use realworld_tide::domain::{ArticleUpdate, PublishArticleError};
 
@@ -39,7 +39,7 @@ fn slugs_must_be_unique() {
 #[test]
 fn insert_and_retrieve_article() {
     let repo = get_test_repo();
-    let repository = realworld_tide::conduit::articles_repository::Repository(repo);
+    let repository = Repository(repo);
 
     let author = create_user(&repository.0);
     let author = repository.get_user_by_id(author.id).unwrap();

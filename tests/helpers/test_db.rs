@@ -2,9 +2,8 @@ use diesel::connection::SimpleConnection;
 use diesel::PgConnection;
 use log::error;
 use r2d2::{CustomizeConnection, Pool};
-use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::configuration::Settings;
-use realworld_tide::db::Repo;
+use realworld_tide::db::{Repo, Repository};
 
 pub fn get_repo() -> Repository {
     let settings = Settings::new().expect("Failed to load configuration");

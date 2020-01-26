@@ -1,5 +1,5 @@
-use crate::conduit::{articles, comments, favorites, followers, users};
 use crate::db::models::{Article, NewArticle, NewComment, NewUser, UpdateUser};
+use crate::db::queries::{articles, comments, favorites, followers, users};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::{DatabaseError, DeleteCommentError, GetUserError};

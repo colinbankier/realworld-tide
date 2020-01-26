@@ -1,7 +1,6 @@
 use async_std::task::block_on;
-use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::configuration::Settings;
-use realworld_tide::db::Repo;
+use realworld_tide::db::{Repo, Repository};
 use realworld_tide::web::get_app;
 
 fn main() -> Result<(), std::io::Error> {

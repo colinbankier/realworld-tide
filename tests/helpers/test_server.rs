@@ -5,7 +5,7 @@ use crate::helpers::test_db::{clean_db, get_repo};
 use async_std::io::prelude::ReadExt;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
-use realworld_tide::conduit::articles_repository::Repository;
+use realworld_tide::db::Repository;
 use realworld_tide::domain::articles::ArticleQuery;
 use realworld_tide::domain::SignUp;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};

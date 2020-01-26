@@ -3,8 +3,8 @@ mod helpers;
 use helpers::test_db::get_test_repo;
 use helpers::{create_articles, create_user, create_users};
 
-use realworld_tide::conduit::articles;
 use realworld_tide::db::models::NewArticle;
+use realworld_tide::db::queries::articles;
 use std::collections::HashSet;
 
 #[test]
