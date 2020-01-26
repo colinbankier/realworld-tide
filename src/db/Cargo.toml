@@ -1,0 +1,27 @@
+[package]
+name = "realworld-db"
+version = "0.1.0"
+authors = ["colinbankier <colinbankier@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "realworld_db"
+path = "src/lib.rs"
+
+[dependencies]
+diesel = { version = "1.4", features = ["postgres", "extras", "uuidv07"] }
+r2d2 = "0.8"
+serde = { version= "1", features = ["derive"] }
+chrono = { version = "0.4.6", features = ["serde"] }
+uuid = { version = "0.7.4", features = ["serde", "v4"] }
+domain = { package = "realworld-domain", path = "../domain" }
+
+[dev-dependencies]
+application = { package = "realworld-application", path = "../application"}
+fake = "1.2.2"
+log = "*"
+serde_json = "1.0"
+http-service = "0.4"
+http-service-mock = "0.4"
+futures-executor = { version = "0.3.1", features = ["thread-pool"] }
+serde_qs = "0.5.2"
