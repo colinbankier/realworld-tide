@@ -6,7 +6,7 @@ use fake::fake;
 use helpers::generate;
 use helpers::test_db::get_test_repo;
 use realworld_tide::conduit::articles_repository::Repository;
-use realworld_tide::domain::repositories::{ArticleRepository, UsersRepository};
+use realworld_tide::domain::repositories::Repository as RepositoryTrait;
 use realworld_tide::domain::{ArticleUpdate, PublishArticleError};
 
 #[test]
@@ -42,11 +42,13 @@ fn insert_and_retrieve_article() {
     let repository = realworld_tide::conduit::articles_repository::Repository(&repo);
 
     let author = create_user(&repository.0);
-    let author = repository.get_by_id(author.id).unwrap();
+    let author = repository.get_user_by_id(author.id).unwrap();
     let draft = generate::article_content();
 
     let expected_article = author.publish(draft, &repository).unwrap();
-    let retrieved_article = repository.get_by_slug(&expected_article.slug).unwrap();
+    let retrieved_article = repository
+        .get_article_by_slug(&expected_article.slug)
+        .unwrap();
     assert_eq!(expected_article, retrieved_article);
 }
 

@@ -1,4 +1,4 @@
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::domain::ArticleUpdate;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
@@ -39,8 +39,8 @@ pub async fn update_article(mut cx: tide::Request<Repo>) -> Result<Response, Res
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let article = repository.get_by_slug(&slug)?;
-    let user = repository.get_by_id(user_id)?;
+    let article = repository.get_article_by_slug(&slug)?;
+    let user = repository.get_user_by_id(user_id)?;
     let updated_article = user.update_article(article, request.into(), &repository)?;
 
     let response: ArticleResponse = repository.get_article_view(&user, updated_article)?.into();

@@ -3,7 +3,7 @@ use crate::Repo;
 use serde::Deserialize;
 
 use crate::auth::encode_token;
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use tide::{Request, Response};
 
 #[derive(Deserialize)]
@@ -25,7 +25,7 @@ pub async fn login(mut cx: Request<Repo>) -> Result<Response, Response> {
         .user;
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let logged_in_user = repository.get_by_email_and_password(&user.email, &user.password)?;
+    let logged_in_user = repository.get_user_by_email_and_password(&user.email, &user.password)?;
     let token = encode_token(logged_in_user.id);
 
     let response = UserResponse::from((logged_in_user, token));

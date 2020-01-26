@@ -12,7 +12,7 @@ use realworld_tide::conduit::users;
 use realworld_tide::db::models::{Article, NewArticle, NewUser, User};
 use realworld_tide::db::Repo;
 use realworld_tide::domain;
-use realworld_tide::domain::repositories::UsersRepository;
+use realworld_tide::domain::repositories::Repository as RepositoryTrait;
 use uuid::Uuid;
 
 pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {

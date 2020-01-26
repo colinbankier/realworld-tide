@@ -1,5 +1,5 @@
 use crate::domain::articles::ArticleQuery;
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
 use crate::Repo;
@@ -20,7 +20,7 @@ pub async fn list_articles(cx: Request<Repo>) -> Result<Response, Response> {
     let articles = repository.find_articles(query)?;
     let response: ArticlesResponse = match user_id {
         Some(user_id) => {
-            let user = repository.get_by_id(user_id)?;
+            let user = repository.get_user_by_id(user_id)?;
             let views = repository.get_articles_views(&user, articles)?;
             ArticlesResponse::from(views)
         }

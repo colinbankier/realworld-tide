@@ -4,7 +4,7 @@ use crate::Repo;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::encode_token;
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::web::users::responses::UserResponse;
 use tide::Response;
 
@@ -43,7 +43,7 @@ pub async fn update_user(mut cx: tide::Request<Repo>) -> Result<Response, Respon
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let user = repository.get_by_id(user_id)?;
+    let user = repository.get_user_by_id(user_id)?;
     let updated_user = user.update(update_params.into(), &repository)?;
     let token = encode_token(updated_user.id);
 

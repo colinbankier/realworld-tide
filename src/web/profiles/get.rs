@@ -1,4 +1,4 @@
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::profiles::responses::ProfileResponse;
 use crate::Repo;
@@ -12,8 +12,8 @@ pub async fn get_profile(cx: Request<Repo>) -> Result<Response, Response> {
 
     let response: ProfileResponse = match user_id {
         Some(user_id) => {
-            let user = repository.get_by_id(user_id)?;
-            let view = repository.get_view(&user, &profile_username)?;
+            let user = repository.get_user_by_id(user_id)?;
+            let view = repository.get_profile_view(&user, &profile_username)?;
             ProfileResponse::from(view)
         }
         None => {

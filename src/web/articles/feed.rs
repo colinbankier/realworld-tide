@@ -1,4 +1,4 @@
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticlesResponse;
 use crate::Repo;
@@ -39,7 +39,7 @@ pub async fn feed(cx: Request<Repo>) -> Result<Response, Response> {
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
-    let user = repository.get_by_id(user_id)?;
+    let user = repository.get_user_by_id(user_id)?;
 
     let articles = user.feed(query.into(), &repository)?;
     let response = ArticlesResponse::from(articles);

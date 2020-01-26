@@ -1,4 +1,4 @@
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::domain::{
     Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, Comment,
     CommentContent, CommentView, DatabaseError, DeleteCommentError, PublishArticleError,
@@ -39,16 +39,16 @@ impl User {
     pub fn publish(
         &self,
         draft: ArticleContent,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<Article, PublishArticleError> {
-        repository.publish(draft, &self)
+        repository.publish_article(draft, &self)
     }
 
     pub fn update_article(
         &self,
         article: Article,
         update: ArticleUpdate,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<Article, ChangeArticleError> {
         if article.author.username != self.profile.username {
             return Err(ChangeArticleError::Forbidden {
@@ -63,15 +63,15 @@ impl User {
     pub fn update(
         self,
         update: UserUpdate,
-        repository: &impl UsersRepository,
+        repository: &impl Repository,
     ) -> Result<Self, DatabaseError> {
-        Ok(repository.update(self, update)?)
+        Ok(repository.update_user(self, update)?)
     }
 
     pub fn delete(
         &self,
         article: Article,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<(), ChangeArticleError> {
         // You can only delete your own articles
         if article.author.username != self.profile.username {
@@ -87,7 +87,7 @@ impl User {
         &self,
         article: &Article,
         comment: CommentContent,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<CommentView, ChangeArticleError> {
         let posted_comment = repository.comment_article(&self, &article, comment)?;
         let view = CommentView {
@@ -108,7 +108,7 @@ impl User {
     pub fn delete_comment(
         &self,
         comment: Comment,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<(), DeleteCommentError> {
         // You can only delete your own comments
         if comment.author.username != self.profile.username {
@@ -124,7 +124,7 @@ impl User {
     pub fn favorite(
         &self,
         article: Article,
-        repository: &(impl ArticleRepository + UsersRepository),
+        repository: &(impl Repository + Repository),
     ) -> Result<ArticleView, DatabaseError> {
         let n_favorites = match repository.favorite(&article, self)? {
             FavoriteOutcome::NewFavorite => article.favorites_count + 1,
@@ -133,7 +133,7 @@ impl User {
         let article_view = ArticleView {
             content: article.content,
             slug: article.slug,
-            author: repository.get_view(self, &article.author.username)?,
+            author: repository.get_profile_view(self, &article.author.username)?,
             metadata: article.metadata,
             favorited: true,
             favorites_count: n_favorites,
@@ -145,7 +145,7 @@ impl User {
     pub fn unfavorite(
         &self,
         article: Article,
-        repository: &(impl ArticleRepository + UsersRepository),
+        repository: &(impl Repository + Repository),
     ) -> Result<ArticleView, DatabaseError> {
         let n_favorites = match repository.unfavorite(&article, self)? {
             UnfavoriteOutcome::WasAFavorite => article.favorites_count - 1,
@@ -154,7 +154,7 @@ impl User {
         let article_view = ArticleView {
             content: article.content,
             slug: article.slug,
-            author: repository.get_view(self, &article.author.username)?,
+            author: repository.get_profile_view(self, &article.author.username)?,
             metadata: article.metadata,
             favorited: false,
             favorites_count: n_favorites,
@@ -166,7 +166,7 @@ impl User {
     pub fn follow(
         &self,
         p: Profile,
-        repository: &impl UsersRepository,
+        repository: &impl Repository,
     ) -> Result<ProfileView, DatabaseError> {
         repository.follow(self, &p)?;
         let view = ProfileView {
@@ -180,7 +180,7 @@ impl User {
     pub fn unfollow(
         &self,
         p: Profile,
-        repository: &impl UsersRepository,
+        repository: &impl Repository,
     ) -> Result<ProfileView, DatabaseError> {
         repository.unfollow(self, &p)?;
         let view = ProfileView {
@@ -194,7 +194,7 @@ impl User {
     pub fn feed(
         &self,
         query: FeedQuery,
-        repository: &impl ArticleRepository,
+        repository: &impl Repository,
     ) -> Result<Vec<ArticleView>, DatabaseError> {
         Ok(repository.feed(&self, query)?)
     }

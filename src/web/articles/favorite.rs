@@ -1,4 +1,4 @@
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::web::articles::responses::ArticleResponse;
 use crate::Repo;
@@ -22,8 +22,8 @@ pub async fn _favorite(cx: Request<Repo>, action: Action) -> Result<Response, Re
     let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let user = repository.get_by_id(user_id)?;
-    let article = repository.get_by_slug(&slug)?;
+    let user = repository.get_user_by_id(user_id)?;
+    let article = repository.get_article_by_slug(&slug)?;
     let article_view = match action {
         Action::Favorite => user.favorite(article, &repository),
         Action::Unfavorite => user.unfavorite(article, &repository),

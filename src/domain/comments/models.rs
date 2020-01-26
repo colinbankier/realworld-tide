@@ -1,4 +1,4 @@
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::domain::{DatabaseError, Profile, ProfileView, User};
 use chrono::{DateTime, Utc};
 
@@ -18,9 +18,9 @@ impl Comment {
     pub fn view(
         self,
         viewer: &User,
-        repository: &impl UsersRepository,
+        repository: &impl Repository,
     ) -> Result<CommentView, DatabaseError> {
-        let author_view = repository.get_view(viewer, &self.author.username)?;
+        let author_view = repository.get_profile_view(viewer, &self.author.username)?;
         let view = CommentView {
             id: self.id,
             author: author_view,

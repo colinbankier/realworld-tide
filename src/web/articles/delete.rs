@@ -1,4 +1,4 @@
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::middleware::ContextExt;
 use crate::Repo;
 use tide::Response;
@@ -10,8 +10,8 @@ pub async fn delete_article(cx: tide::Request<Repo>) -> Result<Response, Respons
     // They have to be authenticated to perform deletions
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
 
-    let user = repository.get_by_id(user_id)?;
-    let article = repository.get_by_slug(&slug)?;
+    let user = repository.get_user_by_id(user_id)?;
+    let article = repository.get_article_by_slug(&slug)?;
     user.delete(article, &repository)?;
 
     Ok(Response::new(200))

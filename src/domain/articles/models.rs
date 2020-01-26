@@ -1,4 +1,4 @@
-use crate::domain::repositories::ArticleRepository;
+use crate::domain::repositories::Repository;
 use crate::domain::{Comment, DatabaseError, Profile, ProfileView};
 use chrono::{DateTime, Utc};
 use itertools::Itertools;
@@ -33,10 +33,7 @@ pub struct Article {
 }
 
 impl Article {
-    pub fn comments(
-        &self,
-        repository: &impl ArticleRepository,
-    ) -> Result<Vec<Comment>, DatabaseError> {
+    pub fn comments(&self, repository: &impl Repository) -> Result<Vec<Comment>, DatabaseError> {
         repository.get_comments(&self)
     }
 }

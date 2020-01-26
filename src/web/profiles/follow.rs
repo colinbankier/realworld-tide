@@ -1,7 +1,7 @@
 use crate::middleware::ContextExt;
 use crate::Repo;
 
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::web::profiles::responses::ProfileResponse;
 use tide::{Request, Response};
 
@@ -23,7 +23,7 @@ async fn _follow(cx: Request<Repo>, action: Action) -> Result<Response, Response
     let profile_username: String = cx.param("username").map_err(|_| Response::new(400))?;
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let user = repository.get_by_id(user_id)?;
+    let user = repository.get_user_by_id(user_id)?;
     let profile = repository.get_profile(&profile_username)?;
     let view = match action {
         Action::Follow => user.follow(profile, &repository)?,

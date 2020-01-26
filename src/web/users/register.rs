@@ -1,6 +1,6 @@
 use super::responses::UserResponse;
 use crate::auth::encode_token;
-use crate::domain::repositories::UsersRepository;
+use crate::domain::repositories::Repository;
 use crate::domain::SignUp;
 use crate::Repo;
 use serde::Deserialize;

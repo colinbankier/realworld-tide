@@ -6,10 +6,13 @@ use crate::domain::{
 };
 use uuid::Uuid;
 
-pub trait ArticleRepository {
-    fn publish(&self, draft: ArticleContent, author: &User)
-        -> Result<Article, PublishArticleError>;
-    fn get_by_slug(&self, slug: &str) -> Result<Article, GetArticleError>;
+pub trait Repository {
+    fn publish_article(
+        &self,
+        draft: ArticleContent,
+        author: &User,
+    ) -> Result<Article, PublishArticleError>;
+    fn get_article_by_slug(&self, slug: &str) -> Result<Article, GetArticleError>;
     fn get_article_view(
         &self,
         viewer: &User,
@@ -43,15 +46,16 @@ pub trait ArticleRepository {
         article: &Article,
         user: &User,
     ) -> Result<UnfavoriteOutcome, DatabaseError>;
-}
-
-pub trait UsersRepository {
     fn sign_up(&self, sign_up: SignUp) -> Result<User, SignUpError>;
-    fn update(&self, user: User, update: UserUpdate) -> Result<User, DatabaseError>;
-    fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
-    fn get_by_email_and_password(&self, email: &str, password: &str) -> Result<User, LoginError>;
+    fn update_user(&self, user: User, update: UserUpdate) -> Result<User, DatabaseError>;
+    fn get_user_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
+    fn get_user_by_email_and_password(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> Result<User, LoginError>;
     fn get_profile(&self, username: &str) -> Result<Profile, GetUserError>;
-    fn get_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
+    fn get_profile_view(&self, viewer: &User, username: &str) -> Result<ProfileView, GetUserError>;
     fn follow(&self, follower: &User, to_be_followed: &Profile) -> Result<(), DatabaseError>;
     fn unfollow(&self, follower: &User, to_be_unfollowed: &Profile) -> Result<(), DatabaseError>;
 }

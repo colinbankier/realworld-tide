@@ -2,7 +2,6 @@ use crate::conduit::{articles, comments, favorites, followers, users};
 use crate::db::models::{Article, NewArticle, NewComment, NewUser, UpdateUser};
 use crate::db::Repo;
 use crate::domain;
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::domain::{DatabaseError, DeleteCommentError, GetUserError};
 use diesel::result::Error;
 use diesel::PgConnection;
@@ -10,8 +9,8 @@ use uuid::Uuid;
 
 pub struct Repository<'a>(pub &'a Repo<PgConnection>);
 
-impl<'a> ArticleRepository for Repository<'a> {
-    fn publish(
+impl<'a> domain::repositories::Repository for Repository<'a> {
+    fn publish_article(
         &self,
         draft: domain::ArticleContent,
         author: &domain::User,
@@ -21,7 +20,7 @@ impl<'a> ArticleRepository for Repository<'a> {
         Ok(article)
     }
 
-    fn get_by_slug(&self, slug: &str) -> Result<domain::Article, domain::GetArticleError> {
+    fn get_article_by_slug(&self, slug: &str) -> Result<domain::Article, domain::GetArticleError> {
         Ok(articles::find_one(&self.0, &slug)?)
     }
 
@@ -30,7 +29,9 @@ impl<'a> ArticleRepository for Repository<'a> {
         viewer: &domain::User,
         article: domain::Article,
     ) -> Result<domain::ArticleView, domain::GetArticleError> {
-        let author_view = self.get_view(viewer, &article.author.username).unwrap();
+        let author_view = self
+            .get_profile_view(viewer, &article.author.username)
+            .unwrap();
         let is_favorite = favorites::is_favorite(&self.0, viewer.id, &article.slug)?;
         let article_view = domain::ArticleView {
             content: article.content,
@@ -57,7 +58,7 @@ impl<'a> ArticleRepository for Repository<'a> {
             .into_iter()
             .map(|a| {
                 let favorited = favs[a.slug.as_str()];
-                let author_view = self.get_view(viewer, &a.author.username)?;
+                let author_view = self.get_profile_view(viewer, &a.author.username)?;
                 let article_view = domain::ArticleView {
                     content: a.content,
                     slug: a.slug,
@@ -155,7 +156,7 @@ impl<'a> ArticleRepository for Repository<'a> {
         update: domain::ArticleUpdate,
     ) -> Result<domain::Article, DatabaseError> {
         articles::update(&self.0, (&update).into(), &article.slug)?;
-        Ok(self.get_by_slug(&article.slug)?)
+        Ok(self.get_article_by_slug(&article.slug)?)
     }
 
     fn favorite(
@@ -173,9 +174,7 @@ impl<'a> ArticleRepository for Repository<'a> {
     ) -> Result<domain::UnfavoriteOutcome, domain::DatabaseError> {
         favorites::unfavorite(&self.0, user.id, &article.slug)
     }
-}
 
-impl<'a> UsersRepository for Repository<'a> {
     fn sign_up(&self, sign_up: domain::SignUp) -> Result<domain::User, domain::SignUpError> {
         let new_user = NewUser {
             username: &sign_up.username,
@@ -186,7 +185,7 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(users::insert(&self.0, new_user)?.into())
     }
 
-    fn update(
+    fn update_user(
         &self,
         user: domain::User,
         update: domain::UserUpdate,
@@ -196,7 +195,7 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(domain::User::from(updated))
     }
 
-    fn get_by_id(&self, user_id: Uuid) -> Result<domain::User, GetUserError> {
+    fn get_user_by_id(&self, user_id: Uuid) -> Result<domain::User, GetUserError> {
         let result = users::find(&self.0, user_id);
         let user = result.map_err(|e| match e {
             e @ Error::NotFound => domain::GetUserError::NotFound { user_id, source: e },
@@ -205,7 +204,7 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(domain::User::from(user))
     }
 
-    fn get_by_email_and_password(
+    fn get_user_by_email_and_password(
         &self,
         email: &str,
         password: &str,
@@ -223,7 +222,7 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(domain::Profile::from(user))
     }
 
-    fn get_view(
+    fn get_profile_view(
         &self,
         viewer: &domain::User,
         username: &str,

@@ -1,4 +1,4 @@
-use crate::domain::repositories::{ArticleRepository, UsersRepository};
+use crate::domain::repositories::Repository;
 use crate::domain::CommentContent;
 use crate::middleware::ContextExt;
 use crate::web::comments::responses::CommentResponse;
@@ -27,8 +27,8 @@ pub async fn create(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
     let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let author = repository.get_by_id(author_id)?;
-    let article = repository.get_by_slug(&slug)?;
+    let author = repository.get_user_by_id(author_id)?;
+    let article = repository.get_article_by_slug(&slug)?;
     let posted_comment = author.comment(
         &article,
         CommentContent(new_comment.comment.body),
