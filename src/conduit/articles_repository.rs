@@ -3,7 +3,8 @@ use crate::db::models::{Article, NewArticle, NewComment};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
-use crate::domain::{DatabaseError, GetUserError};
+use crate::domain::{DatabaseError, DeleteCommentError, GetUserError};
+use diesel::result::Error;
 use diesel::PgConnection;
 use uuid::Uuid;
 
@@ -114,19 +115,30 @@ impl<'a> ArticleRepository for Repository<'a> {
             author_id: user.id,
         };
         let raw_comment = comments::create_comment(&self.0, new_comment)?;
-        let author_view = domain::ProfileView {
-            profile: user.profile.clone(),
-            following: true,
-            viewer: user.id,
-        };
         let comment = domain::Comment {
             id: raw_comment.id as u64,
-            author: author_view,
+            author: user.profile.clone(),
             body: raw_comment.body,
             created_at: raw_comment.created_at,
             updated_at: raw_comment.updated_at,
         };
         Ok(comment)
+    }
+
+    fn get_comment(&self, comment_id: u64) -> Result<domain::Comment, DeleteCommentError> {
+        let comment = comments::get_comment(&self.0, comment_id).map_err(|e| match e {
+            Error::NotFound => DeleteCommentError::CommentNotFound {
+                comment_id,
+                source: e,
+            },
+            e => DeleteCommentError::DatabaseError(e),
+        })?;
+        let author = users::find(&self.0, comment.author_id)?;
+        Ok(domain::Comment::from((comment, author)))
+    }
+
+    fn delete_comment(&self, comment_id: u64) -> Result<(), DeleteCommentError> {
+        Ok(comments::delete_comment(&self.0, comment_id)?)
     }
 
     fn update_article(
@@ -157,9 +169,12 @@ impl<'a> ArticleRepository for Repository<'a> {
 
 impl<'a> UsersRepository for Repository<'a> {
     fn get_by_id(&self, user_id: Uuid) -> Result<domain::User, GetUserError> {
-        let u = users::find(&self.0, user_id)?;
-        let profile = domain::Profile::new(u.username, u.bio, u.image);
-        Ok(domain::User::new(u.id, u.email, profile))
+        let result = users::find(&self.0, user_id);
+        let user = result.map_err(|e| match e {
+            e @ Error::NotFound => domain::GetUserError::NotFound { user_id, source: e },
+            e => domain::GetUserError::DatabaseError(e),
+        })?;
+        Ok(domain::User::from(user))
     }
 
     fn get_view(

@@ -1,7 +1,7 @@
 use crate::domain::{
     Article, ArticleContent, ArticleQuery, ArticleUpdate, ArticleView, Comment, CommentContent,
-    DatabaseError, FavoriteOutcome, FeedQuery, GetArticleError, GetUserError, ProfileView,
-    PublishArticleError, UnfavoriteOutcome, User,
+    DatabaseError, DeleteCommentError, FavoriteOutcome, FeedQuery, GetArticleError, GetUserError,
+    ProfileView, PublishArticleError, UnfavoriteOutcome, User,
 };
 use uuid::Uuid;
 
@@ -28,6 +28,8 @@ pub trait ArticleRepository {
         article: &Article,
         comment: CommentContent,
     ) -> Result<Comment, DatabaseError>;
+    fn get_comment(&self, comment_id: u64) -> Result<Comment, DeleteCommentError>;
+    fn delete_comment(&self, comment_id: u64) -> Result<(), DeleteCommentError>;
     fn update_article(
         &self,
         article: Article,

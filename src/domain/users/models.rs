@@ -1,7 +1,7 @@
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
 use crate::domain::{
     Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, Comment,
-    CommentContent, DatabaseError, PublishArticleError,
+    CommentContent, CommentView, DatabaseError, DeleteCommentError, PublishArticleError,
 };
 use derive_more::Constructor;
 use uuid::Uuid;
@@ -65,8 +65,37 @@ impl User {
         article: &Article,
         comment: CommentContent,
         repository: &impl ArticleRepository,
-    ) -> Result<Comment, ChangeArticleError> {
-        Ok(repository.comment_article(&self, &article, comment)?)
+    ) -> Result<CommentView, ChangeArticleError> {
+        let posted_comment = repository.comment_article(&self, &article, comment)?;
+        let view = CommentView {
+            id: posted_comment.id,
+            author: ProfileView {
+                profile: posted_comment.author,
+                // Users always self-follow
+                following: true,
+                viewer: self.id,
+            },
+            body: posted_comment.body,
+            created_at: posted_comment.created_at,
+            updated_at: posted_comment.updated_at,
+        };
+        Ok(view)
+    }
+
+    pub fn delete_comment(
+        &self,
+        comment: Comment,
+        repository: &impl ArticleRepository,
+    ) -> Result<(), DeleteCommentError> {
+        // You can only delete your own comments
+        if comment.author.username != self.profile.username {
+            return Err(DeleteCommentError::Forbidden {
+                comment_id: comment.id,
+                user_id: self.id,
+            });
+        }
+
+        Ok(repository.delete_comment(comment.id)?)
     }
 
     pub fn favorite(

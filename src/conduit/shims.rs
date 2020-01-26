@@ -1,4 +1,4 @@
-use crate::db::models::{Article, NewArticle, UpdateArticle, User};
+use crate::db::models::{Article, Comment, NewArticle, UpdateArticle, User};
 use crate::domain;
 
 impl From<(Article, User, u64)> for domain::Article {
@@ -15,6 +15,26 @@ impl From<User> for domain::User {
     fn from(u: User) -> Self {
         let profile = domain::Profile::new(u.username, u.bio, u.image);
         domain::User::new(u.id, u.email, profile)
+    }
+}
+
+impl From<User> for domain::Profile {
+    fn from(u: User) -> Self {
+        domain::Profile::new(u.username, u.bio, u.image)
+    }
+}
+
+impl From<(Comment, User)> for domain::Comment {
+    fn from(x: (Comment, User)) -> Self {
+        let (c, u) = x;
+        let comment = domain::Comment {
+            id: c.id as u64,
+            author: domain::Profile::from(u),
+            body: c.body,
+            created_at: c.created_at,
+            updated_at: c.updated_at,
+        };
+        comment
     }
 }
 

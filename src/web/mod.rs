@@ -8,7 +8,8 @@ use log::error;
 use tide::Response;
 
 use crate::domain::{
-    ChangeArticleError, DatabaseError, GetArticleError, GetUserError, PublishArticleError,
+    ChangeArticleError, DatabaseError, DeleteCommentError, GetArticleError, GetUserError,
+    PublishArticleError,
 };
 pub use app::get_app;
 
@@ -65,6 +66,18 @@ impl From<ChangeArticleError> for Response {
             }
             ChangeArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
             ChangeArticleError::DatabaseError(_) => Response::new(500),
+        }
+    }
+}
+
+impl From<DeleteCommentError> for Response {
+    fn from(e: DeleteCommentError) -> Response {
+        match &e {
+            DeleteCommentError::CommentNotFound { .. } => {
+                Response::new(404).body_string(e.to_string())
+            }
+            DeleteCommentError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
+            DeleteCommentError::DatabaseError(_) => Response::new(500),
         }
     }
 }

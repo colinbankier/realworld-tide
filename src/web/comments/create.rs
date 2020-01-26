@@ -24,7 +24,7 @@ pub async fn create(mut cx: tide::Request<Repo>) -> Result<Response, Response> {
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
-    let slug: String = cx.param("slug").map_err(|_| Response::new(401))?;
+    let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
     let repository = crate::conduit::articles_repository::Repository(cx.state());
 
     let author = repository.get_by_id(author_id)?;

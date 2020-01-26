@@ -1,6 +1,6 @@
 use crate::db::models::{NewUser, UpdateUser, User};
 use crate::db::schema::users;
-use crate::{domain, Repo};
+use crate::Repo;
 
 use crate::conduit::followers::follow;
 use diesel::prelude::*;
@@ -21,13 +21,9 @@ pub fn insert(repo: &Repo, user: NewUser) -> Result<User, Error> {
     Ok(new_user)
 }
 
-pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, domain::GetUserError> {
+pub fn find(repo: &Repo, user_id: Uuid) -> Result<User, Error> {
     use crate::db::schema::users::dsl::*;
-    let result = repo.run(move |conn| users.find(user_id).first(&conn));
-    result.map_err(|e| match e {
-        e @ Error::NotFound => domain::GetUserError::NotFound { user_id, source: e },
-        e => domain::GetUserError::DatabaseError(e),
-    })
+    repo.run(move |conn| users.find(user_id).first(&conn))
 }
 
 pub fn find_by_username(repo: &Repo, username_value: &str) -> Result<User, Error> {

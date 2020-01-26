@@ -13,16 +13,16 @@ pub fn create_comment(repo: &Repo, comment: NewComment) -> Result<Comment, Error
     })
 }
 
-pub fn get_comment(repo: &Repo, comment_id: i64) -> Result<Comment, Error> {
+pub fn get_comment(repo: &Repo, comment_id: u64) -> Result<Comment, Error> {
     use crate::db::schema::comments::dsl::comments;
 
-    repo.run(move |conn| comments.find(comment_id).get_result(&conn))
+    repo.run(move |conn| comments.find(comment_id as i64).get_result(&conn))
 }
 
-pub fn delete_comment(repo: &Repo, comment_id: i64) -> Result<(), Error> {
+pub fn delete_comment(repo: &Repo, comment_id: u64) -> Result<(), Error> {
     use crate::db::schema::comments::dsl::{comments, id};
 
-    let to_be_deleted = comments.filter(id.eq(comment_id));
+    let to_be_deleted = comments.filter(id.eq(comment_id as i64));
     repo.run(move |conn| {
         diesel::delete(to_be_deleted)
             .execute(&conn)

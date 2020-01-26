@@ -1,4 +1,5 @@
 use crate::auth::encode_token;
+use crate::domain;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -25,6 +26,21 @@ impl UserResponse {
                 token,
                 bio: user.bio,
                 image: user.image,
+            },
+        }
+    }
+}
+
+impl From<domain::User> for UserResponse {
+    fn from(u: domain::User) -> Self {
+        let token = encode_token(u.id);
+        Self {
+            user: User {
+                username: u.profile.username,
+                email: u.email,
+                token,
+                bio: u.profile.bio,
+                image: u.profile.image,
             },
         }
     }
