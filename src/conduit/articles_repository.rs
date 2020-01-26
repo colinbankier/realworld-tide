@@ -188,6 +188,11 @@ impl<'a> UsersRepository for Repository<'a> {
         Ok(domain::User::from(user))
     }
 
+    fn get_profile(&self, username: &str) -> Result<domain::Profile, GetUserError> {
+        let user = users::find_by_username(&self.0, username)?;
+        Ok(domain::Profile::from(user))
+    }
+
     fn get_view(
         &self,
         viewer: &domain::User,
@@ -196,11 +201,7 @@ impl<'a> UsersRepository for Repository<'a> {
         let viewed_user = users::find_by_username(&self.0, username)?;
         let following = followers::is_following(&self.0, viewer.id, viewed_user.id)?;
         let view = domain::ProfileView {
-            profile: domain::Profile {
-                username: viewed_user.username,
-                bio: viewed_user.bio,
-                image: viewed_user.image,
-            },
+            profile: domain::Profile::from(viewed_user),
             following,
             viewer: viewer.id,
         };
