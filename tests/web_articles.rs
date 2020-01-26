@@ -9,7 +9,6 @@ use helpers::{create_article, create_articles, create_user, create_users};
 use async_std::task;
 use fake::fake;
 use realworld_tide::auth::encode_token;
-use realworld_tide::conduit::users;
 use realworld_tide::domain::articles::ArticleQuery;
 use realworld_tide::web::articles::insert::NewArticleRequest;
 use realworld_tide::web::articles::update::UpdateArticleRequest;
@@ -98,9 +97,12 @@ fn should_get_articles_by_author() {
 fn should_create_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = generate::new_user();
-        let author = users::insert(&server.repository, user).expect("Failed to create user");
-        let token = encode_token(author.id.to_owned());
+        let user = server
+            .register_user(&generate::new_user())
+            .await
+            .expect("Failed to create user")
+            .user;
+        let token = user.token;
 
         let article = generate::article_content();
         let new_article_request = realworld_tide::web::articles::insert::Request {
@@ -117,7 +119,7 @@ fn should_create_article() {
             .unwrap();
 
         let query = Some(ArticleQuery {
-            author: Some(author.username),
+            author: Some(user.username),
             tag: None,
             favorited: None,
         });

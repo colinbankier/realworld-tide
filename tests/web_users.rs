@@ -17,7 +17,12 @@ fn register_and_login() {
         let user = generate::new_user();
 
         server.register_user(&user).await.unwrap();
-        let token = server.login_user(&user).await.unwrap().user.token;
+        let token = server
+            .login_user(&user.email, &user.password)
+            .await
+            .unwrap()
+            .user
+            .token;
         let user_details = server.get_current_user(&token).await.unwrap();
 
         assert_eq!(user_details.user.username, user.username);
@@ -32,7 +37,12 @@ fn update_and_retrieve_user_details() {
         let user = generate::new_user();
 
         let stored_user = server.register_user(&user).await.unwrap();
-        let token = server.login_user(&user).await.unwrap().user.token;
+        let token = server
+            .login_user(&user.email, &user.password)
+            .await
+            .unwrap()
+            .user
+            .token;
 
         assert_eq!(stored_user.user.bio, None);
         assert_eq!(stored_user.user.image, None);

@@ -18,3 +18,9 @@ pub enum LoginError {
     #[error("Something went wrong.")]
     DatabaseError(#[from] diesel::result::Error),
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum SignUpError {
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] diesel::result::Error),
+}

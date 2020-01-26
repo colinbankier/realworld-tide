@@ -9,9 +9,11 @@ use diesel::PgConnection;
 use realworld_tide::conduit::articles;
 use realworld_tide::conduit::articles_repository::Repository;
 use realworld_tide::conduit::users;
-use realworld_tide::db::models::{Article, NewArticle, User};
+use realworld_tide::db::models::{Article, NewArticle, NewUser, User};
 use realworld_tide::db::Repo;
 use realworld_tide::domain;
+use realworld_tide::domain::repositories::UsersRepository;
+use uuid::Uuid;
 
 pub fn create_users(repo: &Repo<PgConnection>, num_users: i32) -> Vec<User> {
     (0..num_users).map(|_| create_user(repo)).collect()
@@ -22,11 +24,20 @@ pub fn create_users2(repo: &Repo<PgConnection>, num_users: i32) -> Vec<domain::U
 }
 
 pub fn create_user(repo: &Repo<PgConnection>) -> User {
-    users::insert(repo, generate::new_user()).expect("Failed to create user")
+    let sign_up = generate::new_user();
+    let new_user = NewUser {
+        username: &sign_up.username,
+        email: &sign_up.email,
+        password: &sign_up.password,
+        id: Uuid::new_v4(),
+    };
+    users::insert(&repo, new_user).expect("Failed to create user")
 }
 
 pub fn create_user2(repo: &Repo<PgConnection>) -> domain::User {
-    users::insert(repo, generate::new_user())
+    let repository = Repository(&repo);
+    repository
+        .sign_up(generate::new_user())
         .expect("Failed to create user")
         .into()
 }

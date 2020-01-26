@@ -1,5 +1,5 @@
 use crate::conduit::{articles, comments, favorites, followers, users};
-use crate::db::models::{Article, NewArticle, NewComment};
+use crate::db::models::{Article, NewArticle, NewComment, NewUser};
 use crate::db::Repo;
 use crate::domain;
 use crate::domain::repositories::{ArticleRepository, UsersRepository};
@@ -176,6 +176,16 @@ impl<'a> ArticleRepository for Repository<'a> {
 }
 
 impl<'a> UsersRepository for Repository<'a> {
+    fn sign_up(&self, sign_up: domain::SignUp) -> Result<domain::User, domain::SignUpError> {
+        let new_user = NewUser {
+            username: &sign_up.username,
+            email: &sign_up.email,
+            password: &sign_up.password,
+            id: Uuid::new_v4(),
+        };
+        Ok(users::insert(&self.0, new_user)?.into())
+    }
+
     fn get_by_id(&self, user_id: Uuid) -> Result<domain::User, GetUserError> {
         let result = users::find(&self.0, user_id);
         let user = result.map_err(|e| match e {

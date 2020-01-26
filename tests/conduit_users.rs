@@ -1,7 +1,7 @@
 mod helpers;
 
 use fake::fake;
-use helpers::generate;
+use helpers::create_user;
 use helpers::test_db::get_test_repo;
 use realworld_tide::conduit::users;
 use realworld_tide::db::models::UpdateUser;
@@ -9,10 +9,7 @@ use realworld_tide::db::models::UpdateUser;
 #[test]
 fn test_create_user() {
     let repo = get_test_repo();
-
-    let new_user = generate::new_user();
-    let user = users::insert(&repo, new_user).expect("Create user failed.");
-
+    let user = create_user(&repo);
     let results = users::find(&repo, user.id);
     assert!(results.is_ok());
 }
@@ -20,9 +17,9 @@ fn test_create_user() {
 #[test]
 fn test_authenticate_user() {
     let repo = get_test_repo();
+
     // Create a new user
-    let new_user = generate::new_user();
-    let user = users::insert(&repo, new_user).expect("Create user failed.");
+    let user = create_user(&repo);
 
     // Check the user is in the database.
     let results = users::find_by_email_password(&repo, &user.email, &user.password);
@@ -33,8 +30,7 @@ fn test_authenticate_user() {
 fn test_update_user() {
     let repo = get_test_repo();
     // Create a new user
-    let new_user = generate::new_user();
-    let user = users::insert(&repo, new_user).expect("Create user failed.");
+    let user = create_user(&repo);
 
     let new_details = UpdateUser {
         bio: Some(fake!(Lorem.paragraph(3, 5)).to_string()),

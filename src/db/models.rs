@@ -8,15 +8,6 @@ use diesel::{AsChangeset, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Insertable, Deserialize, Debug, Clone)]
-#[table_name = "users"]
-pub struct NewUser {
-    pub id: Uuid,
-    pub username: String,
-    pub email: String,
-    pub password: String,
-}
-
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
     pub id: Uuid,
@@ -49,6 +40,15 @@ pub struct Article {
     pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Insertable, Deserialize, Debug, Clone)]
+#[table_name = "users"]
+pub struct NewUser<'a> {
+    pub id: Uuid,
+    pub username: &'a str,
+    pub email: &'a str,
+    pub password: &'a str,
 }
 
 #[derive(Insertable, Deserialize, Debug, Clone)]

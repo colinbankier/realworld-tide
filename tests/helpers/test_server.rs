@@ -1,4 +1,3 @@
-use realworld_tide::db::models::NewUser;
 use realworld_tide::db::Repo;
 use realworld_tide::web::get_app;
 use realworld_tide::web::users::responses::UserResponse;
@@ -9,6 +8,7 @@ use diesel::PgConnection;
 use http_service::Response;
 use http_service_mock::{make_server, TestBackend};
 use realworld_tide::domain::articles::ArticleQuery;
+use realworld_tide::domain::SignUp;
 use realworld_tide::web::articles::responses::{ArticleResponse, ArticlesResponse};
 use realworld_tide::web::comments::responses::{CommentResponse, CommentsResponse};
 use realworld_tide::web::profiles::responses::ProfileResponse;
@@ -34,7 +34,7 @@ impl TestApp {
         }
     }
 
-    pub async fn register_user(&mut self, user: &NewUser) -> Result<UserResponse, Response> {
+    pub async fn register_user(&mut self, user: &SignUp) -> Result<UserResponse, Response> {
         let response = self
             .server
             .simulate(
@@ -57,7 +57,11 @@ impl TestApp {
         response_json_if_success(response).await
     }
 
-    pub async fn login_user(&mut self, user: &NewUser) -> Result<UserResponse, Response> {
+    pub async fn login_user(
+        &mut self,
+        email: &str,
+        password: &str,
+    ) -> Result<UserResponse, Response> {
         let response = self
             .server
             .simulate(
@@ -65,8 +69,8 @@ impl TestApp {
                     .body(
                         json!({
                             "user": {
-                                "email": user.email,
-                                "password": user.password,
+                                "email": email.to_owned(),
+                                "password": password.to_owned(),
                             }
                         })
                         .to_string()

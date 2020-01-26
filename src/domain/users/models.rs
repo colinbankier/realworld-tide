@@ -13,6 +13,13 @@ pub struct Profile {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub struct SignUp {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct User {
     pub id: Uuid,
     pub email: String,

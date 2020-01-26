@@ -1,7 +1,8 @@
 use crate::domain::{
     Article, ArticleContent, ArticleQuery, ArticleUpdate, ArticleView, Comment, CommentContent,
     DatabaseError, DeleteCommentError, FavoriteOutcome, FeedQuery, GetArticleError, GetUserError,
-    LoginError, Profile, ProfileView, PublishArticleError, UnfavoriteOutcome, User,
+    LoginError, Profile, ProfileView, PublishArticleError, SignUp, SignUpError, UnfavoriteOutcome,
+    User,
 };
 use uuid::Uuid;
 
@@ -45,6 +46,7 @@ pub trait ArticleRepository {
 }
 
 pub trait UsersRepository {
+    fn sign_up(&self, sign_up: SignUp) -> Result<User, SignUpError>;
     fn get_by_id(&self, user_id: Uuid) -> Result<User, GetUserError>;
     fn get_by_email_and_password(&self, email: &str, password: &str) -> Result<User, LoginError>;
     fn get_profile(&self, username: &str) -> Result<Profile, GetUserError>;

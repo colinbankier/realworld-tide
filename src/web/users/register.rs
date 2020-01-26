@@ -1,11 +1,10 @@
 use super::responses::UserResponse;
-use crate::conduit::users;
-use crate::db::models::*;
-use crate::web::diesel_error;
+use crate::auth::encode_token;
+use crate::domain::repositories::UsersRepository;
+use crate::domain::SignUp;
 use crate::Repo;
 use serde::Deserialize;
 use tide::{Request, Response};
-use uuid::Uuid;
 
 #[derive(Deserialize, Debug)]
 pub struct RegistrationRequest {
@@ -19,26 +18,27 @@ pub struct NewUserRequest {
     pub password: String,
 }
 
+impl From<RegistrationRequest> for SignUp {
+    fn from(r: RegistrationRequest) -> Self {
+        Self {
+            username: r.user.username,
+            password: r.user.password,
+            email: r.user.email,
+        }
+    }
+}
+
 pub async fn register(mut cx: Request<Repo>) -> Result<Response, Response> {
     let registration: RegistrationRequest = cx
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
-    let repo = cx.state();
+    let repository = crate::conduit::articles_repository::Repository(cx.state());
 
-    let new_user = NewUser {
-        username: registration.user.username,
-        email: registration.user.email,
-        password: registration.user.password,
-        id: Uuid::new_v4(),
-    };
-    let result = users::insert(repo, new_user);
+    let sign_up: SignUp = registration.into();
+    let new_user = repository.sign_up(sign_up)?;
+    let token = encode_token(new_user.id);
 
-    result
-        .map(|user| {
-            Response::new(200)
-                .body_json(&UserResponse::new(user))
-                .unwrap()
-        })
-        .map_err(|e| diesel_error(&e))
+    let response = UserResponse::from((new_user, token));
+    Ok(Response::new(200).body_json(&response).unwrap())
 }
