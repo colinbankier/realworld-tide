@@ -9,6 +9,7 @@ use helpers::{create_article, create_articles, create_user, create_users};
 use async_std::task;
 use domain::articles::ArticleQuery;
 use fake::fake;
+use itertools::Itertools;
 use realworld_web::articles::insert::NewArticleRequest;
 use realworld_web::articles::update::UpdateArticleRequest;
 use realworld_web::auth::encode_token;
@@ -17,7 +18,10 @@ use realworld_web::auth::encode_token;
 fn should_list_articles() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let users = create_users(&server.repository.0, 5);
+        let users = create_users(&server.repository.0, 5)
+            .into_iter()
+            .map(|(u, _)| u)
+            .collect_vec();
         create_articles(&server.repository.0, users);
         let articles = server.get_articles(None).await.unwrap().articles;
         assert_eq!(articles.len(), 5);
@@ -30,7 +34,10 @@ fn favorite_count_is_updated_correctly() {
         let mut server = TestApp::new();
 
         let n_users = 5;
-        let users = create_users(&server.repository.0, n_users);
+        let users = create_users(&server.repository.0, n_users)
+            .into_iter()
+            .map(|(u, _)| u)
+            .collect_vec();
 
         let author = users[0].clone();
         let slug = create_article(&server.repository.0, &author).slug;
@@ -73,7 +80,10 @@ fn favorite_count_is_updated_correctly() {
 fn should_get_articles_by_author() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let users = create_users(&server.repository.0, 5);
+        let users = create_users(&server.repository.0, 5)
+            .into_iter()
+            .map(|(u, _)| u)
+            .collect_vec();
         create_articles(&server.repository.0, users.clone());
 
         let author = users[0].clone();
@@ -97,8 +107,9 @@ fn should_get_articles_by_author() {
 fn should_create_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
+        let (new_user, password) = generate::new_user();
         let user = server
-            .register_user(&generate::new_user())
+            .register_user(&new_user, &password)
             .await
             .expect("Failed to create user")
             .user;
@@ -138,7 +149,7 @@ fn should_create_article() {
 fn should_update_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = create_user(&server.repository.0);
+        let user = create_user(&server.repository.0).0;
         let token = encode_token(user.id);
         let article = create_article(&server.repository.0, &user);
 
@@ -163,7 +174,7 @@ fn should_update_article() {
 fn should_delete_article() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = create_user(&server.repository.0);
+        let user = create_user(&server.repository.0).0;
         let token = encode_token(user.id);
         let article = create_article(&server.repository.0, &user);
 

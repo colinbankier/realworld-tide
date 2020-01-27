@@ -33,7 +33,11 @@ impl TestApp {
         }
     }
 
-    pub async fn register_user(&mut self, user: &SignUp) -> Result<UserResponse, Response> {
+    pub async fn register_user(
+        &mut self,
+        user: &SignUp,
+        password: &str,
+    ) -> Result<UserResponse, Response> {
         let response = self
             .server
             .simulate(
@@ -42,7 +46,7 @@ impl TestApp {
                         json!({
                             "user": {
                                 "email": user.email,
-                                "password": user.password,
+                                "password": password,
                                 "username": user.username,
                             }
                         })

@@ -1,9 +1,39 @@
 use crate::repositories::Repository;
 use crate::{
     Article, ArticleContent, ArticleUpdate, ArticleView, ChangeArticleError, Comment,
-    CommentContent, CommentView, DatabaseError, DeleteCommentError, PublishArticleError,
+    CommentContent, CommentView, DatabaseError, DeleteCommentError, PasswordError,
+    PublishArticleError,
 };
 use uuid::Uuid;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Password(String);
+
+impl Password {
+    /// Given a clear-text password, it returns a `Password` instance
+    /// containing the password's hash.
+    pub fn from_clear_text(clear_text_password: String) -> Result<Password, PasswordError> {
+        // TODO: Read hash cost from configuration - we are using 4 for now.
+        let hash = bcrypt::hash(clear_text_password, 4)?;
+        Ok(Password(hash))
+    }
+
+    /// Given an already hashed password, it returns a `Password` instance
+    /// containing that very same hash.
+    pub fn from_hash(hashed_password: String) -> Password {
+        Password(hashed_password)
+    }
+
+    /// Returns the hashed password.
+    pub fn hash(&self) -> &str {
+        &self.0
+    }
+
+    /// Check that a password matches `self` when hashed.
+    pub fn verify(&self, clear_text_password: &str) -> Result<bool, PasswordError> {
+        Ok(bcrypt::verify(clear_text_password, &self.0)?)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Profile {
@@ -16,7 +46,7 @@ pub struct Profile {
 pub struct SignUp {
     pub username: String,
     pub email: String,
-    pub password: String,
+    pub password: Password,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,7 +60,7 @@ pub struct User {
 pub struct UserUpdate {
     pub email: Option<String>,
     pub username: Option<String>,
-    pub password: Option<String>,
+    pub password: Option<Password>,
     pub image: Option<String>,
     pub bio: Option<String>,
 }

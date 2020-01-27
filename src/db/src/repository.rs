@@ -186,7 +186,7 @@ impl domain::repositories::Repository for Repository {
         let new_user = NewUser {
             username: &sign_up.username,
             email: &sign_up.email,
-            password: &sign_up.password,
+            password: sign_up.password.hash(),
             id: Uuid::new_v4(),
         };
         Ok(users::insert(&self.0, new_user)?.into())
@@ -216,11 +216,18 @@ impl domain::repositories::Repository for Repository {
         email: &str,
         password: &str,
     ) -> Result<domain::User, domain::LoginError> {
-        let result = users::find_by_email_password(&self.0, email, password);
+        let result = users::find_by_email(&self.0, email);
         let user = result.map_err(|e| match e {
             Error::NotFound => domain::LoginError::NotFound,
             e => domain::LoginError::DatabaseError(e),
         })?;
+
+        // Check if the provided password is valid
+        let stored_password = domain::Password::from_hash(user.password.to_owned());
+        if !stored_password.verify(&password)? {
+            return Err(domain::LoginError::NotFound);
+        }
+
         Ok(domain::User::from(user))
     }
 

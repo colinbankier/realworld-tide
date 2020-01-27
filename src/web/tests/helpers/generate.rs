@@ -15,10 +15,13 @@ pub fn article_content() -> domain::ArticleContent {
     }
 }
 
-pub fn new_user() -> domain::SignUp {
-    domain::SignUp {
+pub fn new_user() -> (domain::SignUp, String) {
+    let password = fake!(Lorem.word).to_string();
+    let sign_up = domain::SignUp {
         username: fake!(Internet.user_name).to_string(),
         email: fake!(Internet.free_email).to_string(),
-        password: fake!(Lorem.word).to_string(),
-    }
+        password: domain::Password::from_clear_text(password.clone())
+            .expect("Failed to hash password"),
+    };
+    (sign_up, password)
 }

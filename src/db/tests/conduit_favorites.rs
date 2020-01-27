@@ -9,7 +9,7 @@ use realworld_db::queries::favorites;
 fn you_cannot_favorite_an_article_which_does_not_exist() {
     let repo = get_test_repo();
 
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
     // Slug not pointing to any article in the DB
     let article_slug = "hello";
 
@@ -21,7 +21,7 @@ fn you_cannot_favorite_an_article_which_does_not_exist() {
 fn you_can_favorite_an_article_twice_but_it_only_counts_for_one() {
     let repo = get_test_repo();
 
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
     let article = create_article(&repo, &user);
 
     let result = favorites::favorite(&repo, user.id, &article.slug);
@@ -38,7 +38,7 @@ fn you_can_favorite_an_article_twice_but_it_only_counts_for_one() {
 fn you_can_favorite_an_article_which_you_never_favorited() {
     let repo = get_test_repo();
 
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
     let article = create_article(&repo, &user);
 
     let result = favorites::unfavorite(&repo, user.id, &article.slug);
@@ -49,13 +49,13 @@ fn you_can_favorite_an_article_which_you_never_favorited() {
 fn favorites_works() {
     let repo = get_test_repo();
 
-    let author = create_user(&repo);
+    let author = create_user(&repo).0;
     let article = create_article(&repo, &author);
 
     let n_fans = 10;
     let fans = create_users(&repo, n_fans);
 
-    for fan in &fans {
+    for (fan, _) in &fans {
         assert!(!favorites::is_favorite(&repo, fan.id, &article.slug).unwrap());
         favorites::favorite(&repo, fan.id, &article.slug).expect("Failed to fav article");
         assert!(favorites::is_favorite(&repo, fan.id, &article.slug).unwrap());
@@ -66,7 +66,7 @@ fn favorites_works() {
         favorites::n_favorites(&repo, &article.slug).unwrap()
     );
 
-    for fan in &fans {
+    for (fan, _) in &fans {
         favorites::unfavorite(&repo, fan.id, &article.slug).expect("Failed to fav article");
     }
 

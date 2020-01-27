@@ -14,7 +14,7 @@ fn slugs_must_be_unique() {
     let repo = get_test_repo();
     let repository = Repository(repo);
 
-    let author = create_user2(&repository);
+    let author = create_user2(&repository).0;
     let first_draft = generate::article_content();
     let second_draft = first_draft.clone();
     // Two article drafts, with identical title => identical slug
@@ -41,7 +41,7 @@ fn insert_and_retrieve_article() {
     let repo = get_test_repo();
     let repository = Repository(repo);
 
-    let author = create_user(&repository.0);
+    let author = create_user(&repository.0).0;
     let author = repository.get_user_by_id(author.id).unwrap();
     let draft = generate::article_content();
 
@@ -57,7 +57,7 @@ fn update_and_retrieve_article() {
     let repo = get_test_repo();
     let repository = Repository(repo);
 
-    let author = create_user2(&repository);
+    let author = create_user2(&repository).0;
     let article = create_article2(&repository, With::Value(&author));
 
     let update = ArticleUpdate {

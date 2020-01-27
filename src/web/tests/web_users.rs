@@ -13,11 +13,11 @@ use realworld_web::users::update::UpdateUserRequest;
 fn register_and_login() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = generate::new_user();
+        let (user, password) = generate::new_user();
 
-        server.register_user(&user).await.unwrap();
+        server.register_user(&user, &password).await.unwrap();
         let token = server
-            .login_user(&user.email, &user.password)
+            .login_user(&user.email, &password)
             .await
             .unwrap()
             .user
@@ -33,11 +33,11 @@ fn register_and_login() {
 fn update_and_retrieve_user_details() {
     task::block_on(async move {
         let mut server = TestApp::new();
-        let user = generate::new_user();
+        let (user, password) = generate::new_user();
 
-        let stored_user = server.register_user(&user).await.unwrap();
+        let stored_user = server.register_user(&user, &password).await.unwrap();
         let token = server
-            .login_user(&user.email, &user.password)
+            .login_user(&user.email, &password)
             .await
             .unwrap()
             .user

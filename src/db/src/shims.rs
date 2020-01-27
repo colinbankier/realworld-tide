@@ -85,7 +85,7 @@ impl<'a> From<&'a domain::UserUpdate> for UpdateUser<'a> {
         Self {
             email: u.email.as_deref(),
             username: u.username.as_deref(),
-            password: u.password.as_deref(),
+            password: u.password.as_ref().map(|p| p.hash().to_owned()),
             image: u.image.as_deref(),
             bio: u.bio.as_deref(),
         }

@@ -9,7 +9,7 @@ use realworld_db::queries::users;
 #[test]
 fn test_create_user() {
     let repo = get_test_repo();
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
     let results = users::find(&repo, user.id);
     assert!(results.is_ok());
 }
@@ -19,10 +19,10 @@ fn test_authenticate_user() {
     let repo = get_test_repo();
 
     // Create a new user
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
 
     // Check the user is in the database.
-    let results = users::find_by_email_password(&repo, &user.email, &user.password);
+    let results = users::find_by_email(&repo, &user.email);
     assert!(results.is_ok());
 }
 
@@ -30,7 +30,7 @@ fn test_authenticate_user() {
 fn test_update_user() {
     let repo = get_test_repo();
     // Create a new user
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
 
     let bio = fake!(Lorem.paragraph(3, 5)).to_string();
     let image = fake!(Internet.domain_suffix).to_string();

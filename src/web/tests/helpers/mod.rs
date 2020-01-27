@@ -11,29 +11,33 @@ use db::{Repo, Repository};
 use domain::repositories::Repository as RepositoryTrait;
 use uuid::Uuid;
 
-pub fn create_users(repo: &Repo, num_users: i32) -> Vec<User> {
+pub fn create_users(repo: &Repo, num_users: i32) -> Vec<(User, String)> {
     (0..num_users).map(|_| create_user(repo)).collect()
 }
 
-pub fn create_users2(repo: &Repository, num_users: i32) -> Vec<domain::User> {
-    (0..num_users).map(|_| create_user2(repo)).collect()
-}
-
-pub fn create_user(repo: &Repo) -> User {
-    let sign_up = generate::new_user();
+pub fn create_user(repo: &Repo) -> (User, String) {
+    let (sign_up, clear_text_password) = generate::new_user();
     let new_user = NewUser {
         username: &sign_up.username,
         email: &sign_up.email,
-        password: &sign_up.password,
+        password: &sign_up.password.hash(),
         id: Uuid::new_v4(),
     };
-    users::insert(&repo, new_user).expect("Failed to create user")
+    let new_user = users::insert(&repo, new_user).expect("Failed to create user");
+    (new_user, clear_text_password)
 }
 
-pub fn create_user2(repo: &Repository) -> domain::User {
-    repo.sign_up(generate::new_user())
+pub fn create_users2(repo: &Repository, num_users: i32) -> Vec<(domain::User, String)> {
+    (0..num_users).map(|_| create_user2(repo)).collect()
+}
+
+pub fn create_user2(repo: &Repository) -> (domain::User, String) {
+    let (new_user, password) = generate::new_user();
+    let new_user = repo
+        .sign_up(new_user)
         .expect("Failed to create user")
-        .into()
+        .into();
+    (new_user, password)
 }
 
 pub fn create_articles(repo: &Repo, users: Vec<User>) -> Vec<Article> {
@@ -52,7 +56,7 @@ pub fn create_article(repo: &Repo, user: &User) -> Article {
 
 pub fn create_article2(repo: &Repository, author: With<&domain::User>) -> domain::Article {
     let author = match author {
-        With::Random => create_user2(repo),
+        With::Random => create_user2(repo).0,
         With::Value(user) => user.to_owned(),
     };
     let draft = generate::article_content();

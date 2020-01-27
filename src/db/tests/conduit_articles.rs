@@ -3,7 +3,7 @@ mod helpers;
 use helpers::test_db::get_test_repo;
 use helpers::{create_articles, create_user, create_users};
 
-use realworld_db::models::NewArticle;
+use realworld_db::models::{NewArticle, User};
 use realworld_db::queries::articles;
 use std::collections::HashSet;
 
@@ -11,7 +11,7 @@ use std::collections::HashSet;
 fn list_articles() {
     let repo = get_test_repo();
 
-    let users = create_users(&repo, 5);
+    let users: Vec<User> = create_users(&repo, 5).into_iter().map(|(u, _)| u).collect();
     let _articles = create_articles(&repo, users);
     let results = articles::find(&repo, Default::default()).expect("Failed to get articles");
 
@@ -22,7 +22,10 @@ fn list_articles() {
 fn delete_article() {
     let repo = get_test_repo();
     let n_articles = 5;
-    let users = create_users(&repo, n_articles);
+    let users: Vec<User> = create_users(&repo, n_articles)
+        .into_iter()
+        .map(|(u, _)| u)
+        .collect();
     let articles = create_articles(&repo, users);
 
     let slug = articles[0].slug.clone();
@@ -48,7 +51,7 @@ fn no_tags_if_there_are_no_articles() {
 fn no_tags_if_there_are_only_articles_without_tags() {
     let repo = get_test_repo();
 
-    let user = create_user(&repo);
+    let user = create_user(&repo).0;
 
     let article = NewArticle {
         title: "My article".into(),
@@ -69,7 +72,10 @@ fn tags_works() {
     let repo = get_test_repo();
 
     let n_articles = 10;
-    let users = create_users(&repo, n_articles);
+    let users = create_users(&repo, n_articles)
+        .into_iter()
+        .map(|(u, _)| u)
+        .collect();
     let articles = create_articles(&repo, users);
 
     let expected_tags: HashSet<String> = articles

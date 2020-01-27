@@ -25,7 +25,7 @@ pub struct User {
 pub struct UpdateUser<'a> {
     pub email: Option<&'a str>,
     pub username: Option<&'a str>,
-    pub password: Option<&'a str>,
+    pub password: Option<String>,
     pub image: Option<&'a str>,
     pub bio: Option<&'a str>,
 }

@@ -4,6 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use domain::SignUp;
 use serde::Deserialize;
+use std::convert::{TryFrom, TryInto};
 use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
@@ -18,13 +19,16 @@ pub struct NewUserRequest {
     pub password: String,
 }
 
-impl From<RegistrationRequest> for SignUp {
-    fn from(r: RegistrationRequest) -> Self {
-        Self {
+impl TryFrom<RegistrationRequest> for SignUp {
+    type Error = domain::PasswordError;
+
+    fn try_from(r: RegistrationRequest) -> Result<Self, Self::Error> {
+        let sign_up = Self {
             username: r.user.username,
-            password: r.user.password,
+            password: domain::Password::from_clear_text(r.user.password)?,
             email: r.user.email,
-        }
+        };
+        Ok(sign_up)
     }
 }
 
@@ -37,7 +41,7 @@ pub async fn register<R: 'static + Repository + Sync + Send>(
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let repository = &cx.state().repository;
 
-    let sign_up: SignUp = registration.into();
+    let sign_up: SignUp = registration.try_into()?;
     let new_user = repository.sign_up(sign_up)?;
     let token = encode_token(new_user.id);
 

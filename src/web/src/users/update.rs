@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::auth::encode_token;
 use crate::users::responses::UserResponse;
 use domain::repositories::Repository;
+use std::convert::{TryFrom, TryInto};
 use tide::Response;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -22,15 +23,21 @@ pub struct UpdateUserRequest {
     pub bio: Option<String>,
 }
 
-impl From<UpdateUserRequest> for domain::UserUpdate {
-    fn from(u: UpdateUserRequest) -> Self {
-        Self {
+impl TryFrom<UpdateUserRequest> for domain::UserUpdate {
+    type Error = domain::PasswordError;
+
+    fn try_from(u: UpdateUserRequest) -> Result<Self, Self::Error> {
+        let update = Self {
             email: u.email,
             username: u.username,
-            password: u.password,
+            password: u
+                .password
+                .map(|p| domain::Password::from_clear_text(p))
+                .transpose()?,
             image: u.image,
             bio: u.bio,
-        }
+        };
+        Ok(update)
     }
 }
 
@@ -46,7 +53,7 @@ pub async fn update_user<R: 'static + Repository + Sync + Send>(
     let repository = &cx.state().repository;
 
     let user = repository.get_user_by_id(user_id)?;
-    let updated_user = user.update(update_params.into(), repository)?;
+    let updated_user = user.update(update_params.try_into()?, repository)?;
     let token = encode_token(updated_user.id);
 
     let response = UserResponse::from((updated_user, token));

@@ -31,18 +31,9 @@ pub fn find_by_username(repo: &Repo, username_value: &str) -> Result<User, Error
     repo.run(move |conn| users.filter(username.eq(username_value)).first(&conn))
 }
 
-pub fn find_by_email_password(
-    repo: &Repo,
-    user_email: &str,
-    user_password: &str,
-) -> Result<User, Error> {
+pub fn find_by_email(repo: &Repo, user_email: &str) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    repo.run(|conn| {
-        users
-            .filter(email.eq(user_email))
-            .filter(password.eq(user_password))
-            .first::<User>(&conn)
-    })
+    repo.run(|conn| users.filter(email.eq(user_email)).first::<User>(&conn))
 }
 
 pub fn update(repo: &Repo, user_id: Uuid, details: UpdateUser) -> Result<User, Error> {

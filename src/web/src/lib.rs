@@ -12,7 +12,7 @@ pub use app::get_app;
 use domain::repositories::Repository;
 use domain::{
     ChangeArticleError, DatabaseError, DeleteCommentError, GetArticleError, GetUserError,
-    LoginError, PublishArticleError, SignUpError,
+    LoginError, PasswordError, PublishArticleError, SignUpError,
 };
 
 pub struct Context<R: 'static + Repository + Sync + Send> {
@@ -49,10 +49,17 @@ impl From<GetUserError> for ErrorResponse {
     }
 }
 
+impl From<PasswordError> for ErrorResponse {
+    fn from(_: PasswordError) -> ErrorResponse {
+        ErrorResponse(Response::new(500))
+    }
+}
+
 impl From<LoginError> for ErrorResponse {
     fn from(e: LoginError) -> ErrorResponse {
         let r = match &e {
             LoginError::NotFound => Response::new(401),
+            LoginError::PasswordError(_) => Response::new(500),
             LoginError::DatabaseError(_) => Response::new(500),
         };
         ErrorResponse(r)
