@@ -32,7 +32,7 @@ impl TryFrom<UpdateUserRequest> for domain::UserUpdate {
             username: u.username,
             password: u
                 .password
-                .map(|p| domain::Password::from_clear_text(p))
+                .map(domain::Password::from_clear_text)
                 .transpose()?,
             image: u.image,
             bio: u.bio,

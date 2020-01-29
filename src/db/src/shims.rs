@@ -46,14 +46,13 @@ impl From<User> for domain::Profile {
 }
 
 pub fn to_comment(c: Comment, u: User) -> domain::Comment {
-    let comment = domain::Comment {
+    domain::Comment {
         id: c.id as u64,
         author: domain::Profile::from(u),
         body: c.body,
         created_at: c.created_at,
         updated_at: c.updated_at,
-    };
-    comment
+    }
 }
 
 impl<'a> From<(&'a domain::ArticleContent, &'a domain::User)> for NewArticle<'a> {
