@@ -1,0 +1,22 @@
+[package]
+name = "realworld-application"
+version = "0.1.0"
+authors = ["colinbankier <colinbankier@gmail.com>", "LukeMathWalker <rust@lpalmieri.com>"]
+edition = "2018"
+
+[[bin]]
+name = "realworld_application"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version= "1", features = ["derive"] }
+env_logger = "0.6.0"
+config = "0.9.3"
+async-std = "1"
+db = { package = "realworld-db", path = "../db" }
+domain = { package = "realworld-domain", path = "../domain" }
+web = { package = "realworld-web", path = "../web" }
+
+[dependencies.futures]
+features = ["compat"]
+version = "0.3.1"
