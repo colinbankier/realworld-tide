@@ -1,8 +1,8 @@
 use crate::Context;
 use domain::repositories::Repository;
-use tide::{IntoResponse, Response, Server};
-use tide::middleware::{Cors, Origin};
 use http::HeaderValue;
+use tide::middleware::{Cors, Origin};
+use tide::{IntoResponse, Response, Server};
 
 pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> Response {
     match r {
