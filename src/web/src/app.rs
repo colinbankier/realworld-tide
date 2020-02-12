@@ -1,6 +1,8 @@
 use crate::Context;
 use domain::repositories::Repository;
 use tide::{IntoResponse, Response, Server};
+use tide::middleware::{Cors, Origin};
+use http::HeaderValue;
 
 pub fn result_to_response<T: IntoResponse, E: IntoResponse>(r: Result<T, E>) -> Response {
     match r {
@@ -64,7 +66,12 @@ pub fn add_routes<R: Repository + Send + Sync>(mut api: Server<Context<R>>) -> S
 }
 
 pub fn add_middleware<State: 'static + Sync + Send>(mut app: Server<State>) -> Server<State> {
+    let rules = Cors::new()
+        .allow_methods(HeaderValue::from_static("GET, POST, OPTIONS"))
+        .allow_origin(Origin::from("*"))
+        .allow_credentials(false);
     app.middleware(tide::middleware::RequestLogger::new());
+    app.middleware(rules);
     app.middleware(crate::middleware::JwtMiddleware::new());
     app
 }
