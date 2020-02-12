@@ -4,7 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use serde::Deserialize;
 use std::str::FromStr;
-use tide::{Request, Response};
+use tide::{IntoResponse, Request, Response};
 use uuid::Uuid;
 
 #[derive(Default, Deserialize, Debug, Clone)]
@@ -34,13 +34,7 @@ impl FromStr for ArticleQuery {
 pub async fn list_articles<R: 'static + Repository + Sync + Send>(
     cx: Request<Context<R>>,
 ) -> Result<Response, ErrorResponse> {
-    // This can be avoided once https://github.com/http-rs/tide/pull/384 gets merged
-    let query = cx.query::<ArticleQuery>().unwrap_or(ArticleQuery {
-        author: None,
-        favorited: None,
-        tag: None,
-    });
-
+    let query = cx.query::<ArticleQuery>().map_err(|e| e.into_response())?;
     let repository = &cx.state().repository;
 
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
