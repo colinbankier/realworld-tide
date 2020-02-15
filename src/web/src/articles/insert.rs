@@ -26,7 +26,7 @@ impl From<NewArticleRequest> for domain::ArticleContent {
             title: a.title,
             description: a.description,
             body: a.body,
-            tag_list: a.tag_list.unwrap_or(vec![]),
+            tag_list: a.tag_list.unwrap_or_else(|| vec![]),
         }
     }
 }
