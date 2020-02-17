@@ -8,7 +8,6 @@ use crate::auth::{extract_claims, Claims};
 #[derive(Clone, Default, Debug)]
 pub struct JwtMiddleware {}
 
-#[allow(dead_code)]
 impl JwtMiddleware {
     pub fn new() -> Self {
         Self {}
