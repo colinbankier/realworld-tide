@@ -32,9 +32,7 @@ pub fn find_by_username(repo: &Repo, username_value: &str) -> Result<User, Error
 
 pub fn find_by_email(repo: &Repo, user_email: &str) -> Result<User, Error> {
     use crate::schema::users::dsl::*;
-    users
-        .filter(email.eq(user_email))
-        .first::<User>(&repo.conn())
+    users.filter(email.eq(user_email)).first(&repo.conn())
 }
 
 pub fn update(repo: &Repo, user_id: Uuid, details: UpdateUser) -> Result<User, Error> {
