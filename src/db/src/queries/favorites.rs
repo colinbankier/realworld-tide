@@ -8,11 +8,7 @@ use domain::{FavoriteOutcome, UnfavoriteOutcome};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub fn favorite(
-    repo: &Repo,
-    user_id: Uuid,
-    article_slug: &str,
-) -> Result<FavoriteOutcome, domain::DatabaseError> {
+pub fn favorite(repo: &Repo, user_id: Uuid, article_slug: &str) -> Result<FavoriteOutcome, Error> {
     let row = NewFavorite {
         user_id,
         article_id: article_slug.to_owned(),
@@ -36,7 +32,7 @@ pub fn unfavorite(
     repo: &Repo,
     user_id_value: Uuid,
     article_slug: &str,
-) -> Result<UnfavoriteOutcome, domain::DatabaseError> {
+) -> Result<UnfavoriteOutcome, Error> {
     use crate::schema::favorites::dsl::{article_id, favorites, user_id};
 
     let delete = favorites.filter(article_id.eq(article_slug).and(user_id.eq(user_id_value)));

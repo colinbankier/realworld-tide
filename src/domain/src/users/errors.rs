@@ -1,3 +1,4 @@
+use crate::DatabaseError;
 use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug)]
@@ -12,10 +13,10 @@ pub enum GetUserError {
     #[error("There is no user with id {user_id:?}.")]
     NotFound {
         user_id: Uuid,
-        source: diesel::result::Error,
+        source: DatabaseError,
     },
     #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
+    DatabaseError(#[from] DatabaseError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -25,11 +26,11 @@ pub enum LoginError {
     #[error("Failed to process password")]
     PasswordError(#[from] PasswordError),
     #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
+    DatabaseError(#[from] DatabaseError),
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum SignUpError {
     #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
+    DatabaseError(#[from] DatabaseError),
 }

@@ -4,31 +4,19 @@ use crate::schema::articles;
 use crate::shims::to_article;
 use crate::Repo;
 use diesel::prelude::*;
-use diesel::result::{DatabaseErrorKind, Error};
+use diesel::result::Error;
 use diesel::sql_query;
 use domain;
 use domain::ArticleQuery;
-use domain::PublishArticleError;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use uuid::Uuid;
 
-pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, PublishArticleError> {
+pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
     repo.run(move |conn| {
-        let result = diesel::insert_into(articles::table)
+        diesel::insert_into(articles::table)
             .values(&article)
-            .get_result(&conn);
-
-        result.map_err(|e| match e {
-            Error::DatabaseError(kind, _) => match kind {
-                DatabaseErrorKind::UniqueViolation => PublishArticleError::DuplicatedSlug {
-                    slug: article.slug,
-                    source: e,
-                },
-                _ => PublishArticleError::DatabaseError(e),
-            },
-            e => PublishArticleError::DatabaseError(e),
-        })
+            .get_result(&conn)
     })
 }
 

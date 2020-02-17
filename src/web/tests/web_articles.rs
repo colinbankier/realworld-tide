@@ -121,7 +121,7 @@ fn should_create_article() {
                 title: article.title.clone(),
                 description: article.description.clone(),
                 body: article.body.clone(),
-                tag_list: article.tag_list.clone(),
+                tag_list: Some(article.tag_list.clone()),
             },
         };
         server
