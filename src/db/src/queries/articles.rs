@@ -13,11 +13,9 @@ use std::iter::FromIterator;
 use uuid::Uuid;
 
 pub fn insert(repo: &Repo, article: NewArticle) -> Result<Article, Error> {
-    repo.run(move |conn| {
-        diesel::insert_into(articles::table)
-            .values(&article)
-            .get_result(&conn)
-    })
+    diesel::insert_into(articles::table)
+        .values(&article)
+        .get_result(&repo.conn())
 }
 
 pub fn update(
@@ -27,29 +25,25 @@ pub fn update(
 ) -> Result<Article, Error> {
     use crate::schema::articles::dsl::{articles, slug};
 
-    repo.run(move |conn| {
-        diesel::update(articles.filter(slug.eq(slug_value)))
-            .set(&article_update)
-            .get_result(&conn)
-    })
+    diesel::update(articles.filter(slug.eq(slug_value)))
+        .set(&article_update)
+        .get_result(&repo.conn())
 }
 
 pub fn delete(repo: &Repo, slug_value: &str) -> Result<(), Error> {
     use crate::schema::articles::dsl::{articles, slug};
 
-    repo.run(move |conn| {
-        diesel::delete(articles.filter(slug.eq(slug_value)))
-            .execute(&conn)
-            // Discard the number of deleted rows
-            .map(|_| ())
-    })
+    diesel::delete(articles.filter(slug.eq(slug_value)))
+        .execute(&repo.conn())
+        // Discard the number of deleted rows
+        .map(|_| ())
 }
 
 pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, u64)>, Error> {
     use crate::schema::articles::dsl::*;
     use crate::schema::users::dsl::{username, users};
 
-    let results: Vec<(Article, User)> = repo.run(move |conn| {
+    let results: Vec<(Article, User)> = {
         let q = articles
             .inner_join(users)
             .select((articles::all_columns(), users::all_columns()))
@@ -61,8 +55,8 @@ pub fn find(repo: &Repo, query: ArticleQuery) -> Result<Vec<(Article, User, u64)
             q
         };
 
-        q.load(&conn)
-    })?;
+        q.load(&repo.conn())
+    }?;
     results
         .into_iter()
         .map(|(article, user)| {
@@ -75,13 +69,11 @@ pub fn find_one(repo: &Repo, slug_value: &str) -> Result<domain::Article, Error>
     use crate::schema::articles::dsl::{articles, slug};
     use crate::schema::users::dsl::users;
 
-    let (article, user): (Article, User) = repo.run(move |conn| {
-        articles
-            .filter(slug.eq(slug_value))
-            .inner_join(users)
-            .select((articles::all_columns(), users::all_columns()))
-            .first(&conn)
-    })?;
+    let (article, user): (Article, User) = articles
+        .filter(slug.eq(slug_value))
+        .inner_join(users)
+        .select((articles::all_columns(), users::all_columns()))
+        .first(&repo.conn())?;
     let n_fav = n_favorites(&repo, &article.slug)?;
     let article = to_article(article, user.into(), n_fav as u64);
     Ok(article)
@@ -100,17 +92,15 @@ pub fn feed(
     let limit = limit as i64;
     let offset = offset as i64;
 
-    let results: Vec<(Article, User)> = repo.run(move |conn| {
-        followers
-            .filter(follower_id.eq(user_id_value))
-            .inner_join(users.on(id.eq(followed_id)))
-            .inner_join(articles.on(user_id.eq(id)))
-            .select((articles::all_columns(), users::all_columns()))
-            .order(created_at.desc())
-            .limit(limit)
-            .offset(offset)
-            .get_results(&conn)
-    })?;
+    let results: Vec<(Article, User)> = followers
+        .filter(follower_id.eq(user_id_value))
+        .inner_join(users.on(id.eq(followed_id)))
+        .inner_join(articles.on(user_id.eq(id)))
+        .select((articles::all_columns(), users::all_columns()))
+        .order(created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .get_results(&repo.conn())?;
     results
         .into_iter()
         .map(|(article, user)| {
@@ -131,7 +121,7 @@ pub fn tags(repo: &Repo) -> Result<HashSet<String>, Error> {
     }
 
     let query = sql_query("SELECT array_agg(DISTINCT tag) as tags FROM (SELECT 1, unnest(tag_list) FROM articles) AS t(id, tag) GROUP BY id");
-    let mut result: Vec<Tags> = repo.run(move |conn| query.load(&conn))?;
+    let mut result: Vec<Tags> = query.load(&repo.conn())?;
     // This is not actually an array: it's either a single element of empty
     let tags = match result.pop() {
         Some(tags) => HashSet::from_iter(tags.tags.into_iter()),
