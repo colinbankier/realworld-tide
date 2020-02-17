@@ -9,6 +9,8 @@ use domain::{DatabaseError, DeleteCommentError, GetUserError};
 use std::collections::HashSet;
 use uuid::Uuid;
 
+/// Helper function to cast a diesel::Error into a domain Database Error.
+/// This requires casting the diesel::Error into anyhow::Error first.
 pub fn to_db_error(e: Error) -> domain::DatabaseError {
     domain::DatabaseError::from(OpaqueError::from(e)).into()
 }
