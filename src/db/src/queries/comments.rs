@@ -31,10 +31,9 @@ pub fn get_comments(repo: &Repo, article_slug: &str) -> Result<Vec<(Comment, Use
     use crate::schema::comments::dsl::{article_id, comments};
     use crate::schema::users::dsl::users;
 
-    let q = comments
+    comments
         .filter(article_id.eq(article_slug))
         .inner_join(users)
         .select((comments::all_columns(), users::all_columns()))
-        .into_boxed();
-    q.load(&repo.conn())
+        .load(&repo.conn())
 }
