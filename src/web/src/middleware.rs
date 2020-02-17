@@ -35,7 +35,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
                 next.run(cx.set_local(c)).await
             } else {
                 next.run(cx).await
-            }
+            };
         })
     }
 }
