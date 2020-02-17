@@ -17,7 +17,7 @@ pub struct NewArticleRequest {
     pub title: String,
     pub description: String,
     pub body: String,
-    pub tag_list: Vec<String>,
+    pub tag_list: Option<Vec<String>>,
 }
 
 impl From<NewArticleRequest> for domain::ArticleContent {
@@ -26,7 +26,7 @@ impl From<NewArticleRequest> for domain::ArticleContent {
             title: a.title,
             description: a.description,
             body: a.body,
-            tag_list: a.tag_list,
+            tag_list: a.tag_list.unwrap_or_else(|| vec![]),
         }
     }
 }
