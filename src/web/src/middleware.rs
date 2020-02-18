@@ -8,7 +8,6 @@ use crate::auth::{extract_claims, Claims};
 #[derive(Clone, Default, Debug)]
 pub struct JwtMiddleware {}
 
-#[allow(dead_code)]
 impl JwtMiddleware {
     pub fn new() -> Self {
         Self {}
@@ -32,11 +31,11 @@ impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
             info!("Headers: {:?}", cx.headers());
             let claims = extract_claims(cx.headers());
             info!("Claims: {:?}", claims);
-            if let Some(c) = claims {
-                return next.run(cx.set_local(c)).await;
+            return if let Some(c) = claims {
+                next.run(cx.set_local(c)).await
             } else {
-                return next.run(cx).await;
-            }
+                next.run(cx).await
+            };
         })
     }
 }

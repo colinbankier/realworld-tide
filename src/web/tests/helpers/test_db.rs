@@ -25,10 +25,10 @@ pub fn get_test_repo() -> Repo {
 
 /// Delete all rows in all the tables in the database.
 pub fn clean_db(repo: &Repository) {
-    repo.0.run(move |conn| {
-        conn.batch_execute("DELETE FROM users; DELETE FROM articles;")
-            .expect("Failed to clean database")
-    });
+    repo.0
+        .conn()
+        .batch_execute("DELETE FROM users; DELETE FROM articles;")
+        .expect("Failed to clean database");
 }
 
 #[derive(Debug)]

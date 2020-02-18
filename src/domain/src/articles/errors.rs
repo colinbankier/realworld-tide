@@ -7,10 +7,10 @@ pub enum GetArticleError {
     ArticleNotFound {
         slug: String,
         #[source]
-        source: diesel::result::Error,
+        source: DatabaseError,
     },
     #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
+    DatabaseError(#[from] DatabaseError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -19,7 +19,7 @@ pub enum ChangeArticleError {
     ArticleNotFound {
         slug: String,
         #[source]
-        source: diesel::result::Error,
+        source: DatabaseError,
     },
     #[error("User {user_id:?} is not the author of the article (slug: {slug:?}).")]
     Forbidden { user_id: Uuid, slug: String },
@@ -39,10 +39,10 @@ pub enum PublishArticleError {
     DuplicatedSlug {
         slug: String,
         #[source]
-        source: diesel::result::Error,
+        source: DatabaseError,
     },
     #[error("Something went wrong.")]
-    DatabaseError(#[from] diesel::result::Error),
+    DatabaseError(#[from] DatabaseError),
 }
 
 impl From<GetUserError> for PublishArticleError {

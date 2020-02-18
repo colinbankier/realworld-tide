@@ -15,6 +15,7 @@ impl<T> Repo<T>
 where
     T: Connection + 'static,
 {
+    /// Creates a repo using default configuration for the underlying connection pool.
     pub fn new(database_url: &str) -> Self {
         Self::from_pool_builder(database_url, r2d2::Builder::default())
     }
@@ -32,10 +33,7 @@ where
         Repo { connection_pool }
     }
 
-    pub fn run<F, R>(&self, f: F) -> R
-    where
-        F: FnOnce(PooledConnection<ConnectionManager<T>>) -> R,
-    {
-        f(self.connection_pool.get().unwrap())
+    pub fn conn(&self) -> PooledConnection<ConnectionManager<T>> {
+        self.connection_pool.get().unwrap()
     }
 }

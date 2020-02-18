@@ -8,22 +8,16 @@ use domain::{FavoriteOutcome, UnfavoriteOutcome};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub fn favorite(
-    repo: &Repo,
-    user_id: Uuid,
-    article_slug: &str,
-) -> Result<FavoriteOutcome, domain::DatabaseError> {
+pub fn favorite(repo: &Repo, user_id: Uuid, article_slug: &str) -> Result<FavoriteOutcome, Error> {
     let row = NewFavorite {
         user_id,
         article_id: article_slug.to_owned(),
     };
-    let n_inserted: usize = repo.run(move |conn| {
-        diesel::insert_into(favorites::table)
-            .values(&row)
-            // If it already exists, ignore it and don't return an error
-            .on_conflict_do_nothing()
-            .execute(&conn)
-    })?;
+    let n_inserted: usize = diesel::insert_into(favorites::table)
+        .values(&row)
+        // If it already exists, ignore it and don't return an error
+        .on_conflict_do_nothing()
+        .execute(&repo.conn())?;
     let outcome = if n_inserted == 0 {
         FavoriteOutcome::AlreadyAFavorite
     } else {
@@ -36,11 +30,11 @@ pub fn unfavorite(
     repo: &Repo,
     user_id_value: Uuid,
     article_slug: &str,
-) -> Result<UnfavoriteOutcome, domain::DatabaseError> {
+) -> Result<UnfavoriteOutcome, Error> {
     use crate::schema::favorites::dsl::{article_id, favorites, user_id};
 
     let delete = favorites.filter(article_id.eq(article_slug).and(user_id.eq(user_id_value)));
-    let n_deleted: usize = repo.run(move |conn| diesel::delete(delete).execute(&conn))?;
+    let n_deleted: usize = diesel::delete(delete).execute(&repo.conn())?;
     let outcome = if n_deleted == 0 {
         UnfavoriteOutcome::WasNotAFavorite
     } else {
@@ -66,12 +60,10 @@ pub fn are_favorite<'a>(
     let filter = article_id
         .eq_any(&article_slugs)
         .and(user_id.eq(user_id_value));
-    let favorite_articles_ids: Vec<String> = repo.run(move |conn| {
-        favorites
-            .filter(filter)
-            .select(article_id)
-            .get_results(&conn)
-    })?;
+    let favorite_articles_ids: Vec<String> = favorites
+        .filter(filter)
+        .select(article_id)
+        .get_results(&repo.conn())?;
 
     let mut results = HashMap::new();
     for slug in article_slugs {
@@ -85,10 +77,8 @@ pub fn n_favorites(repo: &Repo, article_slug: &str) -> Result<i64, Error> {
     use crate::schema::favorites::dsl::{article_id, favorites, user_id};
     use diesel::dsl::count;
 
-    repo.run(move |conn| {
-        favorites
-            .filter(article_id.eq(article_slug))
-            .select(count(user_id))
-            .get_result(&conn)
-    })
+    favorites
+        .filter(article_id.eq(article_slug))
+        .select(count(user_id))
+        .get_result(&repo.conn())
 }
