@@ -12,7 +12,7 @@ use uuid::Uuid;
 /// Helper function to cast a diesel::Error into a domain Database Error.
 /// This requires casting the diesel::Error into anyhow::Error first.
 pub fn to_db_error(e: Error) -> domain::DatabaseError {
-    domain::DatabaseError::from(OpaqueError::from(e)).into()
+    domain::DatabaseError::from(OpaqueError::from(e))
 }
 
 pub struct Repository(pub Repo);
@@ -156,7 +156,7 @@ impl domain::repositories::Repository for Repository {
         let comment = comments::get_comment(&self.0, comment_id).map_err(|e| match e {
             Error::NotFound => DeleteCommentError::CommentNotFound {
                 comment_id,
-                source: to_db_error(e).into(),
+                source: to_db_error(e),
             },
             e => to_db_error(e).into(),
         })?;
