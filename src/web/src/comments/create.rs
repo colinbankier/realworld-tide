@@ -30,6 +30,7 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
     let author_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let repository = &cx.state().repository;
 
+    // This could be implemented as a function on the Tide context, to stay DRY
     let command_context = CommandContext {
         authenticated_user: author_id,
         repository,

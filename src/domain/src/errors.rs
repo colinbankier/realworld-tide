@@ -1,10 +1,10 @@
-use crate::{GetArticleError, GetUserError};
+use crate::{ArticleNotFoundError, GetArticleError, GetUserError};
 
 #[derive(thiserror::Error, Debug)]
 #[error("Something went wrong.")]
 pub struct DatabaseError {
     #[from]
-    source: anyhow::Error,
+    pub source: anyhow::Error,
 }
 
 impl From<GetUserError> for DatabaseError {
@@ -19,7 +19,7 @@ impl From<GetUserError> for DatabaseError {
 impl From<GetArticleError> for DatabaseError {
     fn from(e: GetArticleError) -> Self {
         match e {
-            GetArticleError::ArticleNotFound { source, .. } => source,
+            GetArticleError::ArticleNotFound(ArticleNotFoundError { source, .. }) => source,
             GetArticleError::DatabaseError(e) => e,
         }
     }
