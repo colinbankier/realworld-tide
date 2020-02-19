@@ -42,41 +42,37 @@ impl Command for CreateComment {
     type Output = Result<CommentView, CreateCommentError>;
 
     fn execute<R: Repository>(self, c: CommandContext<R>) -> Self::Output {
-        match c.authenticated_user {
-            Some(author_id) => {
-                let author = c
-                    .repository
-                    .get_user_by_id(author_id)
-                    .map_err(|e| match e {
-                        GetUserError::NotFound { user_id, source } => {
-                            CreateCommentError::AuthorNotFound {
-                                author_id: user_id,
-                                source,
-                            }
-                        }
-                        GetUserError::DatabaseError(e) => e.into(),
-                    })?;
-                let article = c
-                    .repository
-                    .get_article_by_slug(&self.article_slug)
-                    .map_err(|e| match e {
-                        GetArticleError::ArticleNotFound { slug, source } => {
-                            CreateCommentError::ArticleNotFound { slug, source }
-                        }
-                        GetArticleError::DatabaseError(e) => e.into(),
-                    })?;
-                let comment = author
-                    .comment(&article, CommentContent(self.comment_body), c.repository)
-                    .map_err(|e| match e {
-                        ChangeArticleError::ArticleNotFound { slug, source } => {
-                            CreateCommentError::ArticleNotFound { slug, source }
-                        }
-                        ChangeArticleError::Forbidden { .. } => panic!("Impossible."),
-                        ChangeArticleError::DatabaseError(e) => e.into(),
-                    })?;
-                Ok(comment)
-            }
-            None => Err(CreateCommentError::Unauthorized),
-        }
+        let author_id = c.authenticated_user.ok_or(CreateCommentError::Unauthorized)?;
+        let author = c
+            .repository
+            .get_user_by_id(author_id)
+            .map_err(|e| match e {
+                GetUserError::NotFound { user_id, source } => {
+                    CreateCommentError::AuthorNotFound {
+                        author_id: user_id,
+                        source,
+                    }
+                }
+                GetUserError::DatabaseError(e) => e.into(),
+            })?;
+        let article = c
+            .repository
+            .get_article_by_slug(&self.article_slug)
+            .map_err(|e| match e {
+                GetArticleError::ArticleNotFound { slug, source } => {
+                    CreateCommentError::ArticleNotFound { slug, source }
+                }
+                GetArticleError::DatabaseError(e) => e.into(),
+            })?;
+        let comment = author
+            .comment(&article, CommentContent(self.comment_body), c.repository)
+            .map_err(|e| match e {
+                ChangeArticleError::ArticleNotFound { slug, source } => {
+                    CreateCommentError::ArticleNotFound { slug, source }
+                }
+                ChangeArticleError::Forbidden { .. } => panic!("Impossible."),
+                ChangeArticleError::DatabaseError(e) => e.into(),
+            })?;
+        Ok(comment)
     }
 }
