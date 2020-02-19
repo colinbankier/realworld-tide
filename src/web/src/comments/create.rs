@@ -27,15 +27,17 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
     let article_slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
+
+    // These block could be implemented as a function on the Tide context, to stay DRY
     let author_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let repository = &cx.state().repository;
-
-    // This could be implemented as a function on the Tide context, to stay DRY
     let command_context = CommandContext {
         authenticated_user: author_id,
         repository,
     };
-    let posted_comment = CreateComment {
+
+    let posted_comment = CreateComment
+    {
         article_slug,
         comment_body: new_comment.comment.body,
     }
