@@ -1,10 +1,11 @@
 use crate::comments::responses::CommentResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
+use domain::commands::{Command, CommandContext, CreateComment};
 use domain::repositories::Repository;
-use domain::CommentContent;
 use serde::{Deserialize, Serialize};
 use tide::Response;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -25,17 +26,20 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
         .body_json()
         .await
         .map_err(|e| Response::new(400).body_string(e.to_string()))?;
-    let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
-    let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
+    let article_slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
+    let author_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let repository = &cx.state().repository;
 
-    let author = repository.get_user_by_id(author_id)?;
-    let article = repository.get_article_by_slug(&slug)?;
-    let posted_comment = author.comment(
-        &article,
-        CommentContent(new_comment.comment.body),
+    let command_context = CommandContext {
+        authenticated_user: author_id,
         repository,
-    )?;
+    };
+    let posted_comment = CreateComment {
+        article_slug,
+        comment_body: new_comment.comment.body,
+    }
+    .execute(command_context)
+    .expect("Yeah!");
 
     let response = CommentResponse {
         comment: posted_comment.into(),
