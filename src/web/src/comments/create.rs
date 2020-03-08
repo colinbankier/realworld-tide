@@ -1,7 +1,7 @@
 use crate::comments::responses::CommentResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
-use domain::commands::{Command, CommandContext, CreateComment, CreateCommentError};
+use domain::commands::{CommandHandler, CreateComment, CreateCommentError, Handle};
 use domain::repositories::Repository;
 use serde::{Deserialize, Serialize};
 use tide::Response;
@@ -31,16 +31,15 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
     // These block could be implemented as a function on the Tide context, to stay DRY
     let author_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
     let repository = &cx.state().repository;
-    let command_context = CommandContext {
+    let handler = CommandHandler {
         authenticated_user: author_id,
         repository,
     };
 
-    let posted_comment = CreateComment {
+    let posted_comment = handler.handle(CreateComment {
         article_slug,
         comment_body: new_comment.comment.body,
-    }
-    .execute(command_context)?;
+    })?;
 
     let response = CommentResponse {
         comment: posted_comment.into(),

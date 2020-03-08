@@ -3,14 +3,14 @@ use crate::{ArticleNotFoundError, ChangeArticleError, CommentContent, CommentVie
 use crate::{GetArticleError, GetUserError};
 use uuid::Uuid;
 
-pub struct CommandContext<'a, R: Repository> {
+pub struct CommandHandler<'a, R: Repository> {
     pub authenticated_user: Option<Uuid>,
     pub repository: &'a R,
 }
 
-pub trait Command {
+pub trait Handle<T> {
     type Output;
-    fn execute<R: Repository>(self, c: CommandContext<R>) -> Self::Output;
+    fn handle(self, command: T) -> Self::Output;
 }
 
 pub struct CreateComment {
@@ -34,16 +34,20 @@ pub enum CreateCommentError {
     DatabaseError(#[from] DatabaseError),
 }
 
-impl Command for CreateComment {
+impl<'a, R: Repository> Handle<CreateComment> for CommandHandler<'a, R> {
     type Output = Result<CommentView, CreateCommentError>;
 
-    fn execute<R: Repository>(self, c: CommandContext<R>) -> Self::Output {
-        let author_id = c
+    fn handle(self, command: CreateComment) -> Self::Output {
+        let author_id = self
             .authenticated_user
             .ok_or(CreateCommentError::Unauthorized)?;
-        let author = c.repository.get_user_by_id(author_id)?;
-        let article = c.repository.get_article_by_slug(&self.article_slug)?;
-        let comment = author.comment(&article, CommentContent(self.comment_body), c.repository)?;
+        let author = self.repository.get_user_by_id(author_id)?;
+        let article = self.repository.get_article_by_slug(&command.article_slug)?;
+        let comment = author.comment(
+            &article,
+            CommentContent(command.comment_body),
+            self.repository,
+        )?;
         Ok(comment)
     }
 }
