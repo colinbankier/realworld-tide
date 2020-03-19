@@ -67,7 +67,7 @@ pub fn add_routes<R: Repository + Send + Sync>(mut api: Server<Context<R>>) -> S
 
 pub fn add_middleware<State: 'static + Sync + Send>(mut app: Server<State>) -> Server<State> {
     let rules = Cors::new()
-        .allow_methods(HeaderValue::from_static("GET, POST, OPTIONS"))
+        .allow_methods(HeaderValue::from_static("GET, POST, PUT, DELETE, OPTIONS"))
         .allow_origin(Origin::from("*"))
         .allow_credentials(false);
     app.middleware(tide::middleware::RequestLogger::new());
