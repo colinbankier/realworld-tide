@@ -1,4 +1,4 @@
-use crate::middleware::ContextExt;
+use crate::middleware::JwtContext;
 use crate::profiles::responses::ProfileResponse;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;

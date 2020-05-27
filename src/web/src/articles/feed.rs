@@ -1,5 +1,5 @@
 use crate::articles::responses::ArticlesResponse;
-use crate::middleware::ContextExt;
+use crate::middleware::JwtContext;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use serde;

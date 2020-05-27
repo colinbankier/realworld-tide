@@ -1,4 +1,4 @@
-use crate::middleware::ContextExt;
+use crate::middleware::JwtContext;
 use crate::{Context, ErrorResponse};
 use domain;
 use serde::{Deserialize, Serialize};

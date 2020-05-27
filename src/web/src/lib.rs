@@ -7,10 +7,37 @@ pub mod middleware;
 pub mod profiles;
 pub mod users;
 
+use crate::auth::Claims;
+use domain::commands::CommandHandler;
 use domain::repositories::Repository;
-use tide::{IntoResponse, Response};
+use http::status::StatusCode;
+use tide::{Error, IntoResponse, Request, Response};
+use uuid::Uuid;
 
 pub use app::get_app;
+
+pub trait ContextExt<R: Repository> {
+    fn get_handler(&self) -> CommandHandler<R>;
+    fn get_claims(&self) -> Result<&Claims, Error>;
+}
+
+impl<R> ContextExt<R> for Request<Context<R>>
+where
+    R: 'static + Repository + Send + Sync,
+{
+    fn get_handler(&self) -> CommandHandler<R> {
+        let author_id: Option<Uuid> = self.get_claims().map(|c| c.user_id()).ok();
+        CommandHandler {
+            authenticated_user: author_id,
+            repository: &self.state().repository,
+        }
+    }
+
+    fn get_claims(&self) -> Result<&Claims, Error> {
+        self.local::<Claims>()
+            .ok_or_else(|| Error::from(StatusCode::UNAUTHORIZED))
+    }
+}
 
 /// The shared state of our application.
 /// It's generic with respect to the actual implementation of the repository:

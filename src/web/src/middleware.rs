@@ -14,11 +14,11 @@ impl JwtMiddleware {
     }
 }
 
-pub trait ContextExt {
+pub trait JwtContext {
     fn get_claims(&self) -> Result<&Claims, Error>;
 }
 
-impl<State> ContextExt for Request<State> {
+impl<State> JwtContext for Request<State> {
     fn get_claims(&self) -> Result<&Claims, Error> {
         self.local::<Claims>()
             .ok_or_else(|| Error::from(StatusCode::UNAUTHORIZED))
