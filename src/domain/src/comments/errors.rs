@@ -3,6 +3,8 @@ use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug)]
 pub enum DeleteCommentError {
+    #[error("You have to be logged in to delete a comment.")]
+    Unauthorized,
     #[error("There is no comment with {comment_id:?} as id.")]
     CommentNotFound {
         comment_id: u64,

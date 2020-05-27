@@ -94,6 +94,7 @@ impl From<DeleteCommentError> for ErrorResponse {
             DeleteCommentError::CommentNotFound { .. } => {
                 Response::new(404).body_string(e.to_string())
             }
+            DeleteCommentError::Unauthorized => Response::new(401).body_string(e.to_string()),
             DeleteCommentError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
             DeleteCommentError::DatabaseError(_) => Response::new(500),
         };
