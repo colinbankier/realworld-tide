@@ -1,7 +1,7 @@
 use crate::comments::responses::CommentResponse;
 use crate::ContextExt;
 use crate::{Context, ErrorResponse};
-use domain::commands::{CreateComment, CreateCommentError, Handle};
+use domain::commands::{comments::CreateComment, Handle};
 use domain::repositories::Repository;
 use serde::{Deserialize, Serialize};
 use tide::Response;
@@ -36,17 +36,4 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
         comment: posted_comment.into(),
     };
     Ok(Response::new(200).body_json(&response).unwrap())
-}
-
-impl From<CreateCommentError> for ErrorResponse {
-    fn from(e: CreateCommentError) -> ErrorResponse {
-        let r = match &e {
-            CreateCommentError::Unauthorized => Response::new(401),
-            CreateCommentError::ArticleNotFound(_) => Response::new(404).body_string(e.to_string()),
-            CreateCommentError::DatabaseError(_) | CreateCommentError::AuthorNotFound { .. } => {
-                Response::new(500)
-            }
-        };
-        ErrorResponse(r)
-    }
 }

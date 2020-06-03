@@ -1,8 +1,8 @@
 //! A sub-module to prescribe how each domain error gets converted to an HTTP response.
 use crate::ErrorResponse;
 use domain::{
-    ChangeArticleError, DatabaseError, DeleteCommentError, GetArticleError, GetUserError,
-    LoginError, PasswordError, PublishArticleError, SignUpError,
+    ChangeArticleError, CreateCommentError, DatabaseError, DeleteCommentError, GetArticleError,
+    GetUserError, LoginError, PasswordError, PublishArticleError, SignUpError,
 };
 use tide::Response;
 
@@ -83,6 +83,19 @@ impl From<ChangeArticleError> for ErrorResponse {
             }
             ChangeArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
             ChangeArticleError::DatabaseError(_) => Response::new(500),
+        };
+        ErrorResponse(r)
+    }
+}
+
+impl From<CreateCommentError> for ErrorResponse {
+    fn from(e: CreateCommentError) -> ErrorResponse {
+        let r = match &e {
+            CreateCommentError::Unauthorized => Response::new(401),
+            CreateCommentError::ArticleNotFound(_) => Response::new(404).body_string(e.to_string()),
+            CreateCommentError::DatabaseError(_) | CreateCommentError::AuthorNotFound { .. } => {
+                Response::new(500)
+            }
         };
         ErrorResponse(r)
     }

@@ -1,6 +1,6 @@
 use crate::ContextExt;
 use crate::{Context, ErrorResponse};
-use domain::commands::{DeleteComment, Handle};
+use domain::commands::{comments::DeleteComment, Handle};
 use domain::repositories::Repository;
 use tide::Response;
 

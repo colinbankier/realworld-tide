@@ -1,5 +1,21 @@
-use crate::DatabaseError;
+use crate::{ArticleNotFoundError, DatabaseError};
 use uuid::Uuid;
+
+#[derive(thiserror::Error, Debug)]
+pub enum CreateCommentError {
+    #[error("You have to be logged in to post a comment.")]
+    Unauthorized,
+    #[error("There is no user with {author_id:?} as id.")]
+    AuthorNotFound {
+        author_id: Uuid,
+        #[source]
+        source: DatabaseError,
+    },
+    #[error("{0}")]
+    ArticleNotFound(#[from] ArticleNotFoundError),
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] DatabaseError),
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum DeleteCommentError {
