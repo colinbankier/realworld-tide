@@ -2,7 +2,7 @@
 use crate::ErrorResponse;
 use domain::{
     ChangeArticleError, CreateCommentError, DatabaseError, DeleteCommentError, GetArticleError,
-    GetUserError, LoginError, PasswordError, PublishArticleError, SignUpError,
+    GetCommentsError, GetUserError, LoginError, PasswordError, PublishArticleError, SignUpError,
 };
 use tide::Response;
 
@@ -110,6 +110,17 @@ impl From<DeleteCommentError> for ErrorResponse {
             DeleteCommentError::Unauthorized => Response::new(401).body_string(e.to_string()),
             DeleteCommentError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
             DeleteCommentError::DatabaseError(_) => Response::new(500),
+        };
+        ErrorResponse(r)
+    }
+}
+
+impl From<GetCommentsError> for ErrorResponse {
+    fn from(e: GetCommentsError) -> ErrorResponse {
+        let r = match &e {
+            GetCommentsError::Unauthorized => Response::new(401).body_string(e.to_string()),
+            GetCommentsError::UserNotFoundError(e) => Response::new(404).body_string(e.to_string()),
+            GetCommentsError::DatabaseError(_) => Response::new(500),
         };
         ErrorResponse(r)
     }

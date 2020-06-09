@@ -1,4 +1,4 @@
-use crate::{ArticleNotFoundError, DatabaseError};
+use crate::{ArticleNotFoundError, DatabaseError, GetUserError};
 use uuid::Uuid;
 
 #[derive(thiserror::Error, Debug)]
@@ -29,6 +29,16 @@ pub enum DeleteCommentError {
     },
     #[error("User {user_id:?} is not the author of the comment (id: {comment_id:?}).")]
     Forbidden { user_id: Uuid, comment_id: u64 },
+    #[error("Something went wrong.")]
+    DatabaseError(#[from] DatabaseError),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum GetCommentsError {
+    #[error("You have to be logged in to fetch comments.")]
+    Unauthorized,
+    #[error("User not found.")]
+    UserNotFoundError(#[from] GetUserError),
     #[error("Something went wrong.")]
     DatabaseError(#[from] DatabaseError),
 }

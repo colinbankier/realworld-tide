@@ -1,5 +1,5 @@
 use crate::commands::{CommandHandler, Handle};
-use crate::comments::{CreateCommentError, DeleteCommentError};
+use crate::comments::{CreateCommentError, DeleteCommentError, GetCommentsError};
 use crate::repositories::Repository;
 use crate::{ChangeArticleError, CommentContent, CommentView};
 use crate::{GetArticleError, GetUserError};
@@ -11,6 +11,10 @@ pub struct CreateComment {
 
 pub struct DeleteComment {
     pub comment_id: u64,
+}
+
+pub struct GetComments {
+    pub article_slug: String,
 }
 
 impl<'a, R: Repository> Handle<CreateComment> for CommandHandler<'a, R> {
@@ -42,6 +46,24 @@ impl<'a, R: Repository> Handle<DeleteComment> for CommandHandler<'a, R> {
         let comment = self.repository.get_comment(command.comment_id)?;
         author.delete_comment(comment, self.repository)?;
         Ok(())
+    }
+}
+
+impl<'a, R: Repository> Handle<GetComments> for CommandHandler<'a, R> {
+    type Output = Result<Vec<CommentView>, GetCommentsError>;
+
+    fn handle(self, command: GetComments) -> Self::Output {
+        let article = self.repository.get_article_by_slug(&command.article_slug)?;
+        let comments = article.comments(self.repository)?;
+        let user_id = self
+            .authenticated_user
+            .ok_or(GetCommentsError::Unauthorized)?;
+        let user = self.repository.get_user_by_id(user_id)?;
+        let result: Result<Vec<_>, _> = comments
+            .into_iter()
+            .map(|c| c.view(&user, self.repository))
+            .collect();
+        Ok(result?)
     }
 }
 
@@ -87,3 +109,30 @@ impl From<GetUserError> for DeleteCommentError {
         }
     }
 }
+
+// impl From<GetUserError> for GetCommentsError {
+//     fn from(e: GetUserError) -> Self {
+//         match e {
+//             GetUserError::NotFound {
+//                 user_id: _,
+//                 source: _,
+//             } => GetCommentsError::Unauthorized,
+//             GetUserError::DatabaseError(e) => e.into(),
+//         }
+//     }
+// }
+
+impl From<GetArticleError> for GetCommentsError {
+    fn from(e: GetArticleError) -> Self {
+        match e {
+            GetArticleError::ArticleNotFound(_) => GetCommentsError::Unauthorized,
+            GetArticleError::DatabaseError(e) => e.into(),
+        }
+    }
+}
+
+// impl From<DatabaseError> for GetCommentsError {
+//     fn from(e: DatabaseError) -> Self {
+//         GetCommentsError::DatabaseError(e)
+//     }
+// }
