@@ -16,7 +16,7 @@ The fourth crate, `application`, glues the other three together and provides the
 
 Each sub-crate has its own set of tests, with integration tests taking place in the `web` crate.
 
-You can also exercise the application using Realworld's Postman collection: [https://github.com/gothinkster/realworld/tree/master/api](here).
+You can also exercise the application using Realworld's Postman collection: [here](https://github.com/gothinkster/realworld/tree/master/api).
 
 For more information on how this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
