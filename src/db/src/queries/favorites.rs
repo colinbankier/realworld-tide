@@ -3,7 +3,6 @@ use crate::schema::favorites;
 use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
-use domain;
 use domain::{FavoriteOutcome, UnfavoriteOutcome};
 use std::collections::HashMap;
 use uuid::Uuid;

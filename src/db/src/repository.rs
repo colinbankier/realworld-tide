@@ -4,7 +4,6 @@ use crate::shims::{to_article, to_comment};
 use crate::Repo;
 use anyhow::Error as OpaqueError;
 use diesel::result::{DatabaseErrorKind, Error};
-use domain;
 use domain::{DatabaseError, DeleteCommentError, GetUserError};
 use std::collections::HashSet;
 use uuid::Uuid;

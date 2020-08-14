@@ -2,7 +2,6 @@ use crate::articles::responses::ArticlesResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
-use serde;
 use serde::{Deserialize, Serialize};
 use tide::{Request, Response};
 

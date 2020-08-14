@@ -1,6 +1,5 @@
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
-use domain;
 use serde::{Deserialize, Serialize};
 
 use crate::auth::encode_token;
