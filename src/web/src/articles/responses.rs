@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use domain;
 use domain::Profile;
 use serde::{Deserialize, Serialize};
 

@@ -6,7 +6,6 @@ use crate::Repo;
 use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::sql_query;
-use domain;
 use domain::ArticleQuery;
 use std::collections::HashSet;
 use std::iter::FromIterator;

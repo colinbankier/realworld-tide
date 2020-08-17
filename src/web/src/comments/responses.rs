@@ -1,6 +1,5 @@
 use crate::articles::responses::Author;
 use chrono::{DateTime, Utc};
-use domain;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]

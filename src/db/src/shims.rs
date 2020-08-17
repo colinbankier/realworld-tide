@@ -1,5 +1,4 @@
 use crate::models::{Article, Comment, NewArticle, UpdateArticle, UpdateUser, User};
-use domain;
 
 pub fn to_article(a: Article, u: domain::User, n_fav: u64) -> domain::Article {
     let metadata = domain::ArticleMetadata {
