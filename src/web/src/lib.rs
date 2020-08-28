@@ -8,7 +8,7 @@ pub mod profiles;
 pub mod users;
 
 use domain::repositories::Repository;
-use tide::{IntoResponse, Response};
+use tide::Response;
 
 pub use app::get_app;
 
@@ -32,9 +32,9 @@ impl From<Response> for ErrorResponse {
     }
 }
 
-/// Required to have a Tide-compatible signature for the handler function of each endpoint.
-impl IntoResponse for ErrorResponse {
-    fn into_response(self) -> Response {
-        self.0
-    }
-}
+// // Required to have a Tide-compatible signature for the handler function of each endpoint.
+// impl IntoResponse for ErrorResponse {
+//     fn into_response(self) -> Response {
+//         self.0
+//     }
+// }

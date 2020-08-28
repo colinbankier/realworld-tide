@@ -2,6 +2,7 @@ use crate::articles::responses::ArticleResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::{Request, Response};
 
 pub async fn favorite<R: 'static + Repository + Sync + Send>(
@@ -37,5 +38,5 @@ pub async fn _favorite<R: 'static + Repository + Sync + Send>(
     }?;
 
     let response: ArticleResponse = article_view.into();
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

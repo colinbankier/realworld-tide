@@ -4,7 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use serde::Deserialize;
 use std::str::FromStr;
-use tide::{IntoResponse, Request, Response};
+use tide::{Request, Response};
 use uuid::Uuid;
 
 #[derive(Default, Deserialize, Debug, Clone)]

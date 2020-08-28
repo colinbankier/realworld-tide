@@ -9,18 +9,18 @@ name = "realworld_domain"
 path = "src/lib.rs"
 
 [dependencies]
-serde = { version= "1", features = ["derive"] }
-chrono = { version = "0.4.6", features = ["serde"] }
-log = "0.4.0"
-uuid = { version = "0.7.4", features = ["serde", "v4"] }
-itertools = "0.8.2"
-thiserror = "1.0.9"
-bcrypt = "0.6.1"
-anyhow = "1.0.26"
+serde = { version = "1.0.115", features = ["derive"] }
+chrono = { version = "0.4.15", features = ["serde"] }
+log = "0.4.11"
+uuid = { version = "0.8.1", features = ["serde", "v4"] }
+itertools = "0.9.0"
+thiserror = "1.0.20"
+bcrypt = "0.8.2"
+anyhow = "1.0.32"
 
 [dev-dependencies]
 application = { package = "realworld-application", path = "../application"}
 db = { package = "realworld-db", path = "../db" }
-diesel = { version = "1.4", features = ["postgres", "extras", "uuidv07"] }
-r2d2 = "0.8"
-fake = "1.2.2"
+diesel = { version = "1.4.5", features = ["postgres", "extras", "uuidv07"] }
+r2d2 = "0.8.9"
+fake = "2.2.3"

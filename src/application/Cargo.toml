@@ -9,14 +9,14 @@ name = "realworld_application"
 path = "src/main.rs"
 
 [dependencies]
-serde = { version= "1", features = ["derive"] }
-env_logger = "0.6.0"
-config = "0.9.3"
-async-std = "1"
+serde = { version = "1.0.115", features = ["derive"] }
+env_logger = "0.7.1"
+config = "0.10.1"
+async-std = "1.6.3"
 db = { package = "realworld-db", path = "../db" }
 domain = { package = "realworld-domain", path = "../domain" }
 web = { package = "realworld-web", path = "../web" }
 
 [dependencies.futures]
 features = ["compat"]
-version = "0.3.1"
+version = "0.3.5"
