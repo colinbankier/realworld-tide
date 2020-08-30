@@ -8,7 +8,7 @@ pub mod profiles;
 pub mod users;
 
 use domain::repositories::Repository;
-use tide::Response;
+use tide::{Response, ResponseBuilder};
 
 pub use app::get_app;
 
@@ -29,6 +29,18 @@ pub struct ErrorResponse(pub Response);
 impl From<Response> for ErrorResponse {
     fn from(e: Response) -> Self {
         Self(e)
+    }
+}
+
+impl From<ResponseBuilder> for ErrorResponse {
+    fn from(e: ResponseBuilder) -> Self {
+        Self(e.into())
+    }
+}
+
+impl From<tide::Error> for ErrorResponse {
+    fn from(e: tide::Error) -> Self {
+        Self(e.into())
     }
 }
 

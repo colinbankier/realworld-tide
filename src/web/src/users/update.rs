@@ -6,6 +6,7 @@ use crate::auth::encode_token;
 use crate::users::responses::UserResponse;
 use domain::repositories::Repository;
 use std::convert::{TryFrom, TryInto};
+use tide::prelude::*;
 use tide::Response;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -57,5 +58,5 @@ pub async fn update_user<R: 'static + Repository + Sync + Send>(
 
     let response = UserResponse::from((updated_user, token));
 
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

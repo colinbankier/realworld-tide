@@ -2,6 +2,7 @@ use crate::articles::responses::ArticleResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::{Request, Response};
 use uuid::Uuid;
 
@@ -21,5 +22,5 @@ pub async fn get_article<R: 'static + Repository + Sync + Send>(
         }
         None => article.into(),
     };
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

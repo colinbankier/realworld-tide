@@ -4,6 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use serde::Deserialize;
 use std::str::FromStr;
+use tide::prelude::*;
 use tide::{Request, Response};
 use uuid::Uuid;
 
@@ -34,7 +35,7 @@ impl FromStr for ArticleQuery {
 pub async fn list_articles<R: 'static + Repository + Sync + Send>(
     cx: Request<Context<R>>,
 ) -> Result<Response, ErrorResponse> {
-    let query = cx.query::<ArticleQuery>().map_err(|e| e.into_response())?;
+    let query = cx.query::<ArticleQuery>().map_err(|e| e)?;
     let repository = &cx.state().repository;
 
     let user_id: Option<Uuid> = cx.get_claims().map(|c| c.user_id()).ok();
@@ -47,5 +48,5 @@ pub async fn list_articles<R: 'static + Repository + Sync + Send>(
         }
         None => ArticlesResponse::from(articles),
     };
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

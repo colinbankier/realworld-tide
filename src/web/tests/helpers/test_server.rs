@@ -14,9 +14,8 @@ use realworld_web::profiles::responses::ProfileResponse;
 use realworld_web::Context;
 use serde::de::DeserializeOwned;
 use serde_json::json;
-use tide::server::Service;
 
-pub type TestServer = TestBackend<Service<Context<Repository>>>;
+pub type TestServer = TestBackend<Context<Repository>>;
 
 pub struct TestApp {
     pub server: TestServer,

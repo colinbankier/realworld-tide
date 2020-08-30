@@ -3,6 +3,7 @@ use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use serde::{Deserialize, Serialize};
+use tide::prelude::*;
 use tide::{Request, Response};
 
 #[derive(Serialize, Deserialize)]
@@ -44,5 +45,5 @@ pub async fn feed<R: 'static + Repository + Sync + Send>(
 
     let articles = user.feed(query.into(), repository)?;
     let response = ArticlesResponse::from(articles);
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

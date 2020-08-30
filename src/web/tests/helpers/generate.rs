@@ -1,5 +1,5 @@
 //! Functions for generating test data
-use fake::fake;
+use fake::Fake;
 
 pub enum With<T> {
     Value(T),
