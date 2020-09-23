@@ -5,6 +5,7 @@ use domain::repositories::Repository;
 use domain::SignUp;
 use serde::Deserialize;
 use std::convert::{TryFrom, TryInto};
+use tide::prelude::*;
 use tide::{Request, Response};
 
 #[derive(Deserialize, Debug)]
@@ -38,7 +39,7 @@ pub async fn register<R: 'static + Repository + Sync + Send>(
     let registration: RegistrationRequest = cx
         .body_json()
         .await
-        .map_err(|e| Response::new(400).body_string(e.to_string()))?;
+        .map_err(|e| Response::builder(400).body(e.to_string()))?;
     let repository = &cx.state().repository;
 
     let sign_up: SignUp = registration.try_into()?;
@@ -46,5 +47,5 @@ pub async fn register<R: 'static + Repository + Sync + Send>(
     let token = encode_token(new_user.id);
 
     let response = UserResponse::from((new_user, token));
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

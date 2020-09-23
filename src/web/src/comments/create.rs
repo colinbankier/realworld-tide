@@ -4,6 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use domain::CommentContent;
 use serde::{Deserialize, Serialize};
+use tide::prelude::*;
 use tide::Response;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -24,7 +25,7 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
     let new_comment: Request = cx
         .body_json()
         .await
-        .map_err(|e| Response::new(400).body_string(e.to_string()))?;
+        .map_err(|e| Response::builder(400).body(e.to_string()))?;
     let author_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
     let slug: String = cx.param("slug").map_err(|_| Response::new(400))?;
     let repository = &cx.state().repository;
@@ -40,5 +41,5 @@ pub async fn create<R: 'static + Repository + Sync + Send>(
     let response = CommentResponse {
         comment: posted_comment.into(),
     };
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

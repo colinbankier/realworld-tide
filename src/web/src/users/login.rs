@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 use crate::auth::encode_token;
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::{Request, Response};
 
 #[derive(Deserialize)]
@@ -32,5 +33,5 @@ pub async fn login<R: 'static + Repository + Sync + Send>(
 
     let response = UserResponse::from((logged_in_user, token));
 
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

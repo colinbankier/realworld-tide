@@ -9,10 +9,10 @@ use tide::Response;
 impl From<GetUserError> for ErrorResponse {
     fn from(e: GetUserError) -> ErrorResponse {
         let r = match &e {
-            GetUserError::NotFound { .. } => Response::new(404).body_string(e.to_string()),
-            GetUserError::DatabaseError(_) => Response::new(500),
+            GetUserError::NotFound { .. } => Response::builder(404).body(e.to_string()),
+            GetUserError::DatabaseError(_) => Response::builder(500),
         };
-        ErrorResponse(r)
+        ErrorResponse(r.into())
     }
 }
 
@@ -45,12 +45,10 @@ impl From<SignUpError> for ErrorResponse {
 impl From<GetArticleError> for ErrorResponse {
     fn from(e: GetArticleError) -> ErrorResponse {
         let r = match &e {
-            GetArticleError::ArticleNotFound { .. } => {
-                Response::new(404).body_string(e.to_string())
-            }
-            GetArticleError::DatabaseError(_) => Response::new(500),
+            GetArticleError::ArticleNotFound { .. } => Response::builder(404).body(e.to_string()),
+            GetArticleError::DatabaseError(_) => Response::builder(500),
         };
-        ErrorResponse(r)
+        ErrorResponse(r.into())
     }
 }
 
@@ -64,14 +62,14 @@ impl From<PublishArticleError> for ErrorResponse {
     fn from(e: PublishArticleError) -> ErrorResponse {
         let r = match &e {
             PublishArticleError::AuthorNotFound { .. } => {
-                Response::new(404).body_string(e.to_string())
+                Response::builder(404).body(e.to_string())
             }
             PublishArticleError::DuplicatedSlug { .. } => {
-                Response::new(400).body_string(e.to_string())
+                Response::builder(400).body(e.to_string())
             }
-            PublishArticleError::DatabaseError(_) => Response::new(500),
+            PublishArticleError::DatabaseError(_) => Response::builder(500),
         };
-        ErrorResponse(r)
+        ErrorResponse(r.into())
     }
 }
 
@@ -79,12 +77,12 @@ impl From<ChangeArticleError> for ErrorResponse {
     fn from(e: ChangeArticleError) -> ErrorResponse {
         let r = match &e {
             ChangeArticleError::ArticleNotFound { .. } => {
-                Response::new(404).body_string(e.to_string())
+                Response::builder(404).body(e.to_string())
             }
-            ChangeArticleError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
-            ChangeArticleError::DatabaseError(_) => Response::new(500),
+            ChangeArticleError::Forbidden { .. } => Response::builder(401).body(e.to_string()),
+            ChangeArticleError::DatabaseError(_) => Response::builder(500),
         };
-        ErrorResponse(r)
+        ErrorResponse(r.into())
     }
 }
 
@@ -92,11 +90,11 @@ impl From<DeleteCommentError> for ErrorResponse {
     fn from(e: DeleteCommentError) -> ErrorResponse {
         let r = match &e {
             DeleteCommentError::CommentNotFound { .. } => {
-                Response::new(404).body_string(e.to_string())
+                Response::builder(404).body(e.to_string())
             }
-            DeleteCommentError::Forbidden { .. } => Response::new(401).body_string(e.to_string()),
-            DeleteCommentError::DatabaseError(_) => Response::new(500),
+            DeleteCommentError::Forbidden { .. } => Response::builder(401).body(e.to_string()),
+            DeleteCommentError::DatabaseError(_) => Response::builder(500),
         };
-        ErrorResponse(r)
+        ErrorResponse(r.into())
     }
 }

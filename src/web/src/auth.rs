@@ -1,5 +1,5 @@
 use http::HeaderMap;
-use jsonwebtoken::{decode, encode, Header, Validation};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -8,6 +8,8 @@ use uuid::Uuid;
 
 // TODO: get the secret from config
 const SECRET: &str = "secret";
+const DECODING_KEY: DecodingKey = DecodingKey::from_secret(SECRET.as_bytes());
+const ENCODING_KEY: EncodingKey = EncodingKey::from_secret(SECRET.as_bytes());
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Claims {
@@ -26,7 +28,7 @@ fn validation() -> Validation {
 }
 
 pub fn encode_token(sub: Uuid) -> String {
-    encode(&Header::default(), &claims_for(sub, 3600), SECRET.as_ref()).unwrap()
+    encode(&Header::default(), &claims_for(sub, 3600), &ENCODING_KEY).unwrap()
 }
 
 pub fn claims_for(user_id: Uuid, expire_in: u64) -> Claims {
@@ -54,7 +56,7 @@ pub fn extract_token(headers: &HeaderMap) -> Option<&str> {
 
 pub fn extract_claims(headers: &HeaderMap) -> Option<Claims> {
     extract_token(headers).and_then(|token| {
-        let decoded = decode::<Claims>(&token, SECRET.as_ref(), &validation());
+        let decoded = decode::<Claims>(&token, &DECODING_KEY, &validation());
         if let Err(e) = &decoded {
             debug!("Failed to decode token {}", e);
         }
@@ -71,7 +73,7 @@ mod tests {
     fn encode_decode_token() {
         let sub = Uuid::new_v4();
         let token = encode_token(sub);
-        let decoded = decode::<Claims>(&token, "secret".as_ref(), &Validation::default());
+        let decoded = decode::<Claims>(&token, &DECODING_KEY, &Validation::default());
         if let Err(e) = &decoded {
             println!("decode err: {}", e);
         }

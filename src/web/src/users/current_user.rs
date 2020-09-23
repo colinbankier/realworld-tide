@@ -5,6 +5,7 @@ use log::info;
 use crate::auth::encode_token;
 use crate::users::responses::UserResponse;
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::{Request, Response};
 
 pub async fn get_current_user<R: 'static + Repository + Sync + Send>(
@@ -17,7 +18,6 @@ pub async fn get_current_user<R: 'static + Repository + Sync + Send>(
     let user = repository.get_user_by_id(user_id)?;
     let token = encode_token(user.id);
 
-    let payload: UserResponse = (user, token).into();
-    let response = Response::new(200).body_json(&payload).unwrap();
-    Ok(response)
+    let response: UserResponse = (user, token).into();
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

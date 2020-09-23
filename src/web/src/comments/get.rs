@@ -2,6 +2,7 @@ use crate::comments::responses::CommentsResponse;
 use crate::middleware::ContextExt;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::Response;
 use uuid::Uuid;
 
@@ -28,5 +29,5 @@ pub async fn get<R: 'static + Repository + Sync + Send>(
         None => CommentsResponse::from(comments),
     };
 
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

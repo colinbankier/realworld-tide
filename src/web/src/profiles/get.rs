@@ -2,6 +2,7 @@ use crate::middleware::ContextExt;
 use crate::profiles::responses::ProfileResponse;
 use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
+use tide::prelude::*;
 use tide::{Request, Response};
 use uuid::Uuid;
 
@@ -24,5 +25,5 @@ pub async fn get_profile<R: 'static + Repository + Sync + Send>(
         }
     };
 
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

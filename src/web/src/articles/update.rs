@@ -4,6 +4,7 @@ use crate::{Context, ErrorResponse};
 use domain::repositories::Repository;
 use domain::ArticleUpdate;
 use serde::{Deserialize, Serialize};
+use tide::prelude::*;
 use tide::Response;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -36,7 +37,7 @@ pub async fn update_article<R: 'static + Repository + Sync + Send>(
     let request: Request = cx
         .body_json()
         .await
-        .map_err(|e| Response::new(400).body_string(e.to_string()))?;
+        .map_err(|e| Response::builder(400).body(e.to_string()))?;
     let slug: String = cx.param("slug").map_err(|_| Response::new(401))?;
     let user_id = cx.get_claims().map_err(|_| Response::new(401))?.user_id();
     let repository = &cx.state().repository;
@@ -46,5 +47,5 @@ pub async fn update_article<R: 'static + Repository + Sync + Send>(
     let updated_article = user.update_article(article, request.into(), repository)?;
 
     let response: ArticleResponse = repository.get_article_view(&user, updated_article)?.into();
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }
