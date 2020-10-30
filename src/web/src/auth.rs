@@ -1,9 +1,11 @@
-use http::HeaderMap;
+use crate::Context;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
+use tide::http::headers::HeaderValue;
+use tide::Request;
 use uuid::Uuid;
 
 // TODO: get the secret from config
@@ -44,18 +46,12 @@ fn seconds_from_now(secs: u64) -> u64 {
     expiry_time.as_secs()
 }
 
-pub fn extract_token(headers: &HeaderMap) -> Option<&str> {
-    match headers.get("Authorization") {
-        Some(h) => match h.to_str() {
-            Ok(hx) => hx.split(' ').nth(1),
-            _ => None,
-        },
-        _ => None,
-    }
+pub fn extract_token(authorization: &HeaderValue) -> Option<&str> {
+    authorization.as_str().split(' ').nth(1)
 }
 
-pub fn extract_claims(headers: &HeaderMap) -> Option<Claims> {
-    extract_token(headers).and_then(|token| {
+pub fn extract_claims(authorization: &HeaderValue) -> Option<Claims> {
+    extract_token(authorization).and_then(|token| {
         let decoded = decode::<Claims>(&token, &DECODING_KEY, &validation());
         if let Err(e) = &decoded {
             debug!("Failed to decode token {}", e);

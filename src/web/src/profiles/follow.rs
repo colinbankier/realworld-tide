@@ -4,6 +4,7 @@ use crate::{Context, ErrorResponse};
 use crate::profiles::responses::ProfileResponse;
 use domain::repositories::Repository;
 use tide::{Request, Response};
+use tide::prelude::*;
 
 pub enum Action {
     Follow,
@@ -38,5 +39,5 @@ async fn _follow<R: 'static + Repository + Sync + Send>(
     };
 
     let response = ProfileResponse::from(view);
-    Ok(Response::new(200).body_json(&response).unwrap())
+    Ok(Response::builder(200).body(json!(&response)).into())
 }

@@ -1,7 +1,5 @@
-use futures::future::BoxFuture;
-use http::status::StatusCode;
 use log::info;
-use tide::{Error, Middleware, Next, Request, Response};
+use tide::{Error, Middleware, Next, Request, Result, StatusCode};
 
 use crate::auth::{extract_claims, Claims};
 
@@ -15,27 +13,26 @@ impl JwtMiddleware {
 }
 
 pub trait ContextExt {
-    fn get_claims(&self) -> Result<&Claims, Error>;
+    fn get_claims(&self) -> Result<&Claims>;
 }
 
 impl<State> ContextExt for Request<State> {
-    fn get_claims(&self) -> Result<&Claims, Error> {
-        self.local::<Claims>()
-            .ok_or_else(|| Error::from(StatusCode::UNAUTHORIZED))
+    fn get_claims(&self) -> Result<&Claims> {
+        self.ext::<Claims>()
+            .ok_or_else(|| Error::from_str(StatusCode::Unauthorized, "no"))
     }
 }
 
-impl<State: Send + Sync + 'static> Middleware<State> for JwtMiddleware {
-    fn handle<'a>(&'a self, cx: Request<State>, next: Next<'a, State>) -> BoxFuture<'a, Response> {
-        Box::pin(async move {
-            info!("Headers: {:?}", cx.headers());
-            let claims = extract_claims(cx.headers());
-            info!("Claims: {:?}", claims);
-            return if let Some(c) = claims {
-                next.run(cx.set_local(c)).await
-            } else {
-                next.run(cx).await
-            };
-        })
+#[tide::utils::async_trait]
+impl<State: Clone + Send + Sync + 'static> Middleware<State> for JwtMiddleware {
+    async fn handle(&self, mut cx: Request<State>, next: Next<'_, State>) -> Result {
+        info!("Headers: {:?}", cx.iter());
+        let authorization = cx.header("Authorization").map(|v| v.last());
+        let claims = authorization.map(|a| extract_claims(a));
+        info!("Claims: {:?}", claims);
+        let response = if let Some(c) = claims {
+            cx.set_ext(c);
+        };
+        Ok(next.run(cx).await)
     }
 }
